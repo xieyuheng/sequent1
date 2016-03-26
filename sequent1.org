@@ -1,0 +1,317 @@
++ sequent1
+  sequent calculus as dependent type system of functional language
+
++ this is a prototype
+  it is not useful for it is lack of so many important features
+
++ 謝宇恆 / XIE Yuheng
+
+#+PROPERTY: tangle sequent1.scm
+
+* helper
+
+  #+begin_src scheme
+  (define-syntax cat
+    (syntax-rules ()
+      [(cat (str . args))
+       (format str . args)]
+      [(cat (str . args) (str2 . args2) ...)
+       (string-append
+        (cat (str . args))
+        (cat (str2 . args2) ...))]))
+
+  (define-syntax orz
+    (syntax-rules ()
+      [(orz . body)
+       (error (cat . body))]))
+
+  (define-syntax note
+    (syntax-rules ()
+      [(note . body)
+       (void)]))
+  #+end_src
+
+* note env
+
+  - env
+    - as argument-stack
+      data
+    - bs binding-stack
+      (var . type)
+    - ns name-stack
+      (name . (type . data))
+
+* env
+
+  #+begin_src scheme
+  (define (as env) (car env))
+  (define (bs env) (cadr env))
+  (define (ns env) (caddr env))
+
+  (define (env/as env as) (list as (bs env) (ns env)))
+  (define (env/bs env bs) (list (as env) bs (ns env)))
+  (define (env/ns env ns) (list (as env) (bs env) ns))
+  #+end_src
+
+* note sequent
+
+  - sequent
+    list of clause
+
+  - sequent*
+    list of clause*
+    clause + bs = clause*
+
+* seq
+
+*** seq
+
+    #+begin_src scheme
+    (define-syntax seq
+      (syntax-rules ()
+        [(_ c ...) (seq/f (quote (c ...)) '(() () ()))]))
+    #+end_src
+
+*** seq/f
+
+    #+begin_src scheme
+    (define (seq/f body env)
+      ;; body env -> env
+      (if (null? body)
+        env
+        (seq/f (cdr body)
+               (eva (car body) env))))
+    #+end_src
+
+* eva
+
+*** eva
+
+    #+begin_src scheme
+    (define (eva exp env)
+      ;; exp env -> env
+      (case (car exp)
+        [(deftype) (eva/deftype (cdr exp) env)]
+        [(def) (eva/def (cdr exp) env)]
+        [(run) (eva/run (cdr exp) env)]))
+    #+end_src
+
+*** eva/deftype
+
+    - <type-name>
+      sequent
+      <data-name> list
+
+    - <data-name>
+      sequent
+      <type-name>
+
+    #+begin_src scheme
+    (define (eva/deftype body env)
+      ;; ns -> new-ns
+      (define type-name (car body))
+      (define type-sequent (cadr body))
+      (define data-list (cddr body))
+      (define (recur1 l)
+        (cond [(null? l) '()]
+              [else (cons (car l) (recur1 (cddr l)))]))
+      (define data-name-list (recur1 data-list))
+      (define (recur2 l)
+        (cond [(null? l) '()]
+              [else (cons (list (car l) 'data-constructor
+                                (list (cadr l))
+                                type-name)
+                          (recur2 (cddr l)))]))
+      (env/ns env
+              (append
+               (recur2 data-list)
+               (cons (list type-name 'type-constructor
+                           (list type-sequent)
+                           data-name-list)
+                     (ns env)))))
+    #+end_src
+
+*** test
+
+    #+begin_src scheme :tangle no
+    (seq
+
+     (deftype
+       natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural)))
+    #+end_src
+
+*** eva/def
+
+    - <function-name>
+      type-sequent
+      sequent
+
+    #+begin_src scheme
+    (define (eva/def body env)
+      ;; ns -> new-ns
+      (env/ns env
+              (cons (list (car body) 'function
+                          (list (cadr body))
+                          (cddr body))
+                    (ns env))))
+    #+end_src
+
+*** test
+
+    #+begin_src scheme :tangle no
+    (seq
+
+     (deftype
+       natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
+
+     (def add
+       (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n recur succ))
+
+     (def mul
+       (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n recur :m add)))
+    #+end_src
+
+*** >< eva/run
+
+    #+begin_src scheme
+    ;; (define (eva/run body env)
+    ;;   env)
+    #+end_src
+
+* >< uni
+
+  #+begin_src scheme
+  ;; (define (uni c env)
+  ;;   ;; ac env -> env or fail
+  ;;   )
+  #+end_src
+
+* ><
+
+*** run
+
+    #+begin_src scheme
+    ;; (define (run l env)
+    ;;   ;; l env -> env or fail
+    ;;   (if (eq? '() (cdr l))
+    ;;     (cp (car l) env)
+    ;;     (())))
+    #+end_src
+
+* cp
+
+*** cp
+
+    #+begin_src scheme
+    ;; (define (cp e env)
+    ;;   ;; e env -> env or fail
+    ;;   (cond [(var? e) (cp/var e env)]
+    ;;         [(name? e) (cp/name e env)]))
+    #+end_src
+
+*** cp/var
+
+    #+begin_src scheme
+    ;; (define (cp/var var env)
+    ;;   )
+    #+end_src
+
+*** cp/name
+
+* ch
+
+*** ch
+
+    #+begin_src scheme
+    ;; (define (ch >< env)
+    ;;   ;; env -> env
+    ;;   )
+    #+end_src
+
+* example
+
+*** natural
+
+    #+begin_src scheme :tangle no
+    (deftype
+      natural (-> type)
+      zero (-> natural)
+      succ (natural -> natural))
+
+    (def add
+      (natural natural -> natural)
+      (:m zero -> :m)
+      (:m :n succ -> :m :n recur succ))
+
+    (def mul
+      (natural natural -> natural)
+      (:m zero -> zero)
+      (:m :n succ -> :m :n recur :m add))
+    #+end_src
+
+*** apply
+
+    #+begin_src scheme :tangle no
+    (def apply
+      ({type :t1 :t2} :t1 (:t1 -> :t2) -> :t2))
+    #+end_src
+
+*** list
+
+    #+begin_src scheme :tangle no
+    (deftype
+      list ({type :t} :t -> type)
+      null (-> :t list)
+      cons (:t list :t -> :t list))
+
+    (def map
+      (:t1 list (:t1 -> :t2) -> :t2 list)
+      (null :f -> null)
+      (:l :e cons :f -> :e :f apply :l :f map cons))
+
+    (def append
+      (:t list :t list -> :t1 list)
+      (null :l -> :l)
+      (:l :e cons :l1 -> :l :l1 append :e cons))
+    #+end_src
+
+*** has-length
+
+    #+begin_src scheme :tangle no
+    (deftype
+      has-length ({type :t} :t list natural -> type)
+      null/has-length (-> null zero has-length)
+      cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+
+    (def map/has-length
+      (:l :n has-length -> :l :f map :n has-length)
+      (null/has-length -> null/has-length)
+      (:h cons/has-length -> :h map/has-length cons/has-length))
+    #+end_src
+
+*** vector
+
+    #+begin_src scheme :tangle no
+    (deftype
+      vector ({type :t} number :t -> type)
+      null (-> zero :t vector)
+      cons (:n :t vector :t -> :n succ :t vector))
+
+    (def map
+      (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
+      (null :f -> null)
+      (:l :e cons :f -> :e :f apply :l :f map cons))
+
+    (def append
+      (:m :t vector :n :t vector -> :m :n add :t vector)
+      (null :l -> :l)
+      (:l :e cons :l1 -> :l :l1 append :e cons))
+    #+end_src
