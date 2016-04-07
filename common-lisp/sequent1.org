@@ -17,6 +17,10 @@
 * helper
 
   #+begin_src scheme
+  #lang racket
+  (require test-engine/racket-tests)
+  (require (for-syntax syntax/parse))
+
   (define-syntax cat
     (syntax-rules ()
       [(cat (str . args))
@@ -35,6 +39,31 @@
     (syntax-rules ()
       [(note . body)
        (void)]))
+
+  (define-syntax fun
+    (lambda (stx)
+      (syntax-parse stx
+        #:literals (->)
+        [(fun [v ... -> r ...] ...)
+         (syntax
+          (match-lambda** [(v ...) (begin r ...)] ...))])))
+
+  (check-expect
+      ((fun
+         [1 x -> x x]
+         [_ _ -> 'fun 'fun])
+       1 2)
+      2)
+
+  (define-syntax just-fun
+    (syntax-rules ()
+      [(just-fun argument-list . body)
+       ((fun . body) . argument-list)]))
+
+  (check-expect
+      (just-fun [1 2]
+        [1 x -> x x])
+      2)
   #+end_src
 
 * env
@@ -102,12 +131,10 @@
 *** eva/deftype
 
     - <type-name>
-      sequent
-      <data-name> list
+      (type/sequent data/sequent (<data-name> ...))
 
     - <data-name>
-      sequent
-      <type-name>
+      (type/sequent data/sequent <type-name>)
 
     #+begin_src scheme
     (define (eva/deftype body env)
@@ -187,8 +214,7 @@
 *** eva/def
 
     - <function-name>
-      type-sequent
-      sequent
+      (type/sequent data/sequent)
 
     #+begin_src scheme
     (define (eva/def body env)
@@ -555,7 +581,7 @@
       '())
     #+end_src
 
-* example
+* note example
 
 *** natural
 
