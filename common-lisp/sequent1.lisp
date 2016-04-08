@@ -236,24 +236,12 @@ doesnt match ~S" ,var ',pat))))
   (list (parse/cedent (left-of '-> s))
           (parse/cedent (right-of '-> s))))
 
-(defun parse/cedent (l)
+(defun parse/cedent (s)
   ;; sexp-cedent -> formal-cedent
-  (match l
+  (match s
     () => ()
     (h . r) => (cons (parse/dispatch h)
                      (parse/cedent r))))
-
-(defun parse/var (v)
-  ;; keyword -> formal-var
-  (let* ((string (symbol-name v))
-         (cursor (find-char "^" string)))
-    (if cursor
-        (list (intern (subseq string 0 cursor) :keyword)
-              (parse-integer string
-                             :start (+ 1 cursor)
-                             :junk-allowed t
-                             :radix 10))
-        (list v nil))))
 
 (defun parse/dispatch (v)
   ;; sexp-form -> formal-form
@@ -274,6 +262,18 @@ doesnt match ~S" ,var ',pat))))
                                     (parse/cedent (right-of '@ v))
                                     :true))))))
 
+(defun parse/var (v)
+  ;; keyword -> formal-var
+  (let* ((string (symbol-name v))
+         (cursor (find-char "^" string)))
+    (if cursor
+        (list (intern (subseq string 0 cursor) :keyword)
+              (parse-integer string
+                             :start (+ 1 cursor)
+                             :junk-allowed t
+                             :radix 10))
+        (list v nil))))
+
 (assert
  (equal
 
@@ -285,6 +285,7 @@ doesnt match ~S" ,var ',pat))))
    (parse/arrow '((:t :> type) :t -> type))
    (parse/arrow '((:t @ type) :t -> type))
    (parse/arrow '((:t^2 :> type) :t -> type))
+   (parse/arrow '((:t1 :t2^2 :t3^0 :> j k) :t -> type))
    (parse/arrow '((:t^2 @ type) :t -> type)))
 
   '((((n natural) (n natural))
@@ -301,15 +302,122 @@ doesnt match ~S" ,var ',pat))))
      ((n type)))
     (((b (((v (:t 2))) ((n type)) nil)) (v (:t nil)))
      ((n type)))
+    (((b (((v (:t1 nil)) (v (:t2 2)) (v (:t3 0))) ((n j) (n k)) nil))
+      (v (:t nil))) ((n type)))
     (((b (((v (:t 2))) ((n type)) :true)) (v (:t nil)))
      ((n type))))))
 
-(defun preprocess/formal-arrow (formal-arrow)
-  ;; formal-arrow -> arrow
-  (let ((scope ()))
-    (match formal-arrow
-      (formal-antecedent formal-succedent) =>
-      )))
+(defun pass1/arrow (f s)
+  ;; formal-arrow, scope -> arrow
+  (match f
+    (fac fsc) =>
+    (match (pass1/cedent fac s)
+      (ac s0) =>
+      (match (pass1/cedent fsc s0)
+        (sc s1) =>
+        (list ac sc)))))
+
+(defun pass1/cedent (f s)
+  ;; formal-cedent, scope -> (cedent scope)
+  (match f
+    () => (list () s)
+    (h . r) =>
+    (match (pass1/dispatch h s)
+      (v s0) =>
+      (match (pass1/cedent r s0)
+        (c s1) =>
+        (list (cons v c) s1)))))
+
+(defun pass1/dispatch (f s)
+  ;; formal-form, scope -> (form scope)
+  (match f
+    ('v v) => (pass1/var v s)
+    ('n n) => (list (list 'name n) s)
+    ('a a) => (list (list 'arrow (pass1/arrow a s)) s)
+    ('b b) => (pass1/bind b s)))
+
+(defun pass1/var (v s)
+  ;; formal-var, scope -> (var scope)
+  (match v
+    (symbol level) =>
+    (let ((found (assoc symbol s :test #'eq)))
+      (if found
+          (let ((old (cdr found)))
+            (list (list 'var (list old level)) s))
+          (let ((new (vector
+                      ;; for testing
+                      ;; (gensym)
+                      symbol)))
+            (list (list 'var (list new level))
+                  (cons (cons symbol new) s)))))))
+
+(defun pass1/bind (b s)
+  ;; formal-bind, scope -> (bind scope)
+  (match b
+    (fvs fc live?) =>
+    (match (pass1/cedent fvs s)
+      (vs s0) =>
+      (match (pass1/cedent fc s0)
+        ;; this means vars in fvs can occur in fc
+        (c s1) =>
+        (list (list 'bind (list vs c live?)) s1)))))
+
+(assert
+ (equalp
+
+  (list
+   (pass1/arrow
+    (parse/arrow '(natural natural -> natural))
+    ())
+   (pass1/arrow
+    (parse/arrow '(natural natural -> (natural natural -> natural) natural))
+    ())
+   (pass1/arrow
+    (parse/arrow '(:m zero -> :m))
+    ())
+   (pass1/arrow
+    (parse/arrow '(:m :n succ -> :m :n recur succ))
+    ())
+   (pass1/arrow
+    (parse/arrow '((:t :> type) :t -> type))
+    ())
+   (pass1/arrow
+    (parse/arrow '((:t @ type) :t -> type))
+    ())
+   (pass1/arrow
+    (parse/arrow '((:t^2 :> type) :t -> type))
+    ())
+   (pass1/arrow
+    (parse/arrow '((:t1 :t2^2 :t3^0 :> j k) :t -> type))
+    ())
+   (pass1/arrow
+    (parse/arrow '((:t^2 @ type) :t -> type))
+    ())
+   (pass1/arrow
+    (parse/arrow '(:t (:t -> :t) -> (:t -> (:t -> :t) :t) type))
+    ()))
+
+  '((((name natural) (name natural))
+     ((name natural)))
+    (((name natural) (name natural))
+     ((arrow (((name natural) (name natural)) ((name natural)))) (name natural)))
+    (((var (#(:m) nil)) (name zero))
+     ((var (#(:m) nil))))
+    (((var (#(:m) nil)) (var (#(:n) nil)) (name succ))
+     ((var (#(:m) nil)) (var (#(:n) nil)) (name recur) (name succ)))
+    (((bind (((var (#(:t) nil))) ((name type)) nil)) (var (#(:t) nil)))
+     ((name type)))
+    (((bind (((var (#(:t) nil))) ((name type)) :true)) (var (#(:t) nil)))
+     ((name type)))
+    (((bind (((var (#(:t) 2))) ((name type)) nil)) (var (#(:t) nil)))
+     ((name type)))
+    (((bind (((var (#(:t1) nil)) (var (#(:t2) 2)) (var (#(:t3) 0))) ((name j) (name k)) nil)) (var (#(:t) nil)))
+     ((name type)))
+    (((bind (((var (#(:t) 2))) ((name type)) :true)) (var (#(:t) nil)))
+     ((name type)))
+    (((var (#(:t) nil))
+      (arrow (((var (#(:t) nil))) ((var (#(:t) nil))))))
+     ((arrow (((var (#(:t) nil))) ((arrow (((var (#(:t) nil))) ((var (#(:t) nil))))) (var (#(:t) nil))))) (name type))))))
 
 (defun apply/dispatch (d e)
   ;; data, env -> env
@@ -326,8 +434,6 @@ doesnt match ~S" ,var ',pat))))
     => (apply/arrow (list ac sc) e)
     (('bind var cedent live?) (ds bs ns))
     => ()))
-
-(symbol-name :v#123)
 
 (defun apply/arrow (a e)
   ;; arrow, env -> env
@@ -362,4 +468,4 @@ doesnt match ~S" ,var ',pat))))
   (match (list f e)
     (('dt (fn fa) fnfas) (ds bs ns)) => ><><><
     (('df (fn fa) fas) (ds bs ns)) => ><><><
-    (('ap fa) (ds bs ns)) => (apply/arrow (preprocess/formal-arrow fa) e)))
+    (('ap fa) (ds bs ns)) => (apply/arrow (pass1/arrow fa ()) e)))
