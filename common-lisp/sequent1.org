@@ -6,657 +6,573 @@
 
 + XIE Yuheng created
 
-#+PROPERTY: tangle sequent1.scm
+#+PROPERTY: tangle sequent1.lisp
 
 * todo
 
-  - parse/arrow
-
-  - interface of ns
-
 * helper
 
-  #+begin_src scheme
-  #lang racket
-  (require test-engine/racket-tests)
-  (require (for-syntax syntax/parse))
+*** match
 
-  (define-syntax cat
-    (syntax-rules ()
-      [(cat (str . args))
-       (format str . args)]
-      [(cat (str . args) (str2 . args2) ...)
-       (string-append
-        (cat (str . args))
-        (cat (str2 . args2) ...))]))
+***** note
 
-  (define-syntax orz
-    (syntax-rules ()
-      [(orz . body)
-       (error (cat . body))]))
+      - synopsis
+        (match expression
+          (pattern  action+)
+          ...)
 
-  (define-syntax note
-    (syntax-rules ()
-      [(note . body)
-       (void)]))
+        or
+        (match expression
+          pattern => expression
+          pattern => expression
+          ...)
 
-  (define-syntax fun
-    (lambda (stx)
-      (syntax-parse stx
-        #:literals (->)
-        [(fun [v ... -> r ...] ...)
-         (syntax
-          (match-lambda** [(v ...) (begin r ...)] ...))])))
+        pattern
+        -   constant                ;egs  1, #\x, #c(1.0 1.1)
+        -   symbol                  ;matches anything
+        -   'anything               ;must be EQUAL
+        -   (pattern = pattern)     ;both patterns must match
+        -   (#'function pattern)    ;predicate test
+        -   (pattern . pattern)     ;cons cell
 
-  (check-expect
-      ((fun
-         [1 x -> x x]
-         [_ _ -> 'fun 'fun])
-       1 2)
-      2)
+      - example
+        (match item
+            (('if e1 e2 e3) 'if-then-else)                          ;(1)
+            ((#'oddp k)     'an-odd-integer)                        ;(2)
+            (((#'treep tree) = (hd . tl))   'something-else)        ;(3)
+            (other          'anything-else))                        ;(4)
 
-  (define-syntax just-fun
-    (syntax-rules ()
-      [(just-fun argument-list . body)
-       ((fun . body) . argument-list)]))
+      - note
+        - Each pattern is tested in turn.  The first match is taken.
+        - If no pattern matches, an error is signalled.
+        - Constant patterns (things X for which (CONSTANTP X) is true, i.e.
+          numbers, strings, characters, etc.) match things which are EQUAL.
+        - Quoted patterns (which are CONSTANTP) are constants.
+        - Symbols match anything. The symbol is bound to the matched item
+          for the execution of the actions.
+          For example, (match '(1 2 3) (1 . X) => X)
+          returns (2 3) because X is bound to the cdr of the candidate.
+        - The two pattern match (p1 = p2) can be used to name parts
+          of the matched structure.  For example, (ALL = (HD . TL))
+          matches a cons cell. ALL is bound to the cons cell, HD to its car
+          and TL to its tail.
+        - A predicate test applies the predicate to the item being matched.
+          If the predicate returns NIL then the match fails.
+          If it returns truth, then the nested pattern is matched.  This is
+          often just a symbol like K in the example.
+        - Care should be taken with the domain values for predicate matches.
+          If, in the above eg, item is not an integer, an error would occur
+          during the test.  A safer pattern would be
+          (#'integerp (#'oddp k))
+          This would only test for oddness of the item was an integer.
+        - A single symbol will match anything so it can be used as a default
+          case, like OTHER above.
 
-  (check-expect
-      (just-fun [1 2]
-        [1 x -> x x])
-      2)
-  #+end_src
+***** match
+
+      #+begin_src lisp
+      (defmacro match (expression &rest patterns)
+        (let* ((do-let (not (atom expression)))
+               (key    (if do-let (gensym) expression))
+               (cbody  (expand-select-patterns key patterns))
+               (cform  `(cond . ,cbody)))
+          (if do-let
+              `(let ((,key ,expression)) ,cform)
+              cform)))
+
+      (defun expand-select-patterns (key patterns)
+        (if (eq (second patterns) '=>)
+            (expand-select-patterns-style-2 key patterns)
+            (expand-select-patterns-style-1 key patterns)))
+
+      (defun expand-select-patterns-style-1 (key patterns)
+        (if (null patterns)
+            `((T (error "Case select pattern match failure on ~S" ,key)))
+            (let ((pattern  (caar patterns))
+                  (actions  (cdar patterns))
+                  (rest     (cdr patterns)) )
+              (let  ((test       (compile-select-test key pattern))
+                     (bindings   (compile-select-bindings key pattern actions)))
+                `(,(if bindings  `(,test (let ,bindings . ,actions))
+                       `(,test . ,actions))
+                   . ,(if (eq test t)
+                          nil
+                          (expand-select-patterns-style-1 key rest)))))))
+
+      (defun expand-select-patterns-style-2 (key patterns)
+        (if (null patterns)
+            `((T (error "Case select pattern match failure on ~S" ,key)))
+            (let ((pattern  (first patterns))
+                  (arrow    (if (or (< (length patterns) 3)
+                                    (not (eq (second patterns) '=>)))
+                                (error "Illegal patterns: ~S" patterns)))
+                  (actions  (list (third patterns)))
+                  (rest     (cdddr patterns)))
+              (let  ((test       (compile-select-test key pattern))
+                     (bindings   (compile-select-bindings key pattern actions)))
+                `(,(if bindings  `(,test (let ,bindings . ,actions))
+                       `(,test . ,actions))
+                   . ,(if (eq test t)
+                          nil
+                          (expand-select-patterns-style-2 key rest)))))))
+
+
+      (defun compile-select-test (key pattern)
+        (let  ((tests (remove-if
+                       #'(lambda (item) (eq item t))
+                       (compile-select-tests key pattern))))
+          (cond
+            ;; note AND does this anyway, but this allows us to tell if
+            ;; the pattern will always match.
+            ((null tests)           t)
+            ((= (length tests) 1)   (car tests))
+            (T                      `(and . ,tests)))))
+
+
+      (defun compile-select-tests (key pattern)
+        (cond ((constantp pattern)
+               `((,(cond ((numberp pattern) 'eql)
+                         ((symbolp pattern) 'eq)
+                         (T                'equal))
+                   ,key ,pattern)))
+
+              ((symbolp pattern) '(T))
+              ((select-double-match? pattern)
+               (append
+                (compile-select-tests key (first pattern))
+                (compile-select-tests key (third pattern))))
+              ((select-predicate? pattern)
+               (append
+                `((,(second (first pattern)) ,key))
+                (compile-select-tests key (second pattern))))
+              ((consp pattern)
+               (append
+                `((consp ,key))
+                (compile-select-tests (!cs-car key) (car
+                                                     pattern))
+                (compile-select-tests (!cs-cdr key) (cdr
+                                                     pattern))))
+              ('T         (error "Illegal select pattern: ~S" pattern))))
+
+      (defun compile-select-bindings (key pattern action)
+        (cond ((constantp pattern) '())
+              ((symbolp pattern)
+               (if (select!-in-tree pattern action) `((,pattern ,key))
+                   '()))
+              ((select-double-match? pattern)
+               (append
+                (compile-select-bindings key (first pattern) action)
+                (compile-select-bindings key (third pattern)
+                                         action)))
+              ((select-predicate? pattern)
+               (compile-select-bindings key (second pattern)
+                                        action))
+              ((consp pattern)
+               (append
+                (compile-select-bindings (!cs-car key) (car pattern)
+                                         action)
+                (compile-select-bindings (!cs-cdr key) (cdr pattern)
+                                         action)))))
+
+      (defun select!-in-tree (atom tree)
+        (or (eq atom tree)
+            (if (consp tree)
+                (or (select!-in-tree atom (car tree))
+                    (select!-in-tree atom (cdr tree))))))
+
+      (defun select-double-match? (pattern)
+        ;;  (<pattern> = <pattern>)
+        (and (consp pattern) (consp (cdr pattern)) (consp (cddr pattern))
+             (null (cdddr pattern))
+             (eq (second pattern) '=)))
+
+      (defun select-predicate? (pattern)
+        ;; ((function <f>) <pattern>)
+        (and    (consp pattern)
+                (consp (cdr pattern))
+                (null (cddr pattern))
+                (consp (first pattern))
+                (consp (cdr (first pattern)))
+                (null (cddr (first pattern)))
+                (eq (caar pattern) 'function)))
+
+      (defun !cs-car (exp)
+        (!cs-car/cdr
+         'car exp
+         '((car . caar)    (cdr . cadr)    (caar . caaar)  (cadr . caadr)
+           (cdar . cadar)  (cddr . caddr)
+           (caaar . caaaar)    (caadr . caaadr)    (cadar . caadar)
+           (caddr . caaddr)    (cdaar . cadaar)    (cdadr . cadadr)
+           (cddar . caddar)    (cdddr . cadddr))))
+
+      (defun !cs-cdr (exp)
+        (!cs-car/cdr
+         'cdr exp
+         '((car . cdar)    (cdr . cddr)    (caar . cdaar)  (cadr . cdadr)
+           (cdar . cddar)  (cddr . cdddr)
+           (caaar . cdaaar)    (caadr . cdaadr)    (cadar . cdadar)
+           (caddr . cdaddr)    (cdaar . cddaar)    (cdadr . cddadr)
+           (cddar . cdddar)    (cdddr . cddddr))))
+
+      (defun !cs-car/cdr (op exp table)
+        (if (and (consp exp) (= (length exp) 2))
+            (let ((replacement  (assoc (car exp) table)))
+              (if replacement
+                  `(,(cdr replacement) ,(second exp))
+                  `(,op ,exp)))
+            `(,op ,exp)))
+
+      ;; (setf c1 '(match x (a 1) (b 2 3 4)))
+      ;; (setf c2 '(match (car y)
+      ;;            (1 (print 100) 101) (2 200) ("hello" 5) (:x 20) (else (1+
+      ;;                                                                   else))))
+      ;; (setf c3 '(match (caddr y)
+      ;;            ((all = (x y)) (list x y all))
+      ;;            ((a '= b)      (list 'assign a b))
+      ;;            ((#'oddp k)     (1+ k))))
+
+      ;;
+      ;;  IN macro
+      ;;
+      ;;  (IN exp LET pat1 = exp1
+      ;;              pat2 = exp2
+      ;;              ...)
+      ;;
+      ;;  (IN exp LET* pat1 = exp1
+      ;;               pat2 = exp2
+      ;;               ...)
+      ;;
+
+      (defmacro in (&rest form)
+        (match form
+          (exp 'let . pats) =>
+          (let* ((exps   (select-in-let-parts pats 'exp))
+                 (pats   (select-in-let-parts pats 'pat))
+                 (vars   (mapcar #'(lambda (x) (gensym)) exps)))
+            `(let ,(mapcar #'list vars exps)
+               ,(reduce
+                 #'(lambda (var-pat subselection)
+                     (let ((var  (first var-pat))
+                           (pat  (second var-pat)))
+                       `(match ,var
+                          ,pat => ,subselection
+                          else => (error "IN-LET type error: ~S
+      doesnt match ~S" ,var ',pat))))
+                 (mapcar #'list vars pats)
+                 :from-end t
+                 :initial-value exp)))
+          (exp 'let*)         => exp
+          (exp 'let* pat '= patexp . pats)  =>
+          (let ((var (gensym)))
+            `(let ((,var ,patexp))
+               (match ,var
+                 ,pat => (in ,exp let* . ,pats)
+                 else => (error "IN-LET type error: ~S doesnt match
+      ~S" ,var ',pat))))
+          else                =>
+          (error "Illegal IN form ~S" form)))
+
+      (defun select-in-let-parts (pats part)
+        (match pats
+          nil => nil
+          (pat '= exp . rest) =>
+          (cons (match part
+                  'exp => exp
+                  'pat => pat)
+                (select-in-let-parts rest part))
+          other =>
+          (error "Illegal LET form(s): ~S" pats)))
+
+      ;; (setf eg1 '(in (list h1 h2 t1 t2)
+      ;;             let
+      ;;             (h1 . t1) = (foo x)
+      ;;             (h2 . t2) = (bar y)))
+      #+end_src
+
+***** test
+
+      #+begin_src lisp :tangle no
+      (defun fact (n)
+        (match n
+          '0 => 1
+          n => (* n (fact (1- n)))))
+
+      (fact 10)
+
+      (defun eval-expr (x)
+        (match x
+          ('add x y) => (+ (eval-expr x) (eval-expr y))
+          ('sub x y) => (- (eval-expr x) (eval-expr y))
+          ('mul x y) => (* (eval-expr x) (eval-expr y))
+          ('div x y) => (/ (eval-expr x) (eval-expr y))
+          v => v))
+
+      (eval-expr '(add 1 2))
+      (eval-expr '(add 1 (add 2 3)))
+
+      (defun my-append (a b)
+        (match a
+          () => b
+          (hd . tl) => (cons hd (my-append tl b))))
+
+      (my-append '(1 2 3) '(4 5 6))
+      #+end_src
+
+*** list
+
+    #+begin_src lisp
+    (defun left-of (s l)
+      (cond ((eq s (car l)) '())
+            (:else (cons (car l) (left-of s (cdr l))))))
+
+    (defun right-of (s l)
+      (cond ((eq s (car l)) (cdr l))
+            (:else (right-of s (cdr l)))))
+    #+end_src
+
+*** string
+
+    #+begin_src lisp
+    (defun find-char (char string &key (curser 0))
+      (if (>= curser (length string))
+          nil
+          (let ((char0 (subseq string curser (+ 1 curser))))
+            (if (equal char char0)
+                curser
+                (find-char char string :curser (+ 1 curser))))))
+    #+end_src
+
+* parse
+
+*** parse/arrow
+
+    #+begin_src lisp
+    (defun parse/arrow (s)
+      ;; sexp-arrow -> formal-arrow
+      (list (parse/cedent (left-of '-> s))
+              (parse/cedent (right-of '-> s))))
+    #+end_src
+
+*** parse/cedent
+
+    #+begin_src lisp
+    (defun parse/cedent (l)
+      ;; sexp-cedent -> formal-cedent
+      (match l
+        () => ()
+        (h . r) => (cons (parse/dispatch h)
+                         (parse/cedent r))))
+    #+end_src
+
+*** parse/var
+
+    #+begin_src lisp
+    (defun parse/var (v)
+      ;; keyword -> formal-var
+      (let* ((string (symbol-name v))
+             (cursor (find-char "^" string)))
+        (if cursor
+            (list (intern (subseq string 0 cursor) :keyword)
+                  (parse-integer string
+                                 :start (+ 1 cursor)
+                                 :junk-allowed t
+                                 :radix 10))
+            (list v nil))))
+    #+end_src
+
+*** parse/dispatch
+
+    #+begin_src lisp
+    (defun parse/dispatch (v)
+      ;; sexp-form -> formal-form
+      (flet ((var? (v) (keywordp v))
+             (name? (v) (and (symbolp v) (not (keywordp v))))
+             (arrow? (v) (and (listp v) (member '-> v)))
+             (im-bind? (v) (and (listp v) (member :> v)))
+             (ex-bind? (v) (and (listp v) (member '@ v))))
+        (cond ((var? v) (list 'v (parse/var v)))
+              ((name? v) (list 'n v))
+              ((arrow? v) (list 'a (parse/arrow v)))
+              ((im-bind? v) (list 'b
+                                  (list (parse/cedent (left-of :> v))
+                                        (parse/cedent (right-of :> v))
+                                        nil)))
+              ((ex-bind? v) (list 'b
+                                  (list (parse/cedent (left-of '@ v))
+                                        (parse/cedent (right-of '@ v))
+                                        :true))))))
+    #+end_src
+
+*** test
+
+    #+begin_src lisp
+    (assert
+     (equal
+
+      (list
+       (parse/arrow '(natural natural -> natural))
+       (parse/arrow '(natural natural -> (natural natural -> natural) natural))
+       (parse/arrow '(:m zero -> :m))
+       (parse/arrow '(:m :n succ -> :m :n recur succ))
+       (parse/arrow '((:t :> type) :t -> type))
+       (parse/arrow '((:t @ type) :t -> type))
+       (parse/arrow '((:t^2 :> type) :t -> type))
+       (parse/arrow '((:t^2 @ type) :t -> type)))
+
+      '((((n natural) (n natural))
+         ((n natural)))
+        (((n natural) (n natural))
+         ((a (((n natural) (n natural)) ((n natural)))) (n natural)))
+        (((v (:m nil)) (n zero))
+         ((v (:m nil))))
+        (((v (:m nil)) (v (:n nil)) (n succ))
+         ((v (:m nil)) (v (:n nil)) (n recur) (n succ)))
+        (((b (((v (:t nil))) ((n type)) nil)) (v (:t nil)))
+         ((n type)))
+        (((b (((v (:t nil))) ((n type)) :true)) (v (:t nil)))
+         ((n type)))
+        (((b (((v (:t 2))) ((n type)) nil)) (v (:t nil)))
+         ((n type)))
+        (((b (((v (:t 2))) ((n type)) :true)) (v (:t nil)))
+         ((n type))))))
+    #+end_src
+
+* preprocess
+
+*** note formal-form
+
+    - formal-arrow = (formal-cedent formal-cedent)
+    - formal-cedent = (formal-form ...)
+    - formal-form =
+      - ('v formal-var)
+      - ('n formal-name)
+      - ('a formal-arrow)
+      - ('b formal-bind)
+    - formal-var = (symbol level)
+    - formal-name = symbol
+    - formal-bind = ((formal-var ...) formal-cedent live?)
+
+*** preprocess/formal-arrow
+
+    #+begin_src lisp
+    (defun preprocess/formal-arrow (formal-arrow)
+      ;; formal-arrow -> arrow
+      (let ((scope ()))
+        (match formal-arrow
+          (formal-antecedent formal-succedent) =>
+          )))
+    #+end_src
 
 * env
 
-  - env
-    - as argument-stack
-      data
-    - bs binding-stack
-      (var . type)
-    - ns name-stack
-      (name . (type . data))
+*** note env
 
-  #+begin_src scheme
-  (define (as<- env) (car env))
-  (define (bs<- env) (cadr env))
-  (define (ns<- env) (caddr env))
+    - env =
+      ((data ...)
+       ((var data) ...)
+       ((name store) ...))
 
-  (define (env/as env as) (list as (bs<- env) (ns<- env)))
-  (define (env/bs env bs) (list (as<- env) bs (ns<- env)))
-  (define (env/ns env ns) (list (as<- env) (bs<- env) ns))
+*** note store
 
-  (define (env/new) (list (list) (list) (list)))
-  #+end_src
+    - store =
+      - ('function formal-arrow (formal-arrow ...))
+      - ('type-cons formal-arrow arity (name ...))
+      - ('data-cons formal-arrow arity name)
 
-* seq
+* apply
 
-*** seq
+*** note form
 
-    - sequent
-      list of arrow
+    - arrow = (cedent cedent)
+    - cedent = (form ...)
+    - form =
+      - ('var var)
+      - ('name name)
+      - ('arrow arrow)
+      - ('bind bind)
+    - var = (id level)
+    - name = symbol
+    - bind = ((var ...) cedent live?)
 
-    #+begin_src scheme
-    (define-syntax seq
-      (syntax-rules ()
-        [(_ c ...) (seq/f (quote (c ...)) (env/new))]))
+*** apply/dispatch
+
+    #+begin_src lisp
+    (defun apply/dispatch (d e)
+      ;; data, env -> env
+      (match (list d e)
+        (('name name) (ds bs ns))
+        => (let* ((s (><><><)))
+             (match s
+               ('function fa fas) => ()
+               ('type-cons fa arity name-list) => ()
+               ('data-cons fa arity name) => ()))
+        (('var id level) (ds bs ns))
+        => ()
+        (('arrow ac sc) (ds bs ns))
+        => (apply/arrow (list ac sc) e)
+        (('bind var cedent live?) (ds bs ns))
+        => ()))
+
+    (symbol-name :v#123)
     #+end_src
 
-*** seq/f
+*** apply/arrow
 
-    #+begin_src scheme
-    (define (seq/f body env)
-      ;; body env -> env
-      (if (null? body)
-        env
-        (seq/f (cdr body)
-               (eva (car body) env))))
+    #+begin_src lisp
+    (defun apply/arrow (a e)
+      ;; arrow, env -> env
+      (match (list a e)
+        ((ac sc) (ds bs ns))) =>
+        (let* ((e1 (unify (run/cedent ac (list (cons 'unify-point ds) bs ns)))))
+          (if e1
+              (apply/cedent sc e1)
+              ;; ><><><
+              ;; need gc after succedent
+              #f)))
+    #+end_src
+
+*** apply/cedent
+
+    #+begin_src lisp
+    (defun apply/cedent (c e)
+      ;; cedent, env -> env
+      (match c
+        () => e
+        (h . r) => (apply/cedent r (apply/dispatch h e))))
+    #+end_src
+
+* unify
+
+*** note
+
+    - data =
+      - ('var var)
+      - ('arrow )
+      - ('cons name (data ...))
+      - ('trunk name (data ...))
+
+*** unify
+
+    #+begin_src lisp
+    (defun unify (e)
+      ;; env -> env
+      ;; 'unify-point
+      )
     #+end_src
 
 * eva
 
-*** eva
-
-    #+begin_src scheme
-    (define (eva exp env)
-      ;; exp env -> env
-      (case (car exp)
-        [(deftype) (eva/deftype (cdr exp) env)]
-        [(def) (eva/def (cdr exp) env)]
-        [(def/without-check) (eva/def/without-check (cdr exp) env)]
-        [(run) (run/arrow (parse/arrow (cdr exp)) env)]))
-    #+end_src
-
-* eva/deftype
-
-*** eva/deftype
-
-    - <type-name>
-      (type/sequent data/sequent (<data-name> ...))
-
-    - <data-name>
-      (type/sequent data/sequent <type-name>)
-
-    #+begin_src scheme
-    (define (eva/deftype body env)
-      ;; ns -> new-ns
-      (define type-name (car body))
-      (define type-sequent (cadr body))
-      (define data-list (cddr body))
-      (define (recur0 l)
-        (cond [(null? l) '()]
-              [else (cons (car l) (recur0 (cddr l)))]))
-      (define data-name-list (recur0 data-list))
-      (define (recur2 l)
-        (cond [(null? l) '()]
-              [else (cons (list (car l) 'data-constructor
-                                (list (cadr l))
-                                type-name)
-                          (recur2 (cddr l)))]))
-      (env/ns env
-              (append
-               (recur2 data-list)
-               (cons (list type-name 'type-constructor
-                           (list type-sequent)
-                           data-name-list)
-                     (ns<- env)))))
-    #+end_src
-
-*** test
-
-    #+begin_src scheme :tangle no
-    (seq
-
-     (deftype
-       natural (-> type)
-       zero (-> natural)
-       succ (natural -> natural)))
-    #+end_src
-
-* eva/def
-
-*** eva/def/without-check
-
-    #+begin_src scheme
-    (define (eva/def/without-check body env)
-      ;; ns -> new-ns
-      (define type-sequent (list (cadr body)))
-      (define data-sequent (cddr body))
-      (define new-env
-        (env/ns env
-                (cons (list (car body) 'function
-                            type-sequent
-                            data-sequent)
-                      (ns<- env))))
-      new-env)
-    #+end_src
-
-*** test
-
-    #+begin_src scheme
-    (seq
-
-     (deftype
-       natural (-> type)
-       zero (-> natural)
-       succ (natural -> natural))
-
-     (def/without-check add
-       (natural natural -> natural)
-       (:m zero -> :m)
-       (:m :n succ -> :m :n recur succ))
-
-     (def/without-check mul
-       (natural natural -> natural)
-       (:m zero -> zero)
-       (:m :n succ -> :m :n recur :m add)))
-    #+end_src
-
-*** eva/def
-
-    - <function-name>
-      (type/sequent data/sequent)
-
-    #+begin_src scheme
-    (define (eva/def body env)
-      ;; ns -> new-ns
-      (define type-sequent (list (cadr body)))
-      (define data-sequent (cddr body))
-      (define env0
-        (env/ns env
-                (cons (list (car body) 'function
-                            type-sequent
-                            data-sequent)
-                      (ns<- env))))
-      (define (recur0 l)
-        (if (null? l)
-          env0
-          (if (check (parse/arrow (car type-sequent))
-                     (parse/arrow (car l))
-                     env0)
-            (recur0 (cdr l))
-            #f)))
-      (recur0 data-sequent))
-    #+end_src
-
-*** test
-
-    #+begin_src scheme :tangle no
-    (seq
-
-     (deftype
-       natural (-> type)
-       zero (-> natural)
-       succ (natural -> natural))
-
-     (def add
-       (natural natural -> natural)
-       (:m zero -> :m)
-       (:m :n succ -> :m :n recur succ))
-
-     (def mul
-       (natural natural -> natural)
-       (:m zero -> zero)
-       (:m :n succ -> :m :n recur :m add)))
-    #+end_src
-
-* arrow
-
-*** formal-arrow?
-
-    #+begin_src scheme
-    (define (formal-arrow? e)
-      (and (list? e)
-           (member '-> e)))
-    #+end_src
-
-*** formal-var?
-
-    #+begin_src scheme
-    (define (formal-var? e)
-      (and (symbol? e)
-           (eq? ":" (substring (symbol->string e) 0 1))))
-    #+end_src
-
-*** formal-implicit-binding?
-
-    - {:v1 :v2 ~ type}
-
-    #+begin_src scheme
-    (define (formal-implicit-binding? e)
-      (and (list? e)
-           (member '~ e)))
-    #+end_src
-
-*** formal-binding?
-
-    - (:v1 :v2 : type)
-
-    #+begin_src scheme
-    (define (formal-binding? e)
-      (and (list? e)
-           (member ': e)))
-    #+end_src
-
-*** ><>< parse/arrow
-
-    - arrow
-      (antecedent succedent)
-
-    - nested arrow and scope is handled here
-
-    #+begin_src scheme
-    (define (parse/arrow l)
-      (define scope '())
-      (define (get-left l)
-        (cond [(eq? '-> (car l)) '()]
-              [else (cons (car l) (get-left (cdr l)))]))
-      (define (get-right l)
-        (cond [(eq? '-> (car l)) (cdr l)]
-              [else (get-right (cdr l))]))
-      (define (recur0 l)
-        (cond [(formal-var? (car l))
-               (cons (bs/walk bs (var/new (car l)))
-                     (recur0 (cdr l)))]
-              [(formal-binding? (car l))
-               ><><><]
-              [(formal-implicit-binding? (car l))
-               ><><><]
-              [(formal-arrow? (car l))
-               (let ([])
-                 (cons (recur0 (car l))
-                       (recur0 (cdr l))))]
-              [else ;; name
-               (cons (car l)
-                     (recur0 (cdr l)))]))
-      (define antecedent (recur0 (get-left l)))
-      (define succedent (recur0 (get-right l)))
-      (list antecedent succedent))
-    #+end_src
-
-*** >< arrow?
-
-    #+begin_src scheme
-    (define (arrow? e)
-      )
-    #+end_src
-
-* var
-
-*** var?
-
-    - var
-      [level [:var]]
-
-    #+begin_src scheme
-    (define (var? v)
-      (and (vector? v)
-           (eq 2 (length v))
-           (integer? (vector-ref v 0))
-           (vector? (vector-ref v 1))
-           (formal-var? (vector-ref (vector-ref v 1) 0))))
-    #+end_src
-
-*** var/new
-
-    #+begin_src scheme
-    (define (var/new formal-var)
-      (vector 0 (vector formal-var)))
-    #+end_src
-
-*** var/eq?
-
-    #+begin_src scheme
-    (define (var/eq? v1 v2)
-      (and (equal? v1 v2)
-           (eq? (vector-ref v1 1)
-                (vector-ref v2 1))))
-    #+end_src
-
-* name
-
-*** name?
-
-    #+begin_src scheme
-    (define (name? v)
-      (symbol? v))
-    #+end_src
-
-* >< binding
-
-*** binding?
-
-    #+begin_src scheme
-    (define (binding? v)
-      )
-    #+end_src
-
-* >< implicit-binding
-
-*** implicit-binding?
-
-    #+begin_src scheme
-    (define (implicit-binding? v)
-      )
-    #+end_src
-
-* bs
-
-*** bs/find
-
-    #+begin_src scheme
-    (define (bs/find bs v)
-      (cond [(null? bs) #f]
-            [(var/eq? v (car (car bs))) (cdr (car bs))]
-            [else (bs/find (cdr bs) v)]))
-    #+end_src
-
-*** bs/walk
-
-    #+begin_src scheme
-    (define (bs/walk bs v)
-      (cond [(var? v)
-             (let ([found (bs/find bs v)])
-               (cond [found (bs/walk found bs)]
-                     [else v]))]
-            [else v]))
-    #+end_src
-
-*** bs/walk*
-
-    #+begin_src scheme
-    (define (bs/walk* bs v)
-      (let ([v (bs/walk bs v)])
-        (cond [(var? v) v]
-              [(pair? v)
-               (cons
-                (bs/walk* bs (car v))
-                (bs/walk* bs (cdr v)))]
-              [else v])))
-    #+end_src
-
-* ns
-
-*** ns/find
-
-    #+begin_src scheme
-    (define (ns/find ns name)
-      (cond [(null? ns) #f]
-            [(eq? name (car (car ns))) (cdr (car ns))]
-            [else (ns/find (cdr ns) name)]))
-    #+end_src
-
-* run
-
-*** run/arrow
-
-    #+begin_src scheme
-    (define (run/arrow arrow env)
-      (let* ([antecedent (car arrow)]
-             [succedent (cadr arrow)]
-             [env0 (env/as env (cons 'uni-point (as<- env)))]
-             [env1 (run/cedent antecedent env0)]
-             [env2 (uni env1)])
-        (if env2
-          ;; ><><><
-          ;; need gc after succedent
-          (run/cedent succedent env2)
-          #f)))
-    #+end_src
-
-*** run/cedent
-
-    #+begin_src scheme
-    (define (run/cedent cedent env)
-      (cond [(null? cedent) env]
-            [(null? (cdr cedent)) (run/dispatch (car cedent) env)]
-            [else (run/cedent (cdr cedent)
-                              (run/dispatch (car cedent) env))]))
-    #+end_src
-
-*** run/dispatch
-
-    #+begin_src scheme
-    (define (run/dispatch v env)
-      (cond [(var? v) (run/var v env)]
-            [(name? v) (run/name v env)]
-            [(binding? v) (run/binding v env)]
-            [(implicit-binding? v) (run/implicit-binding v env)]))
-    #+end_src
-
-*** run/var
-
-    #+begin_src scheme
-    (define (run/var var env)
-      (env/as env
-              (cons (bs/walk* (bs<- env) var)
-                    (as<- env))))
-    #+end_src
-
-*** run/name
-
-    #+begin_src scheme
-    (define (run/name name env)
-      (let ([v (ns/find (ns<- env) name)])
-        (case (car v)
-          [(type-constructor) (run/type-constructor (caddr v) env)]
-          [(data-constructor) (run/data-constructor (caddr v) env)]
-          [(function) (run/function (caddr v) (cadddr v) env)]
-          [else (orz ("run/name can not find name: ~a" name))])))
-    #+end_src
-
-*** >< run/type-constructor
-
-    #+begin_src scheme
-    (define (run/type-constructor type/sequent env)
-      )
-    #+end_src
-
-*** >< run/data-constructor
-
-    #+begin_src scheme
-    (define (run/data-constructor type/sequent env)
-      )
-    #+end_src
-
-*** >< run/function
-
-    #+begin_src scheme
-    (define (run/function type/sequent data/sequent env)
-      )
-    #+end_src
-
-*** >< run/binding
-
-    #+begin_src scheme
-    (define (run/binding binding env)
-      ())
-    #+end_src
-
-*** >< run/implicit-binding
-
-    #+begin_src scheme
-    (define (run/implicit-binding implicit-binding env)
-      ())
-    #+end_src
-
-*** >< uni
-
-    #+begin_src scheme
-    (define (uni env)
-      ())
-    #+end_src
-
-*** test
-
-    #+begin_src scheme
-    (seq
-
-     (deftype
-       natural (-> type)
-       zero (-> natural)
-       succ (natural -> natural))
-
-     (def/without-check add
-       (natural natural -> natural)
-       (:m zero -> :m)
-       (:m :n succ -> :m :n recur succ))
-
-     (def/without-check mul
-       (natural natural -> natural)
-       (:m zero -> zero)
-       (:m :n succ -> :m :n recur :m add))
-
-     (run (-> zero succ succ
-              zero succ
-              add)))
-    #+end_src
-
-* check
-
-*** >< check
-
-    #+begin_src scheme
-    (define (check type/arrow data/arrow env)
-      ;; -> env or fail
-      '())
-    #+end_src
-
-* note example
-
-*** natural
-
-    #+begin_src scheme :tangle no
-    (deftype
-      natural (-> type)
-      zero (-> natural)
-      succ (natural -> natural))
-
-    (def add
-      (natural natural -> natural)
-      (:m zero -> :m)
-      (:m :n succ -> :m :n recur succ))
-
-    (def mul
-      (natural natural -> natural)
-      (:m zero -> zero)
-      (:m :n succ -> :m :n recur :m add))
-    #+end_src
-
-*** apply
-
-    #+begin_src scheme :tangle no
-    (def apply
-      ({:t1 :t2 ~ type} :t1 (:t1 -> :t2) -> :t2))
-    #+end_src
-
-*** list
-
-    #+begin_src scheme :tangle no
-    (deftype
-      list ({:t ~ type} :t -> type)
-      null (-> :t list)
-      cons (:t list :t -> :t list))
-
-    (def map
-      (:t1 list (:t1 -> :t2) -> :t2 list)
-      (null :f -> null)
-      (:l :e cons :f -> :e :f apply :l :f map cons))
-
-    (def append
-      (:t list :t list -> :t1 list)
-      (null :l -> :l)
-      (:l :e cons :l1 -> :l :l1 append :e cons))
-    #+end_src
-
-*** has-length
-
-    #+begin_src scheme :tangle no
-    (deftype
-      has-length ({:t ~ type} :t list natural -> type)
-      null/has-length (-> null zero has-length)
-      cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
-
-    (def map/has-length
-      (:l :n has-length -> :l :f map :n has-length)
-      (null/has-length -> null/has-length)
-      (:h cons/has-length -> :h map/has-length cons/has-length))
-    #+end_src
-
-*** vector
-
-    #+begin_src scheme :tangle no
-    (deftype
-      vector ({:t ~ type} number :t -> type)
-      null (-> zero :t vector)
-      cons (:n :t vector :t -> :n succ :t vector))
-
-    (def map
-      (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
-      (null :f -> null)
-      (:l :e cons :f -> :e :f apply :l :f map cons))
-
-    (def append
-      (:m :t vector :n :t vector -> :m :n add :t vector)
-      (null :l -> :l)
-      (:l :e cons :l1 -> :l :l1 append :e cons))
-    #+end_src
+  #+begin_src lisp
+  (defun eva (fs e)
+    ;; formal-top list, env -> env
+    (match fs
+      () => e
+      (h . r) => (eva r (eva/formal-top h e))))
+
+  (defun eva/formal-top (f e)
+    ;; formal-top, env -> env
+    (match (list f e)
+      (('dt (fn fa) fnfas) (ds bs ns)) => ><><><
+      (('df (fn fa) fas) (ds bs ns)) => ><><><
+      (('ap fa) (ds bs ns)) => (apply/arrow (preprocess/formal-arrow fa) e)))
+  #+end_src

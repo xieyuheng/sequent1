@@ -1,0 +1,167 @@
++ sequent1 example
+
++ this is a prototype
+  it is not useful for it is lack of so many important features
+
++ XIE Yuheng created
+
+* sexp
+
+*** natural
+
+    #+begin_src lisp
+    (dt natural (-> type)
+        zero (-> natural)
+        succ (natural -> natural))
+
+    (df add (natural natural -> natural)
+        (:m zero -> :m)
+        (:m :n succ -> :m :n recur succ))
+
+    (df mul (natural natural -> natural)
+        (:m zero -> zero)
+        (:m :n succ -> :m :n recur :m add))
+    #+end_src
+
+*** list
+
+    #+begin_src lisp
+    (dt list ((:t :> type) :t -> type)
+        null (-> :t list)
+        cons (:t list :t -> :t list))
+
+    (df map (:t1 list (:t1 -> :t2) -> :t2 list)
+        (null :f -> null)
+        (:l :e cons :f -> :e :f apply :l :f map cons))
+
+    (df append (:t list :t list -> :t1 list)
+        (null :l -> :l)
+        (:l :e cons :l1 -> :l :l1 append :e cons))
+    #+end_src
+
+*** has-length
+
+    #+begin_src lisp
+    (dt has-length ((:t :> type) :t list natural -> type)
+        null/has-length (-> null zero has-length)
+        cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+
+    (df map/has-length (:l :n has-length -> :l :f map :n has-length)
+        (null/has-length -> null/has-length)
+        (:h cons/has-length -> :h map/has-length cons/has-length))
+    #+end_src
+
+*** vector
+
+    #+begin_src lisp
+    (dt vector ((:t :> type) number :t -> type)
+        null (-> zero :t vector)
+        cons (:n :t vector :t -> :n succ :t vector))
+
+    (df map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
+        (null :f -> null)
+        (:l :e cons :f -> :e :f apply :l :f map cons))
+
+    (df append (:m :t vector :n :t vector -> :m :n add :t vector)
+        (null :l -> :l)
+        (:l :e cons :l1 -> :l :l1 append :e cons))
+    #+end_src
+
+* ast
+
+*** natural
+
+    #+begin_src lisp
+    (dt
+     (natural (()
+               ((n type))))
+     ((zero (()
+             ((n natural))))
+      (succ (((n natural))
+             ((n natural))))))
+
+    (df
+     (add (((n natural) (n natural))
+           ((n natural))))
+     ((((v :m) (n zero))
+       ((v :m)))
+      (((v :m) (v :n) (n succ))
+       ((v :m) (v :n) (n add) (n succ)))))
+
+    (df
+     (mul (((n natural) (n natural))
+           ((n natural))))
+     ((((v :m) (n zero))
+       ((n zero)))
+      (((v :m) (v :n) (n succ))
+       ((v :m) (v :n) (n mul) (v :m) (n add)))))
+    #+end_src
+
+*** >< list
+
+    #+begin_src lisp
+    (dt
+     (list (({:t ~ type} :t)
+            (type)))
+     ((null (()
+             ((v :t) ><><>< list)))
+      (cons ((:t list :t)
+             (:t list)))))
+
+    (df
+     (map ((:t1 list (:t1 -> :t2))
+           (:t2 list)))
+     (((null :f)
+       (null))
+      ((:l :e cons :f)
+       (:e :f apply :l :f map cons))))
+
+    (df
+     (append ((:t list :t list)
+              (:t1 list)))
+     (((null :l)
+       (:l))
+      ((:l :e cons :l1)
+       (:l :l1 append :e cons))))
+    #+end_src
+
+*** >< has-length
+
+    #+begin_src lisp
+    (dt
+     (has-length ({:t ~ type} :t list natural -> type))
+     (null/has-length (-> null zero has-length))
+     (cons/has-length (:l :n has-length -> :l :a cons :n succ has-length)))
+
+    (df
+     (map/has-length (:l :n has-length -> :l :f map :n has-length))
+     ((null/has-length -> null/has-length)
+      (:h cons/has-length -> :h map/has-length cons/has-length)))
+    #+end_src
+
+*** >< vector
+
+    #+begin_src lisp
+    (dt
+     (vector ({:t ~ type} number :t -> type))
+     ((null (-> zero :t vector))
+      (cons (:n :t vector :t -> :n succ :t vector))))
+
+    (df
+     (map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector))
+     ((null :f -> null)
+      (:l :e cons :f -> :e :f apply :l :f map cons)))
+
+    (df
+     (append (:m :t vector :n :t vector -> :m :n add :t vector))
+     ((null :l -> :l)
+      (:l :e cons :l1 -> :l :l1 append :e cons)))
+    #+end_src
+
+* form
+
+*** >< vector
+
+    #+begin_src lisp
+
+    #+end_src

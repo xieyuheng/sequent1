@@ -49,11 +49,39 @@
           (match-lambda** [(v ...) (begin r ...)] ...))])))
 
   (check-expect
-      ((fun
-         [1 x -> x x]
-         [_ _ -> 'fun 'fun])
-       1 2)
-      2)
+    ((fun
+       [1 x -> x x]
+       [_ _ -> 'fun 'fun])
+     1 2)
+    2)
+
+  (check-expect
+    (letrec ([concat
+              (fun
+                ['() l -> l]
+                [(cons h t) l -> (cons h (concat t l))])])
+      (concat '(1 2 3) '(4 5 6)))
+    (append '(1 2 3) '(4 5 6)))
+
+  (define-syntax @
+    (syntax-rules ()
+      [(@ constructor)
+       (list (quote constructor))]
+      [(@ constructor v ...)
+       (list (quote constructor) v ...)]))
+
+  (check-expect
+    (letrec ([depth
+              (fun
+                [('empty) -> 0]
+                [('leaf v) -> 1]
+                [('node t1 t2) -> (+ 1 (max (depth t1) (depth t2)))])])
+      (depth (@ node
+                (@ node (@ empty) (@ empty))
+                (@ node (@ empty) (@ node (@ empty) (@ empty))))))
+    (append '(1 2 3) '(4 5 6)))
+
+  (@ a (@ a))
 
   (define-syntax just-fun
     (syntax-rules ()
@@ -61,9 +89,9 @@
        ((fun . body) . argument-list)]))
 
   (check-expect
-      (just-fun [1 2]
-        [1 x -> x x])
-      2)
+    (just-fun [1 2]
+      [1 x -> x x])
+    2)
   #+end_src
 
 * env
