@@ -518,7 +518,7 @@ doesnt match ~S" ,var ',pat))))
 (defun apply/arrow (a e)
   ;; arrow, env -> env or nil
   (match (list a e)
-    ((ac sc) (ds bs ns))) =>
+    ((ac sc) (ds bs ns)) =>
     (let* ((e1 (unify
                 (run/cedent
                  ac
@@ -539,7 +539,7 @@ doesnt match ~S" ,var ',pat))))
                                        (ls (cdr pair)))
                                   (id/commit! id ls)
                                   (recur (cdr l)))))))
-                (list (ds2 (recur bs2) ns2))))))))
+                (list ds2 (recur bs2) ns2))))))))
 
 (defun apply/cedent (c e)
   ;; cedent, env -> env
@@ -628,6 +628,20 @@ doesnt match ~S" ,var ',pat))))
             ('data-constructor (type/arrow arity type-name))
             => (apply/arity n arity e))))))
 
+(defun data/non-determinate? (d e)
+  ;; data, env -> bool
+  (match (bs/walk (env->bs e) d)
+    ('var v) => t
+    ('arrow _) => nil
+    ('cons _) => nil
+    ('trunk (name data-list))
+    => (data-list/non-determinate? data-list e)))
+
+(defun data-list/non-determinate? (data-list e)
+  ;; data list, env -> bool
+  (find-if (lambda (x) (data/non-determinate? x e))
+           data-list))
+
 (defun apply/name/function (n f e)
   ;; name, function, env -> env
   (match (list f e)
@@ -639,17 +653,11 @@ doesnt match ~S" ,var ',pat))))
                    (let ((result (apply/arrow (car body) e)))
                      (if result
                          result
-                         (:else (recur (cdr body) e)))))))
+                         (recur (cdr body) e))))))
       (let ((args (subseq ds 0 arity)))
-        (if (find-if (lambda (arg)
-                       (match arg
-                         ('var _) => t
-                         ('arrow _) => nil
-                         ('cons _) => nil
-                         ('trunk _) => t))
-                     args)
+        (if (data-list/non-determinate? args e)
             (list (cons (list 'trunk
-                              (list n argument-list))
+                              (list n args))
                         (subseq ds arity))
                   bs
                   ns)
@@ -683,13 +691,13 @@ doesnt match ~S" ,var ',pat))))
 
 (defun apply/bind (b e)
   ;; bind, env -> env
-  (match (list b e)
-    ((vs c live?) (ds bs ns)) =>
+  (match b
+    (vs c live?) =>
     (match (apply/cedent c e)
       ((d1 . r1) bs1 ns1) =>
       (labels ((recur (vs e)
                  (match (list vs e)
-                   (() (ds bs ns)) => e
+                   (() _) => e
                    ((v . r) (ds bs ns)) =>
                    (recur r (list (if live?
                                       (cons d1 ds)
@@ -700,16 +708,61 @@ doesnt match ~S" ,var ',pat))))
 
 (defun unify (e)
   ;; env -> env of nil
-  ;; 'unify-point
-  ())
+  (match e
+    (ds bs ns) =>
+    (let* ((l1 (left-of 'unify-point ds))
+           (tmp (right-of 'unify-point ds))
+           (l2 (subseq tmp 0 (length l1)))
+           (ds1 (subseq tmp (* 2 (length l1)))))
+      (unify/list l1 l2 (list ds1 bs ns)))))
 
-(defun unify/dispatch ()
-  data =
-  ('var var)
-  ('arrow arrow)
-  ('cons (name (data ...)))
-  ('trunk (name (data ...)))
-  )
+(defun unify/list (l1 l2 e)
+  ;; data list, data list, env => env or nil
+  (cond ((eq nil e) nil)
+        ((eq () l1) e)
+        (:else
+         (unify/list (cdr l1) (cdr l2)
+                     (unify/one (car l1) (car l2) e)))))
+
+(defun unify/one (d1 d2 e)
+  ;; data, data, env => env or nil
+  (match e
+    (ds bs ns) =>
+    (let ((d1 (bs/walk bs d1))
+          (d2 (bs/walk bs d2)))
+      (match (list d1 d2)
+        (('var v) d) => (list ds (bs/extend bs v d) ns)
+        (d ('var v)) => (list ds (bs/extend bs v d) ns)
+        (('arrow a1) ('arrow a2))
+        => (if (equal a1 a2)
+               (list ds bs ns)
+               nil)
+        (('arrow a) _) => nil
+        (_ ('arrow a)) => nil
+        (('cons (name1 data-list1)) ('cons (name2 data-list2)))
+        => (if (eq name1 name2)
+               (unify/list data-list1 data-list2 e)
+               nil)
+        (d ('trunk (name data-list)))
+        => (if (data-list/non-determinate? data-list e)
+               nil
+               (apply/name
+                name
+                (list (append (mapcar (lambda (x) (bs/deep bs x))
+                                      data-list)
+                              ds)
+                      bs
+                      ns)))
+        (('trunk (name data-list)) d)
+        => (if (data-list/non-determinate? data-list e)
+               nil
+               (apply/name
+                name
+                (list (append (mapcar (lambda (x) (bs/deep bs x))
+                                      data-list)
+                              ds)
+                      bs
+                      ns)))))))
 
 (defun eva (fs e)
   ;; formal-top list, env -> env
