@@ -520,7 +520,7 @@ doesnt match ~S" ,var ',pat))))
   (match (list a e)
     ((ac sc) (ds bs ns)) =>
     (let* ((e1 (unify
-                (run/cedent
+                (apply/cedent
                  ac
                  (list (cons 'unify-point ds)
                        (cons '(commit-point) bs)
@@ -553,7 +553,7 @@ doesnt match ~S" ,var ',pat))))
     ('var v) => (apply/var v e)
     ('name n) => (apply/name n e)
     ('arrow a) => (apply/literal-arrow a e)
-    ('bind b) => (apply/arrow b e)))
+    ('bind b) => (apply/bind b e)))
 
 (defun apply/literal-arrow (a e)
   (match e
@@ -599,9 +599,9 @@ doesnt match ~S" ,var ',pat))))
                (list name
                      (mapcar (lambda (x) (bs/deep bs x))
                              ds)))
-      ('trunk (name ds))
+      ('trunk (arrow-list ds))
       => (list 'trunk
-               (list name
+               (list arrow-list
                      (mapcar (lambda (x) (bs/deep bs x))
                              ds))))))
 
@@ -622,11 +622,27 @@ doesnt match ~S" ,var ',pat))))
         (let ((store (cdr found)))
           (match store
             ('function f)
-            => (apply/name/function n f e)
-            ('type-constructor (type/arrow arity data-name-list))
+            => (apply/name/function f e)
+            ('type-constructor (formal-arrow arity data-name-list))
             => (apply/arity n arity e)
-            ('data-constructor (type/arrow arity type-name))
+            ('data-constructor (formal-arrow arity type-name))
             => (apply/arity n arity e))))))
+
+(defun apply/name/function (f e)
+  ;; function, env -> env
+  ;; need to do a pass1 here
+  (match (list f e)
+    ((formal-arrow arity formal-arrow-list) (ds bs ns)) =>
+    (let ((data-list (subseq ds 0 arity))
+          (arrow-list (mapcar #'pass1/arrow formal-arrow-list)))
+      (if (data-list/non-determinate? data-list e)
+          (list (cons (list 'trunk
+                            (list arrow-list
+                                  data-list))
+                      (subseq ds arity))
+                bs
+                ns)
+          (apply/arrow-list arrow-list e)))))
 
 (defun data/non-determinate? (d e)
   ;; data, env -> bool
@@ -634,7 +650,7 @@ doesnt match ~S" ,var ',pat))))
     ('var v) => t
     ('arrow _) => nil
     ('cons _) => nil
-    ('trunk (name data-list))
+    ('trunk (arrow-list data-list))
     => (data-list/non-determinate? data-list e)))
 
 (defun data-list/non-determinate? (data-list e)
@@ -642,26 +658,15 @@ doesnt match ~S" ,var ',pat))))
   (find-if (lambda (x) (data/non-determinate? x e))
            data-list))
 
-(defun apply/name/function (n f e)
-  ;; name, function, env -> env
-  (match (list f e)
-    ((type/arrow arity body) (ds bs ns)) =>
-    (labels ((recur (body e)
-               (if (eq body ())
-                   (orz ()
-                     ("apply/name/function function : ~a" f))
-                   (let ((result (apply/arrow (car body) e)))
-                     (if result
-                         result
-                         (recur (cdr body) e))))))
-      (let ((args (subseq ds 0 arity)))
-        (if (data-list/non-determinate? args e)
-            (list (cons (list 'trunk
-                              (list n args))
-                        (subseq ds arity))
-                  bs
-                  ns)
-            (recur body e))))))
+(defun apply/arrow-list (arrow-list e)
+  ;; arrow-list, env -> env
+  (if (eq arrow-list ())
+      (orz ()
+        ("apply/arrow-list no match for arrow-list : ~a" arrow-list))
+      (let ((result (apply/arrow (car arrow-list) e)))
+        (if result
+            result
+            (apply/arrow-list (cdr arrow-list) e)))))
 
 (defun apply/arity (n arity e)
   ;; name, arity, env -> env
@@ -673,12 +678,12 @@ doesnt match ~S" ,var ',pat))))
           bs
           ns)))
 
-(defun bs/extend (bs v d)
+(defun bs/extend (default-level bs v d)
   ;; bs var data -> bs
   (match v
     (id level) =>
     (let* ((level (if (eq nil level)
-                      1
+                      default-level
                       level))
            (found/ls (assoc id bs :test #'eq)))
       (if found/ls
@@ -702,7 +707,7 @@ doesnt match ~S" ,var ',pat))))
                    (recur r (list (if live?
                                       (cons d1 ds)
                                       ds)
-                                  (bs/extend bs v d1)
+                                  (bs/extend 1 bs v d1)
                                   ns)))))
         (recur vs e)))))
 
@@ -731,8 +736,8 @@ doesnt match ~S" ,var ',pat))))
     (let ((d1 (bs/walk bs d1))
           (d2 (bs/walk bs d2)))
       (match (list d1 d2)
-        (('var v) d) => (list ds (bs/extend bs v d) ns)
-        (d ('var v)) => (list ds (bs/extend bs v d) ns)
+        (('var v) d) => (list ds (bs/extend 0 bs v d) ns)
+        (d ('var v)) => (list ds (bs/extend 0 bs v d) ns)
         (('arrow a1) ('arrow a2))
         => (if (equal a1 a2)
                (list ds bs ns)
@@ -743,21 +748,21 @@ doesnt match ~S" ,var ',pat))))
         => (if (eq name1 name2)
                (unify/list data-list1 data-list2 e)
                nil)
-        (d ('trunk (name data-list)))
+        (d ('trunk (arrow-list data-list)))
         => (if (data-list/non-determinate? data-list e)
                nil
-               (apply/name
-                name
+               (apply/arrow-list
+                arrow-list
                 (list (append (mapcar (lambda (x) (bs/deep bs x))
                                       data-list)
                               ds)
                       bs
                       ns)))
-        (('trunk (name data-list)) d)
+        (('trunk (arrow-list data-list)) d)
         => (if (data-list/non-determinate? data-list e)
                nil
-               (apply/name
-                name
+               (apply/arrow-list
+                arrow-list
                 (list (append (mapcar (lambda (x) (bs/deep bs x))
                                       data-list)
                               ds)
@@ -949,14 +954,92 @@ doesnt match ~S" ,var ',pat))))
             result
             nil)))))
 
-(defun check (a l e)
-  ;; formal-arrow, formal-arrow list -> env or nil
-  (match e
-    (ds bs ns) =>
-    (match ()
-      () => ())))
+(defun check (t l e)
+  ;; type formal-arrow, formal-arrow list -> env or nil
+  (match l
+    () => e
+    (h . r) =>
+    (if (check/arrow t h e)
+        (check t r e)
+        nil)))
 
+(defun check/arrow (t a e)
+  ;; type formal-arrow, formal-arrow, env -> env or nil
+  (match (pass1/arrow t)
+    (tac tsc) =>
+    (match (apply/cedent tac e)
+      (ds0 bs0 ns0) =>
+      (match (pass1/arrow a)
+        (ac sc) =>
+        (let ((e1 (unify
+                   (type-apply/cedent
+                    ac
+                    (list (cons 'unify-point ds0)
+                          bs0
+                          ns0)))))
+          (if (not e1)
+              nil
+              (let* ((e2 (type-apply/cedent sc e1)))
+                (match e2
+                  (ds2 bs2 ns2) =>
+                  (if (unify
+                       (apply/cedent
+                        tsc
+                        (list (cons 'unify-point ds2)
+                              bs2
+                              ns2)))
+                      e
+                      nil)))))))))
 
+(defun type-apply/cedent (c e)
+  ;; cedent, env -> env
+  (match c
+    () => e
+    (h . r) => (type-apply/cedent r (type-apply/dispatch h e))))
+
+(defun type-apply/dispatch (f e)
+  ;; form, env -> env
+  (match f
+    ('var v) => (type-apply/var v e)
+    ('name n) => (type-apply/name n e)
+    ('arrow a) => ;; (type-apply/literal-arrow a e)
+    (orz ()
+      ("type-apply/dispatch can not type-apply literal-arrow for now"))
+    ('bind b) => ;; (type-apply/bind b e)
+    (orz ()
+      ("type-apply/dispatch can not type-apply bind for now"))))
+
+(defun type-apply/var (v e)
+  ;; var, env -> env
+  (match v
+    (id level) =>
+    (type-apply/var (if (eq level nil)
+                        (list id 1)
+                        (list id (+ 1 level)))
+                    e)))
+
+(defun type-apply/name (n e)
+  ;; name, env -> env
+  (let ((found (assoc n (env->ns e) :test #'eq)))
+    (if (not found)
+        (orz ()
+          ("type-apply/name unknow name : ~a~%" n))
+        (let ((store (cdr found)))
+          (match store
+            (any-store (formal-arrow arity . _)) =>
+            (match e
+              (ds bs ns) =>
+              (let ((data-list (subseq ds 0 arity))
+                    (arrow (pass1/arrow formal-arrow))
+                    (arrow-list (list arrow)))
+                (if (data-list/non-determinate? data-list e)
+                    (list (cons (list 'trunk
+                                      (list arrow-list
+                                            data-list))
+                                (subseq ds arity))
+                          bs
+                          ns)
+                    (apply/arrow arrow e)))))))))
 
 (eva
 
