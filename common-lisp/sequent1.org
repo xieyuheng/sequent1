@@ -1221,27 +1221,123 @@
         ('ap formal-arrow) => (apply/arrow (pass1/arrow formal-arrow ()) e)))
     #+end_src
 
-*** >< eva/dt
+*** eva/dt
 
     #+begin_src lisp
     (defun eva/dt (type-definition e)
       ;; type-definition -> env
-      (match ()
-        () => ()))
+      (match e
+        (ds bs ns) =>
+        (match type-definition
+          ((n a) l) =>
+          (let* ((name-list
+                  (mapcar #'car l))
+                 (arity
+                  (formal-arrow->arity a e))
+                 (ns1
+                  (cons (cons n
+                              (list 'type-definition
+                                    (list a
+                                          arity
+                                          name-list)))
+                        ns)))
+            (eva/dt/data-constructor-list l (list ds bs ns1))))))
     #+end_src
 
-*** >< eva/df
+*** eva/dt/data-constructor & eva/dt/data-constructor-list
+
+    #+begin_src lisp
+    (defun eva/dt/data-constructor (data-constructor e)
+      ;; data-constructor, env -> env
+      (match e
+        (ds bs ns) =>
+        (match data-constructor
+          (n a) =>
+          (list ds
+                bs
+                (cons (cons n
+                            (list 'data-constructor
+                                  (list a
+                                        (formal-arrow->arity a e)
+                                        n)))
+                      ns)))))
+
+    (defun eva/dt/data-constructor-list (l e)
+      ;; type-name, data-constructor-list, env -> env
+      (match l
+        () => e
+        (h . r) =>
+        (eva/dt/data-constructor-list r (eva/dt/data-constructor h e))))
+    #+end_src
+
+*** ><><>< formal-arrow->arity
+
+    - 這裏假設了 antecedent 的計算中不會出現返回多個參數的 trunk
+      因爲每個 trunk 被計爲一個 data
+      但是其實返回多值的 trunk 應該被計爲多個 data
+
+    - 也就是說 arity 這個 meta data 是不完全的
+      完全的 arity 應該是包括返回值個數的
+
+    - 但是在初期的實驗中我講不用到返回多值的函數
+      初期實驗成功後再來修改這個錯誤
+
+    #+begin_src lisp
+    (defun formal-arrow->arity (formal-arrow e)
+      ;; formal-arrow, env -> arity
+      (match e
+        (ds bs ns) =>
+        (match (pass1/arrow formal-arrow ())
+          (antecedent succedent) =>
+          (match (apply/cedent antecedent
+                               (list () bs ns))
+            (ds1 bs1 ns1) =>
+            (length ds1)))))
+    #+end_src
+
+*** eva/df
 
     #+begin_src lisp
     (defun eva/df (function-definition e)
       ;; function-definition -> env
-      (match ()
-        () => ()))
+      (match e
+        (ds bs ns) =>
+        (match function-definition
+          ((n a) l) =>
+          (let ((result
+                 (check a
+                        l
+                        (list ds
+                              bs
+                              (cons (cons n
+                                          (list 'function
+                                                (list a
+                                                      (formal-arrow->arity a e)
+                                                      l)))
+                                    ns)))))
+            (if result
+                result
+                nil)))))
     #+end_src
 
 * >< check
 
-* >< typeof
+*** >< check
+
+    #+begin_src lisp
+    (defun check (a l e)
+      ;; formal-arrow, formal-arrow list -> env or nil
+      (match e
+        (ds bs ns) =>
+        (match ()
+          () => ())))
+    #+end_src
+
+*** >< typeof
+
+    #+begin_src lisp
+
+    #+end_src
 
 * test
 

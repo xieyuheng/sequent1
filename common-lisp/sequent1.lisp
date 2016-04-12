@@ -878,13 +878,85 @@ doesnt match ~S" ,var ',pat))))
 
 (defun eva/dt (type-definition e)
   ;; type-definition -> env
-  (match ()
-    () => ()))
+  (match e
+    (ds bs ns) =>
+    (match type-definition
+      ((n a) l) =>
+      (let* ((name-list
+              (mapcar #'car l))
+             (arity
+              (formal-arrow->arity a e))
+             (ns1
+              (cons (cons n
+                          (list 'type-definition
+                                (list a
+                                      arity
+                                      name-list)))
+                    ns)))
+        (eva/dt/data-constructor-list l (list ds bs ns1))))))
+
+(defun eva/dt/data-constructor (data-constructor e)
+  ;; data-constructor, env -> env
+  (match e
+    (ds bs ns) =>
+    (match data-constructor
+      (n a) =>
+      (list ds
+            bs
+            (cons (cons n
+                        (list 'data-constructor
+                              (list a
+                                    (formal-arrow->arity a e)
+                                    n)))
+                  ns)))))
+
+(defun eva/dt/data-constructor-list (l e)
+  ;; type-name, data-constructor-list, env -> env
+  (match l
+    () => e
+    (h . r) =>
+    (eva/dt/data-constructor-list r (eva/dt/data-constructor h e))))
+
+(defun formal-arrow->arity (formal-arrow e)
+  ;; formal-arrow, env -> arity
+  (match e
+    (ds bs ns) =>
+    (match (pass1/arrow formal-arrow ())
+      (antecedent succedent) =>
+      (match (apply/cedent antecedent
+                           (list () bs ns))
+        (ds1 bs1 ns1) =>
+        (length ds1)))))
 
 (defun eva/df (function-definition e)
   ;; function-definition -> env
-  (match ()
-    () => ()))
+  (match e
+    (ds bs ns) =>
+    (match function-definition
+      ((n a) l) =>
+      (let ((result
+             (check a
+                    l
+                    (list ds
+                          bs
+                          (cons (cons n
+                                      (list 'function
+                                            (list a
+                                                  (formal-arrow->arity a e)
+                                                  l)))
+                                ns)))))
+        (if result
+            result
+            nil)))))
+
+(defun check (a l e)
+  ;; formal-arrow, formal-arrow list -> env or nil
+  (match e
+    (ds bs ns) =>
+    (match ()
+      () => ())))
+
+
 
 (eva
 
