@@ -764,15 +764,143 @@ doesnt match ~S" ,var ',pat))))
                       bs
                       ns)))))))
 
-(defun eva (fs e)
-  ;; formal-top list, env -> env
-  (match fs
+(defun eva (l e)
+  ;; sexp-top list, env -> env
+  (match l
     () => e
-    (h . r) => (eva r (eva/formal-top h e))))
+    (h . r) => (eva r (eva/top (parse/top h) e))))
 
-(defun eva/formal-top (f e)
-  ;; formal-top, env -> env
-  (match (list f e)
-    (('dt (fn fa) fnfas) (ds bs ns)) => ><><><
-    (('df (fn fa) fas) (ds bs ns)) => ><><><
-    (('ap fa) (ds bs ns)) => (apply/arrow (pass1/arrow fa ()) e)))
+(defun parse/top (s)
+  ;; sexp-top -> top
+  (match s
+    ('dt name sexp-arrow . body)
+    => (list 'dt
+             (list (list name (parse/arrow sexp-arrow))
+                   (parse/top/dt-body body)))
+    ('df name sexp-arrow . sexp-arrow-list)
+    => (list 'df
+             (list (list name (parse/arrow sexp-arrow))
+                   (mapcar #'parse/arrow sexp-arrow-list)))
+    ('ap sexp-arrow)
+    => (list 'ap (parse/arrow sexp-arrow))))
+
+(defun parse/top/dt-body (body)
+  ;; sexp-top-dt-body -> ((formal-name formal-arrow) ...)
+  (cond ((eq () body) ())
+        ((eq () (cdr body))
+         (orz ()
+           ("parse/top/dt-body wrong body : body")))
+        (:else
+         (cons (list (car body) (parse/arrow (cadr body)))
+               (parse/top/dt-body (cddr body))))))
+
+(assert
+ (equal
+
+  (mapcar
+   #'parse/top
+   '((dt natural (-> type)
+      zero (-> natural)
+      succ (natural -> natural))
+
+     (df add (natural natural -> natural)
+      (:m zero -> :m)
+      (:m :n succ -> :m :n recur succ))
+
+     (df mul (natural natural -> natural)
+      (:m zero -> zero)
+      (:m :n succ -> :m :n recur :m add))
+
+     (ap (->
+          zero succ
+          zero succ succ
+          add))))
+
+  '((dt ((natural (nil ((n type))))
+         ((zero (nil ((n natural))))
+          (succ (((n natural)) ((n natural)))))))
+    (df ((add (((n natural) (n natural)) ((n natural))))
+         ((((v (:m nil)) (n zero))
+           ((v (:m nil))))
+          (((v (:m nil)) (v (:n nil)) (n succ))
+           ((v (:m nil)) (v (:n nil)) (n recur) (n succ))))))
+    (df ((mul (((n natural) (n natural)) ((n natural))))
+         ((((v (:m nil)) (n zero))
+           ((n zero)))
+          (((v (:m nil)) (v (:n nil)) (n succ))
+           ((v (:m nil)) (v (:n nil)) (n recur) (v (:m nil)) (n add))))))
+    (ap (nil ((n zero) (n succ) (n zero) (n succ) (n succ) (n add)))))))
+
+
+(assert
+ (equal
+
+  (mapcar
+   #'parse/top
+   '((dt vector ((:t :> type) number :t -> type)
+      null (-> zero :t vector)
+      cons (:n :t vector :t -> :n succ :t vector))
+
+     (df map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
+      (null :f -> null)
+      (:l :e cons :f -> :e :f apply :l :f map cons))
+
+     (df append (:m :t vector :n :t vector -> :m :n add :t vector)
+      (null :l -> :l)
+      (:l :e cons :l1 -> :l :l1 append :e cons))))
+
+  '((dt ((vector (((b (((v (:t nil))) ((n type)) nil)) (n number) (v (:t nil)))
+                  ((n type))))
+         ((null (nil
+                 ((n zero) (v (:t nil)) (n vector))))
+          (cons (((v (:n nil)) (v (:t nil)) (n vector) (v (:t nil)))
+                 ((v (:n nil)) (n succ) (v (:t nil)) (n vector)))))))
+
+    (df ((map (((v (:n nil)) (v (:t1 nil)) (n vector) (a (((v (:t1 nil))) ((v (:t2 nil)))))) ((v (:n nil)) (v (:t2 nil)) (n vector))))
+         ((((n null) (v (:f nil)))
+           ((n null)))
+          (((v (:l nil)) (v (:e nil)) (n cons) (v (:f nil)))
+           ((v (:e nil)) (v (:f nil)) (n apply) (v (:l nil)) (v (:f nil)) (n map) (n cons))))))
+
+    (df ((append (((v (:m nil)) (v (:t nil)) (n vector) (v (:n nil)) (v (:t nil)) (n vector))
+                  ((v (:m nil)) (v (:n nil)) (n add) (v (:t nil)) (n vector))))
+         ((((n null) (v (:l nil)))
+           ((v (:l nil))))
+          (((v (:l nil)) (v (:e nil)) (n cons) (v (:l1 nil)))
+           ((v (:l nil)) (v (:l1 nil)) (n append) (v (:e nil)) (n cons)))))))))
+
+(defun eva/top (top e)
+  ;; top, env -> env
+  (match top
+    ('dt type-definition) => (eva/dt type-definition e)
+    ('df function-definition) => (eva/df function-definition e)
+    ('ap formal-arrow) => (apply/arrow (pass1/arrow formal-arrow ()) e)))
+
+(defun eva/dt (type-definition e)
+  ;; type-definition -> env
+  (match ()
+    () => ()))
+
+(defun eva/df (function-definition e)
+  ;; function-definition -> env
+  (match ()
+    () => ()))
+
+(eva
+
+ '((dt natural (-> type)
+    zero (-> natural)
+    succ (natural -> natural))
+
+   (df add (natural natural -> natural)
+    (:m zero -> :m)
+    (:m :n succ -> :m :n recur succ))
+
+   (df mul (natural natural -> natural)
+    (:m zero -> zero)
+    (:m :n succ -> :m :n recur :m add))
+
+   (ap (->
+        zero succ
+        zero succ succ
+        add))))
