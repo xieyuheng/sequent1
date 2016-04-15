@@ -508,27 +508,27 @@ doesnt match ~S" ,var ',pat))))
     (ds bs ns) =>
     (match a
       (ac sc) =>
-      (let ((e1 (unify
-                 (apply/cedent
-                  ac
-                  (list (cons 'unify-point ds)
-                        (cons '(commit-point) bs)
-                        ns)))))
-        (if (not e1)
-            nil
-            (let ((e2 (apply/cedent sc e1)))
-              (match e2
-                (ds2 bs2 ns2) =>
-                (labels ((recur (l) ;; side-effect on var
-                           (cond ((equal '(commit-point) (car l))
-                                  (cdr l))
-                                 (:else
-                                  (let* ((pair (car l))
-                                         (id (car pair))
-                                         (ls (cdr pair)))
-                                    (id/commit! id ls)
-                                    (recur (cdr l)))))))
-                  (list ds2 (recur bs2) ns2)))))))))
+      (match (unify
+              (apply/cedent
+               ac
+               (list (cons 'unify-point ds)
+                     (cons '(commit-point) bs)
+                     ns)))
+        (:fail _) => nil
+        (:success e1 )
+        => (let ((e2 (apply/cedent sc e1)))
+             (match e2
+               (ds2 bs2 ns2) =>
+               (labels ((recur (l) ;; side-effect on var
+                          (cond ((equal '(commit-point) (car l))
+                                 (cdr l))
+                                (:else
+                                 (let* ((pair (car l))
+                                        (id (car pair))
+                                        (ls (cdr pair)))
+                                   (id/commit! id ls)
+                                   (recur (cdr l)))))))
+                 (list ds2 (recur bs2) ns2))))))))
 
 (defun apply/cedent (c e)
   ;; cedent, env -> env
@@ -615,17 +615,18 @@ doesnt match ~S" ,var ',pat))))
         (ds bs ns) =>
         (match (car arrow-list)
           (ac sc) =>
-          (let ((e1 (unify
-                     (apply/cedent
-                      ac
-                      (list (cons 'unify-point
-                                  (append data-list ds))
-                            bs
-                            ns)))))
-            (if (not e1)
-                (apply/arrow-list/filter (cdr arrow-list) data-list e)
-                (cons (car arrow-list)
-                      (apply/arrow-list/filter (cdr arrow-list) data-list e))))))))
+          (match (unify
+                  (apply/cedent
+                   ac
+                   (list (cons 'unify-point
+                               (append data-list ds))
+                         bs
+                         ns)))
+            (:fail _)
+            => (apply/arrow-list/filter (cdr arrow-list) data-list e)
+            (:success e1)
+            => (cons (car arrow-list)
+                     (apply/arrow-list/filter (cdr arrow-list) data-list e)))))))
 
 (defun apply/arity (n arity e)
   ;; name, arity, env -> env
@@ -716,7 +717,7 @@ doesnt match ~S" ,var ',pat))))
                 bs)))))
 
 (defun unify (e)
-  ;; env -> env of nil
+  ;; env -> unify-report
   (match e
     (ds bs ns) =>
     (let* ((l1 (left-of 'unify-point ds))
@@ -724,15 +725,18 @@ doesnt match ~S" ,var ',pat))))
            (len (length l1))
            (l2 (subseq tmp 0 len))
            (ds1 (subseq tmp len)))
-      (unify/list l1 l2 (list ds1 bs ns)))))
+      (unify/list l1 l2
+                  (list :success (list ds1 bs ns))))))
 
-(defun unify/list (l1 l2 e)
-  ;; data list, data list, env => env or nil
-  (cond ((eq nil e) nil)
-        ((eq () l1) e)
-        (:else
-         (unify/list (cdr l1) (cdr l2)
-                     (unify/one (car l1) (car l2) e)))))
+(defun unify/list (l1 l2 unify-report)
+  ;; data list, data list, unify-report -> unify-report
+  (match unify-report
+    (:fail report) => unify-report
+    (:success e) =>
+    (if (eq () l1)
+        unify-report
+        (unify/list (cdr l1) (cdr l2)
+                    (unify/one (car l1) (car l2) e)))))
 
 (defun var/eq (v1 v2)
   (match (list v1 v2)
@@ -741,7 +745,7 @@ doesnt match ~S" ,var ',pat))))
          (eq level1 level2))))
 
 (defun unify/one (d1 d2 e)
-  ;; data, data, env => env or nil
+  ;; data, data, env -> unify-report
   (match e
     (ds bs ns) =>
     (let ((d1 (bs/walk bs d1))
@@ -750,40 +754,94 @@ doesnt match ~S" ,var ',pat))))
       (match (list d1 d2)
         (('var v1) ('var v2))
         => (if (var/eq v1 v2)
-               e
-               (list ds (bs/extend 0 bs v1 d2) ns))
-        (('var v) d) => (list ds (bs/extend 0 bs v d) ns)
-        (d ('var v)) => (list ds (bs/extend 0 bs v d) ns)
+               (list :success e)
+               (list :success
+                     (list ds (bs/extend 0 bs v1 d2) ns)))
+        (('var v) d)
+        => (list :success
+                 (list ds (bs/extend 0 bs v d) ns))
+        (d ('var v))
+        => (list :success
+                 (list ds (bs/extend 0 bs v d) ns))
         (('arrow a1) ('arrow a2))
         => (if (equal a1 a2)
-               (list ds bs ns)
-               nil)
-        (('arrow a) _) => nil
-        (_ ('arrow a)) => nil
+               (list :success
+                     (list ds bs ns))
+               (list :fail
+                     (list
+                      `(unify/one (:d1 ,d1)
+                                  (:d2 ,d2)))))
+        (('arrow a) _)
+        => (list :fail
+                 (list
+                  `(unify/one (:d1 ,d1)
+                              (:d2 ,d2))))
+        (_ ('arrow a))
+        => (list :fail
+                 (list
+                  `(unify/one (:d1 ,d1)
+                              (:d2 ,d2))))
         (('cons (name1 data-list1)) ('cons (name2 data-list2)))
         => (if (eq name1 name2)
-               (unify/list data-list1 data-list2 e)
-               nil)
+               (unify/list data-list1 data-list2 (list :success e))
+               (list :fail
+                     (list
+                      `(unify/one (:d1 ,d1)
+                                  (:d2 ,d2)))))
         ;; ><><><
         ;; trunk can only return one data
         (d ('trunk (arrow-list data-list)))
-        => (let ((data-list (mapcar (lambda (x) (bs/deep bs x))
-                                    data-list)))
-             (match (apply/arrow-list/filter arrow-list data-list e)
-               () => nil
-               (a) => (match (apply/arrow a (list data-list bs ns))
-                        ((d1 . _) bs1 ns1) =>
-                        (unify/one d d1 (list ds bs1 ns1)))
-               (a1 a2 . _) => nil))
+        => (let ((data-list1 (mapcar (lambda (x) (bs/deep bs x))
+                                     data-list)))
+             (match (apply/arrow-list/filter arrow-list data-list1 e)
+               ()
+               => (list :fail
+                        (list
+                         `(unify/one
+                           (:trunk-filter-to ())
+                           (:d1 ,d1)
+                           (:d2 ,d2))))
+               (a)
+               => (match (apply/arrow a (list data-list1 bs ns))
+                    ((d1 . _) bs1 ns1)
+                    => (unify/one d d1 (list ds bs1 ns1)))
+               (a1 a2 . _)
+               => (list :fail
+                        (list
+                         `(unify/one
+                           (:trunk-filter-to
+                            (:arrow-list
+                             ,(apply/arrow-list/filter arrow-list data-list1 e))
+                            (:data-list1 ,data-list1)
+                            (:old-data-list ,data-list))
+                           (:d1 ,d1)
+                           (:d2 ,d2))))))
         (('trunk (arrow-list data-list)) d)
-        => (let ((data-list (mapcar (lambda (x) (bs/deep bs x))
-                                    data-list)))
-             (match (apply/arrow-list/filter arrow-list data-list e)
-               () => nil
-               (a) => (match (apply/arrow a (list data-list bs ns))
-                        ((d1 . _) bs1 ns1) =>
-                        (unify/one d d1 (list ds bs1 ns1)))
-               (a1 a2 . _) => nil))))))
+        => (let ((data-list1 (mapcar (lambda (x) (bs/deep bs x))
+                                     data-list)))
+             (match (apply/arrow-list/filter arrow-list data-list1 e)
+               ()
+               => (list :fail
+                        (list
+                         `(unify/one
+                           (:trunk-filter-to ())
+                           (:d1 ,d1)
+                           (:d2 ,d2))))
+               (a)
+               => (match (apply/arrow a (list data-list1 bs ns))
+                    ((d1 . _) bs1 ns1)
+                    => (unify/one d d1 (list ds bs1 ns1)))
+               (a1 a2 . _)
+               => (list :fail
+                        (list
+                         `(unify/one
+                           (:trunk-filter-to
+                            (:arrow-list
+                             ,(apply/arrow-list/filter arrow-list data-list1 e))
+                            (:data-list1 ,data-list1)
+                            (:old-data-list ,data-list))
+                           (:d1 ,d1)
+                           (:d2 ,d2))))))))))
 
 (defun eva (l e)
   ;; sexp-top list, env -> env
@@ -962,8 +1020,7 @@ doesnt match ~S" ,var ',pat))))
     (h . r) =>
     (match (check/arrow type-formal-arrow h e)
       (:success e) => (check type-formal-arrow r e)
-      (:fail report) => (list :fail
-                              report))))
+      (:fail check-report) => (list :fail check-report))))
 
 (defun check/arrow (type-formal-arrow a e)
   ;; type-formal-arrow, formal-arrow, env -> check-report
@@ -973,38 +1030,35 @@ doesnt match ~S" ,var ',pat))))
       (ds0 bs0 ns0) =>
       (match (pass1/arrow a ())
         (ac sc) =>
-        (let ((e1 (unify
-                   (type-apply/cedent
-                    ac
-                    (list (cons 'unify-point ds0)
-                          bs0
-                          ns0)))))
-          (if (not e1)
-              (list :fail
-                    (list `(check/arrow
-                            can not unify
-                            (tac ,tac)
-                            (ac ,ac)
-                            (env ,(type-apply/cedent
-                                   ac
-                                   (list (cons 'unify-point ds0)
-                                         bs0
-                                         ns0))))))
-              (let* ((e2 (type-apply/cedent sc e1)))
-                (match e2
-                  (ds2 bs2 ns2) =>
-                  (if (unify
-                       (apply/cedent
-                        tsc
-                        (list (cons 'unify-point ds2)
-                              bs2
-                              ns2)))
-                      (list :success e)
-                      (list :fail
-                            (list `(check/arrow
-                                    can not unify
-                                    (tsc ,tsc)
-                                    (sc ,sc)))))))))))))
+        (match (unify
+                (type-apply/cedent
+                 ac
+                 (list (cons 'unify-point ds0)
+                       bs0
+                       ns0)))
+          (:fail report)
+          => (list :fail
+                   (cons `(check/arrow
+                           (:type-antecedent ,tac)
+                           (:antecedent ,ac))
+                         report))
+          (:success e1)
+          => (let* ((e2 (type-apply/cedent sc e1)))
+               (match e2
+                 (ds2 bs2 ns2) =>
+                 (match (unify
+                         (apply/cedent
+                          tsc
+                          (list (cons 'unify-point ds2)
+                                bs2
+                                ns2)))
+                   (:success e) => (list :success e)
+                   (:fail report)
+                   => (list :fail
+                            (cons `(check/arrow
+                                    (:type-succedent ,tsc)
+                                    (:succedent ,sc))
+                                  report))))))))))
 
 (defun type-apply/cedent (c e)
   ;; cedent, env -> env

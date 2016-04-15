@@ -60,9 +60,9 @@
     ;;     (null :f -> null)
     ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
 
-    (df append (:t list :t list -> :t1 list)
-        (null :l -> :l)
-        (:l :e cons :l1 -> :l :l1 append :e cons))
+    (df append (:t list :t list -> :t list)
+        (:l null -> :l)
+        (:l :r :e cons -> :l :r append :e cons))
 
     (ap (->
          null
@@ -114,8 +114,8 @@
     ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
 
     (df append (:m :t vector :n :t vector -> :m :n add :t vector)
-        (null :l -> :l)
-        (:l :e cons :l1 -> :l :l1 append :e cons))
+        (:l null -> :l)
+        (:l :r :e cons -> :l :r append :e cons))
 
     (ap (->
          null
