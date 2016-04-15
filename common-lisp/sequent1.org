@@ -12,6 +12,9 @@
 
   - improve the interface to get rid of 'unify-point and '(commit-point)
 
+  - success should track the path
+    when fail path can be used in report
+
   - refactoring
     those labels
     those local helper functions
@@ -780,7 +783,7 @@
                          (cons '(commit-point) bs)
                          ns)))
             (:fail _) => nil
-            (:success e1 )
+            (:success e1)
             => (let ((e2 (apply/cedent sc e1)))
                  (match e2
                    (ds2 bs2 ns2) =>
@@ -1040,6 +1043,17 @@
 
 * unify
 
+*** 記
+
+    - unify 即 核心等詞
+
+    - 當兩個都是 trunk 時
+      有兩種 判斷相等的方式
+      1. trunk 待作用函數相同 並且 data-list 也相同
+      2. 其中一 trunk 可以計算 然後依舊 非兩個 trunk 的情形來判斷相等
+      看來等詞是有很多細節的
+      可能實現得越細越好
+
 *** note unify-report
 
     - unify-report =
@@ -1073,7 +1087,7 @@
         (if (eq () l1)
             unify-report
             (unify/list (cdr l1) (cdr l2)
-                        (unify/one (car l1) (car l2) e)))))
+                        (unify/dispatch (car l1) (car l2) e)))))
     #+end_src
 
 *** var/eq
@@ -1086,12 +1100,12 @@
              (eq level1 level2))))
     #+end_src
 
-*** ><><>< unify/one
+*** ><><>< unify/dispatch
 
-    - unify 時需要檢查 type
+    - 需要檢查 type
 
     #+begin_src lisp
-    (defun unify/one (d1 d2 e)
+    (defun unify/dispatch (d1 d2 e)
       ;; data, data, env -> unify-report
       (match e
         (ds bs ns) =>
@@ -1116,79 +1130,87 @@
                          (list ds bs ns))
                    (list :fail
                          (list
-                          `(unify/one (:d1 ,d1)
-                                      (:d2 ,d2)))))
+                          `(unify/dispatch (:d1 ,d1)
+                                           (:d2 ,d2)))))
             (('arrow a) _)
             => (list :fail
                      (list
-                      `(unify/one (:d1 ,d1)
-                                  (:d2 ,d2))))
+                      `(unify/dispatch (:d1 ,d1)
+                                       (:d2 ,d2))))
             (_ ('arrow a))
             => (list :fail
                      (list
-                      `(unify/one (:d1 ,d1)
-                                  (:d2 ,d2))))
+                      `(unify/dispatch (:d1 ,d1)
+                                       (:d2 ,d2))))
             (('cons (name1 data-list1)) ('cons (name2 data-list2)))
             => (if (eq name1 name2)
                    (unify/list data-list1 data-list2 (list :success e))
                    (list :fail
                          (list
-                          `(unify/one (:d1 ,d1)
-                                      (:d2 ,d2)))))
-            ;; ><><><
-            ;; trunk can only return one data
-            (d ('trunk (arrow-list data-list)))
-            => (let ((data-list1 (mapcar (lambda (x) (bs/deep bs x))
-                                         data-list)))
-                 (match (apply/arrow-list/filter arrow-list data-list1 e)
-                   ()
-                   => (list :fail
-                            (list
-                             `(unify/one
-                               (:trunk-filter-to ())
-                               (:d1 ,d1)
-                               (:d2 ,d2))))
-                   (a)
-                   => (match (apply/arrow a (list data-list1 bs ns))
-                        ((d1 . _) bs1 ns1)
-                        => (unify/one d d1 (list ds bs1 ns1)))
-                   (a1 a2 . _)
-                   => (list :fail
-                            (list
-                             `(unify/one
-                               (:trunk-filter-to
-                                (:arrow-list
-                                 ,(apply/arrow-list/filter arrow-list data-list1 e))
-                                (:data-list1 ,data-list1)
-                                (:old-data-list ,data-list))
-                               (:d1 ,d1)
-                               (:d2 ,d2))))))
-            (('trunk (arrow-list data-list)) d)
-            => (let ((data-list1 (mapcar (lambda (x) (bs/deep bs x))
-                                         data-list)))
-                 (match (apply/arrow-list/filter arrow-list data-list1 e)
-                   ()
-                   => (list :fail
-                            (list
-                             `(unify/one
-                               (:trunk-filter-to ())
-                               (:d1 ,d1)
-                               (:d2 ,d2))))
-                   (a)
-                   => (match (apply/arrow a (list data-list1 bs ns))
-                        ((d1 . _) bs1 ns1)
-                        => (unify/one d d1 (list ds bs1 ns1)))
-                   (a1 a2 . _)
-                   => (list :fail
-                            (list
-                             `(unify/one
-                               (:trunk-filter-to
-                                (:arrow-list
-                                 ,(apply/arrow-list/filter arrow-list data-list1 e))
-                                (:data-list1 ,data-list1)
-                                (:old-data-list ,data-list))
-                               (:d1 ,d1)
-                               (:d2 ,d2))))))))))
+                          `(unify/dispatch (:d1 ,d1)
+                                           (:d2 ,d2)))))
+            (('trunk trunk1) ('trunk trunk2)) => (unify/trunk/trunk trunk1 trunk2 e)
+            (d ('trunk trunk)) => (unify/trunk/data trunk d e)
+            (('trunk trunk) d) => (unify/trunk/data trunk d e)))))
+    #+end_src
+
+*** ><><>< unify/trunk/trunk
+
+    - the use of equalp is not safe
+
+    #+begin_src lisp
+    (defun unify/trunk/trunk (trunk1 trunk2 e)
+      ;; trunk, trunk, env -> unify-report
+      (cat () ("here unify/trunk/trunk ~%"))
+      (match (list trunk1 trunk2 e)
+        ((arrow-list1 data-list1) (arrow-list2 data-list2) (ds bs ns)) =>
+        (if (equalp arrow-list1 arrow-list2)
+            ;; the use of equalp is not safe
+            (unify/list data-list1 data-list2 (list :success e))
+            (match (unify/trunk/data trunk1 (list 'trunk trunk2) e)
+              (:success e1) => (list :success e1)
+              (:fail _) =>
+              (unify/trunk/data trunk2 (list 'trunk trunk1) e)))))
+    #+end_src
+
+*** ><><>< unify/trunk/data
+
+    - trunk can only return one data
+
+    #+begin_src lisp
+    (defun unify/trunk/data (trunk d e)
+      ;; trunk, data, env -> unify-report
+      ;; where data is not trunk
+      (cat () ("here unify/trunk/data ~%"))
+      (match e
+        (ds bs ns) =>
+        (match trunk
+          (arrow-list data-list) =>
+          (let ((data-list1 (mapcar (lambda (x) (bs/deep bs x))
+                                    data-list)))
+            (match (apply/arrow-list/filter arrow-list data-list1 e)
+              ()
+              => (list :fail
+                       (list
+                        `(unify/dispatch
+                          (:trunk-filter-to ())
+                          (:trunk ,trunk)
+                          (:data ,d))))
+              (a)
+              => (match (apply/arrow a (list data-list1 bs ns))
+                   ((h . _) bs1 ns1)
+                   => (unify/dispatch d h (list ds bs1 ns1)))
+              (a1 a2 . _)
+              => (list :fail
+                       (list
+                        `(unify/dispatch
+                          (:trunk-filter-to
+                           (:arrow-list
+                            ,(apply/arrow-list/filter arrow-list data-list1 e))
+                           (:data-list1 ,data-list1)
+                           (:old-data-list ,data-list))
+                          (:trunk ,trunk)
+                          (:data ,d)))))))))
     #+end_src
 
 * eva
@@ -1402,7 +1424,9 @@
                                              l)))
                            ns)))
             (match (check a l (list ds bs ns1))
-              (:success e1) => e1
+              ;; note that the bs of the env
+              ;; returned by check is not clean
+              (:success e1) => (list ds bs ns1)
               (:fail check-report) =>
               (orz ()
                 ("eva/df fail to define : ~a~%" function-definition)
@@ -1545,29 +1569,31 @@
     #+begin_src lisp :tangle no
     (sequent
 
-     (dt natural (-> type)
-         zero (-> natural)
-         succ (natural -> natural))
+      (dt type (-> type))
 
-     (df add (natural natural -> natural)
-         (:m zero -> :m)
-         (:m :n succ -> :m :n add succ))
+      (dt natural (-> type)
+          zero (-> natural)
+          succ (natural -> natural))
 
-     (df mul (natural natural -> natural)
-         (:m zero -> zero)
-         (:m :n succ -> :m :n mul :m add))
+      (df add (natural natural -> natural)
+          (:m zero -> :m)
+          (:m :n succ -> :m :n add succ))
 
-     (ap (->
-          zero succ
-          zero succ succ
-          add))
+      (df mul (natural natural -> natural)
+          (:m zero -> zero)
+          (:m :n succ -> :m :n mul :m add))
 
-     (ap (->
-          zero succ succ
-          zero succ succ
-          mul))
+      (ap (->
+           zero succ
+           zero succ succ
+           add))
 
-     (ap (-> mul)))
+      (ap (->
+           zero succ succ
+           zero succ succ
+           mul))
+
+      (ap (-> mul)))
     #+end_src
 
 *** list
@@ -1644,67 +1670,14 @@
           (:l null -> :l)
           (:l :r :e cons -> :l :r append :e cons))
 
-      ;; (ap (->
-      ;;      null
-      ;;      zero cons
-      ;;      zero cons
-      ;;      zero cons
-      ;;      null
-      ;;      zero cons
-      ;;      zero cons
-      ;;      zero cons
-      ;;      append))
-      )
-
-    (
-
-     (check/arrow
-
-      (type-succedent
-       ((var (#(m nil) 0))
-        (var (#(n nil) 0))
-        (name add)
-        (var (#(t nil) 0))
-        (name vector)))
-
-      (succedent
-       ((var (#(l nil) 0))
-        (var (#(r ((1 cons
-                    (vector ((var (#(t ((0 var (#(e nil) 1)))) 0))
-                             (var (#(n nil) 0))))))) 0))
-        (name append)
-        (var (#(e nil) 0))
-        (name cons)))
-
-      )
-
-     (unify/one
-
-      (trunk-filter-to
-       (arrow-list
-        ((((var (#(m nil) 0)) (name zero))
-          ((var (#(m nil) 0))))
-         (((var (#(m nil) 0)) (var (#(n nil) 0)) (name succ))
-          ((var (#(m nil) 0)) (var (#(n nil) 0)) (name add) (name succ)))))
-       (data-list1
-        ((var (#(n nil) 0)) (var (#(m nil) 0))))
-       (old-data-list
-        ((var (#(n nil) 0)) (var (#(m nil) 0)))))
-
-
-      (d1
-       (trunk
-        (((((var (#(m nil) 0)) (name zero)) ((var (#(m nil) 0))))
-          (((var (#(m nil) 0)) (var (#(n nil) 0)) (name succ)) ((var (#(m nil) 0)) (var (#(n nil) 0)) (name add) (name succ))))
-         ((var (#(n nil) 0))
-          (var (#(m nil) 0))))))
-
-      (d2
-       (trunk
-        (((((var (#(m nil) 0)) (name zero)) ((var (#(m nil) 0))))
-          (((var (#(m nil) 0)) (var (#(n nil) 0)) (name succ)) ((var (#(m nil) 0)) (var (#(n nil) 0)) (name add) (name succ))))
-         ((var (#(n nil) 0))
-          (var (#(m nil) 0))))))
-
-      ))
+      (ap (->
+           null
+           zero cons
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           zero cons
+           append)))
     #+end_src
