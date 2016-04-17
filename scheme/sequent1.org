@@ -1,8 +1,6 @@
-+ sequent1
-  sequent calculus as dependent type system of functional language
++ sequent calculus as dependent type system of functional language
 
-+ this is a prototype
-  it is not useful for it is lack of so many important features
++ a prototype interpreter
 
 + XIE Yuheng created
 
@@ -10,60 +8,121 @@
 
 * todo
 
-  - parse/arrow
+* note
 
-  - interface of ns
+*** formal-form
+
+    - formal-arrow = (formal-cedent formal-cedent)
+    - formal-cedent = (formal-form ...)
+    - formal-form =
+      - ('v formal-var)
+      - ('n formal-name)
+      - ('a formal-arrow)
+      - ('b formal-bind)
+    - formal-var = (symbol level)
+    - formal-name = symbol
+    - formal-bind = ((formal-var ...) formal-cedent live?)
+
+*** form
+
+    - arrow = (cedent cedent)
+    - cedent = (form ...)
+    - form =
+      - ('var var)
+      - ('name name)
+      - ('arrow arrow)
+      - ('bind bind)
+    - var = (id level)
+    - name = symbol
+    - bind = ((var ...) cedent live?)
+    - id = #(symbol ls)
+
+*** env
+
+    - env = (ds bs ns)
+    - ds = (data ...)
+    - bs = ((id . ls) ...)
+      - ls = ((level . data) ...)
+    - ns = ((name . store) ...)
+
+*** data
+
+    - data =
+      - ('var var)
+      - ('arrow arrow)
+      - ('cons (name (data ...)))
+      - ('trunk ((arrow ...) (data ...)))
+
+*** store
+
+    - store =
+      - ('function function)
+      - ('type-constructor type-constructor)
+      - ('data-constructor data-constructor)
+    - function = (formal-arrow arity (formal-arrow ...))
+    - type-constructor = (formal-arrow arity (name ...))
+    - data-constructor = (formal-arrow arity name)
+    - arity = number
+
+*** top
+
+    - top =
+      - ('dt type-definition)
+      - ('df function-definition)
+      - ('ap formal-arrow)
+    - type-definition =
+      ((formal-name formal-arrow) ((formal-name formal-arrow) ...))
+    - function-definition =
+      ((formal-name formal-arrow) (formal-arrow ...))
 
 * helper
 
-  #+begin_src scheme
-  (use-modules (ice-9 match))
+*** pattern match
 
-  (define-syntax cat
-    (syntax-rules ()
-      [(cat (str . args))
-       (format str . args)]
-      [(cat (str . args) (str2 . args2) ...)
-       (string-append
-        (cat (str . args))
-        (cat (str2 . args2) ...))]))
+    #+begin_src scheme
+    ;; http://synthcode.com/scheme/match.scm
+    (use-modules (ice-9 match))
 
-  (define-syntax orz
-    (syntax-rules ()
-      [(orz . body)
-       (error (cat . body))]))
+    (define-syntax pam
+      (syntax-rules ()
+        [(pam v (p e ...) ...)
+         (match v (p (pam-one e) ...) ...)]))
 
-  (define-syntax note
-    (syntax-rules ()
-      [(note . body)
-       (void)]))
-  #+end_src
+    (define-syntax pam-one
+      (syntax-rules (quote)
+        [(_ ((quote s) b ...)) (list (quote s) (pam-one b) ...)]
+        [(_ (f b ...)) (f (pam-one b) ...)]
+        [(_ e) e]))
+
+    (pam '(a b c)
+      [('a 'b . _) ('d ('k))])
+    #+end_src
+
+*** cat & orz
+
+    #+begin_src scheme
+    (define-syntax cat
+      (syntax-rules ()
+        [(cat (str . args))
+         (format str . args)]
+        [(cat (str . args) (str2 . args2) ...)
+         (string-append
+          (cat (str . args))
+          (cat (str2 . args2) ...))]))
+
+    (define-syntax orz
+      (syntax-rules ()
+        [(orz . body)
+         (error (cat . body))]))
+
+    (define-syntax note
+      (syntax-rules ()
+        [(note . body)
+         (void)]))
+    #+end_src
 
 * ><
 
   #+begin_src scheme
-  (define (fact n)
-    (match n
-      ['0 1]
-      [n (* n (fact (1- n)))]))
 
-  (fact 10)
-
-  (define (eval-expr x)
-    (match x
-      [('add x y) (+ (eval-expr x) (eval-expr y))]
-      [('sub x y) (- (eval-expr x) (eval-expr y))]
-      [('mul x y) (* (eval-expr x) (eval-expr y))]
-      [('div x y) (/ (eval-expr x) (eval-expr y))]
-      [v  v]))
-
-  (eval-expr '(add 1 2))
-  (eval-expr '(add 1 (add 2 3)))
-
-  (define (my-append a b)
-    (match a
-      ['()  b]
-      [(hd . tl) (cons hd (my-append tl b))]))
-
-  (my-append '(1 2 3) '(4 5 6))
   #+end_src

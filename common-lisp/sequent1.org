@@ -1,8 +1,8 @@
-+ sequent1
-  sequent calculus as dependent type system of functional language
+#+SETUPFILE: setup.org
 
-+ this is a prototype
-  it is not useful for it is lack of so many important features
++ sequent calculus as dependent type system of functional language
+
++ a prototype interpreter
 
 + XIE Yuheng created
 
