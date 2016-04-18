@@ -1,0 +1,68 @@
+* ><
+
+  - for arrow-list the arity is calculated from its first arrow
+
+* ><
+
+  - 開始的時候 arity 被當作平凡函數的函數體
+
+  - 之後發現 非平凡函數也需要這個 元數據
+    因爲有時需要形成 trunk
+    這樣就有
+    - store =
+      - ('function function)
+      - ('type-constructor type-constructor)
+      - ('data-constructor data-constructor)
+    - function = (formal-arrow arity (formal-arrow ...))
+    - type-constructor = (formal-arrow arity (name ...))
+    - data-constructor = (formal-arrow arity name)
+    - arity = number
+
+  - 這裏 arity 是在定義函數時計算的
+    所以有 formal-arrow->arity 這個函數
+    - 而不是 arrow->arity
+
+  - 之後發現 trunk 的形成方式有變化
+    trunk 之需要 arity
+    源於 運行時的 apply/arrow-list
+    - 這樣就需要 arrow-list->arity 與 arrow->arity
+
+  - arity 作爲元數據保存在 store 中 就是多餘的了
+
+  - 如果想以一致的方式處理
+    有名 和 無名 arrow-list
+    就要把所有的都當作無名者處理
+    但是每次都計算 arity 顯然不合理
+    只有讓 arity 作爲 formal-arrow 的元數據才合理
+    但是對於無名 formal-arrow
+
+  - 注意
+    之後對 arity 這個元數據的變化
+    還需要 返回值的個數
+
+  - 注意
+    arrow->type
+    arrow-list->type
+    等等函數也是需要的
+
+* type 和 arity 應該被作爲 formal-arrow-list 的 元數據
+
+  - formal-arrow-list 就是 function-body
+
+  - 匿名函數的存在形式是 formal-arrow-list 而不是 arrow-list
+    只有函數作用時 纔會形成 arrow-list
+
+* unification 與 bind
+
+  - 所有的 bind 都形成於 unification
+    沒有 let 形式的 bind
+
+  - let 形式的 bind 可以用來定義局部遞歸函數
+    而我們用 遞歸組合子
+
+* 接下來
+
+  - 可以先嘗試 common-lisp 中不使用元數據優化的設計
+    - 此時可以忽略對匿名函數的處理
+    並在這之後作一些測試
+    然後在用 scheme 重寫的過程中徹底更改數據結構的設計

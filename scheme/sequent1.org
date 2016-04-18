@@ -21,7 +21,8 @@
       - ('b formal-bind)
     - formal-var = (symbol level)
     - formal-name = symbol
-    - formal-bind = ((formal-var ...) formal-cedent live?)
+    - formal-bind = ((formal-var ...) formal-cedent leave?)
+    - level = natural-number
 
 *** form
 
@@ -34,7 +35,7 @@
       - ('bind bind)
     - var = (id level)
     - name = symbol
-    - bind = ((var ...) cedent live?)
+    - bind = ((var ...) cedent leave?)
     - id = #(symbol ls)
 
 *** env
@@ -43,26 +44,25 @@
     - ds = (data ...)
     - bs = ((id . ls) ...)
       - ls = ((level . data) ...)
-    - ns = ((name . store) ...)
+    - ns = ((name . function) ...)
 
 *** data
 
     - data =
       - ('var var)
-      - ('arrow arrow)
       - ('cons (name (data ...)))
-      - ('trunk ((arrow ...) (data ...)))
+      - ('trunk (function (arrow ...) (data ...)))
 
-*** store
+*** function
 
-    - store =
-      - ('function function)
+    - function =
+      - ('normal-function normal-function)
       - ('type-constructor type-constructor)
       - ('data-constructor data-constructor)
-    - function = (formal-arrow arity (formal-arrow ...))
+    - normal-function = (formal-arrow arity (formal-arrow ...))
     - type-constructor = (formal-arrow arity (name ...))
     - data-constructor = (formal-arrow arity name)
-    - arity = number
+    - arity = (number number)
 
 *** top
 
@@ -75,12 +75,20 @@
     - function-definition =
       ((formal-name formal-arrow) (formal-arrow ...))
 
+*** unify-report
+
+    - unify-report =
+      - ('fail (report ...))
+      - ('success (report ...) env)
+    - report = ?
+
 * helper
 
 *** pattern match
 
     #+begin_src scheme
-    ;; http://synthcode.com/scheme/match.scm
+    ;; module system of guile
+    ;; using http://synthcode.com/scheme/match.scm
     (use-modules (ice-9 match))
 
     (define-syntax pam
@@ -121,8 +129,172 @@
          (void)]))
     #+end_src
 
-* ><
+*** >< list
 
-  #+begin_src scheme
+    #+begin_src scheme
 
-  #+end_src
+    #+end_src
+
+*** >< string
+
+    #+begin_src scheme
+
+    #+end_src
+
+* >< parse
+
+*** ><
+
+    #+begin_src scheme
+
+    #+end_src
+
+* >< pass1
+
+*** ><
+
+    #+begin_src scheme
+
+    #+end_src
+
+* >< apply
+
+*** ><
+
+    #+begin_src scheme
+
+    #+end_src
+
+* >< unify
+
+*** ><
+
+    #+begin_src scheme
+
+    #+end_src
+
+* >< eva
+
+* >< check
+
+* >< sequent
+
+* test
+
+*** natural
+
+    #+begin_src scheme :tangle no
+    (sequent
+
+      (dt type (-> type))
+
+      (dt natural (-> type)
+          zero (-> natural)
+          succ (natural -> natural))
+
+      (df add (natural natural -> natural)
+          (:m zero -> :m)
+          (:m :n succ -> :m :n add succ))
+
+      (df mul (natural natural -> natural)
+          (:m zero -> zero)
+          (:m :n succ -> :m :n mul :m add))
+
+      (ap (->
+           zero succ
+           zero succ succ
+           add))
+
+      (ap (->
+           zero succ succ
+           zero succ succ
+           mul))
+
+      (ap (-> mul)))
+    #+end_src
+
+*** list
+
+    #+begin_src scheme :tangle no
+    (sequent
+
+      (dt type (-> type))
+
+      (dt natural (-> type)
+          zero (-> natural)
+          succ (natural -> natural))
+
+      (df add (natural natural -> natural)
+          (:m zero -> :m)
+          (:m :n succ -> :m :n add succ))
+
+      (df mul (natural natural -> natural)
+          (:m zero -> zero)
+          (:m :n succ -> :m :n mul :m add))
+
+      (dt list ((:t :> type) :t -> type)
+          null (-> :t list)
+          cons (:t list :t -> :t list))
+
+      ;; (df map (:t1 list (:t1 -> :t2) -> :t2 list)
+      ;;     (null :f -> null)
+      ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
+
+      (df append (:t list :t list -> :t1 list)
+          (:l null -> :l)
+          (:l :r :e cons -> :l :r append :e cons))
+
+      (ap (->
+           null
+           zero cons
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           zero cons
+           append)))
+    #+end_src
+
+*** vector
+
+    #+begin_src scheme :tangle no
+    (sequent
+
+      (dt type (-> type))
+
+      (dt natural (-> type)
+          zero (-> natural)
+          succ (natural -> natural))
+
+      (df add (natural natural -> natural)
+          (:m zero -> :m)
+          (:m :n succ -> :m :n add succ))
+
+      (df mul (natural natural -> natural)
+          (:m zero -> zero)
+          (:m :n succ -> :m :n mul :m add))
+
+      (dt vector ((:t :> type) natural :t -> type)
+          null (-> zero :t vector)
+          cons (:n :t vector :t -> :n succ :t vector))
+
+      ;; (df map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
+      ;;     (null :f -> null)
+      ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
+
+      (df append (:m :t vector :n :t vector -> :m :n add :t vector)
+          (:l null -> :l)
+          (:l :r :e cons -> :l :r append :e cons))
+
+      (ap (->
+           null
+           zero cons
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           zero cons
+           append)))
+    #+end_src

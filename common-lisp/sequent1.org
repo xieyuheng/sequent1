@@ -1,5 +1,3 @@
-#+SETUPFILE: setup.org
-
 + sequent calculus as dependent type system of functional language
 
 + a prototype interpreter
@@ -34,7 +32,7 @@
       - ('b formal-bind)
     - formal-var = (symbol level)
     - formal-name = symbol
-    - formal-bind = ((formal-var ...) formal-cedent live?)
+    - formal-bind = ((formal-var ...) formal-cedent leave?)
 
 *** form
 
@@ -47,7 +45,7 @@
       - ('bind bind)
     - var = (id level)
     - name = symbol
-    - bind = ((var ...) cedent live?)
+    - bind = ((var ...) cedent leave?)
     - id = #(symbol ls)
 
 *** env
@@ -396,30 +394,6 @@
       (my-append '(1 2 3) '(4 5 6))
       #+end_src
 
-*** list
-
-    #+begin_src lisp
-    (defun left-of (s l)
-      (cond ((eq s (car l)) '())
-            (:else (cons (car l) (left-of s (cdr l))))))
-
-    (defun right-of (s l)
-      (cond ((eq s (car l)) (cdr l))
-            (:else (right-of s (cdr l)))))
-    #+end_src
-
-*** string
-
-    #+begin_src lisp
-    (defun find-char (char string &key (curser 0))
-      (if (>= curser (length string))
-          nil
-          (let ((char0 (subseq string curser (+ 1 curser))))
-            (if (equal char char0)
-                curser
-                (find-char char string :curser (+ 1 curser))))))
-    #+end_src
-
 *** cat & orz
 
 ***** cat
@@ -522,6 +496,30 @@
       ;;   (cat (:to *standard-output*)
       ;;     ("~A~%" x)))
       #+end_src
+
+*** list
+
+    #+begin_src lisp
+    (defun left-of (s l)
+      (cond ((eq s (car l)) '())
+            (:else (cons (car l) (left-of s (cdr l))))))
+
+    (defun right-of (s l)
+      (cond ((eq s (car l)) (cdr l))
+            (:else (right-of s (cdr l)))))
+    #+end_src
+
+*** string
+
+    #+begin_src lisp
+    (defun find-char (char string &key (curser 0))
+      (if (>= curser (length string))
+          nil
+          (let ((char0 (subseq string curser (+ 1 curser))))
+            (if (equal char char0)
+                curser
+                (find-char char string :curser (+ 1 curser))))))
+    #+end_src
 
 * parse
 
@@ -687,13 +685,13 @@
     (defun pass1/bind (b s)
       ;; formal-bind, scope -> (bind scope)
       (match b
-        (fvs fc live?) =>
+        (fvs fc leave?) =>
         (match (pass1/cedent fvs s)
           (vs s0) =>
           (match (pass1/cedent fc s0)
             ;; this means vars in fvs can occur in fc
             (c s1) =>
-            (list (list 'bind (list vs c live?)) s1)))))
+            (list (list 'bind (list vs c leave?)) s1)))))
     #+end_src
 
 *** test
@@ -953,14 +951,14 @@
     (defun apply/bind (b e)
       ;; bind, env -> env
       (match b
-        (vs c live?) =>
+        (vs c leave?) =>
         (match (apply/cedent c e)
           ((d1 . r1) bs1 ns1) =>
           (labels ((recur (vs e)
                      (match (list vs e)
                        (() _) => e
                        ((v . r) (ds bs ns)) =>
-                       (recur r (list (if live?
+                       (recur r (list (if leave?
                                           (cons d1 ds)
                                           ds)
                                       (bs/extend 1 bs v d1)
