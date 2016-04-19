@@ -529,7 +529,7 @@
     (defun parse/arrow (s)
       ;; sexp-arrow -> formal-arrow
       (list (parse/cedent 0 (left-of '-> s))
-              (parse/cedent 0 (right-of '-> s))))
+            (parse/cedent 0 (right-of '-> s))))
     #+end_src
 
 *** parse/cedent
