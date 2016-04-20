@@ -593,23 +593,17 @@
        (parse/arrow '(natural natural -> (natural natural -> natural) natural))
        (parse/arrow '(:m zero -> :m))
        (parse/arrow '(:m :n succ -> :m :n recur succ))
-
        (parse/arrow '((:t :> type) :t -> type))
-
        (parse/arrow '((:t @ type) :t -> type))
        (parse/arrow '((:t^2 :> type) :t -> type))
        (parse/arrow '((:t1 :t2^2 :t3^0 :> j k) :t -> type))
        (parse/arrow '((:t^2 @ type) :t -> type)))
 
-
-
       '((((n natural) (n natural)) ((n natural)))
         (((n natural) (n natural)) ((a (((n natural) (n natural)) ((n natural)))) (n natural)))
         (((v (:m 0)) (n zero)) ((v (:m 0))))
         (((v (:m 0)) (v (:n 0)) (n succ)) ((v (:m 0)) (v (:n 0)) (n recur) (n succ)))
-
         (((b (((v (:t 1))) ((n type)) nil)) (v (:t 0))) ((n type)))
-
         (((b (((v (:t 1))) ((n type)) :true)) (v (:t 0))) ((n type)))
         (((b (((v (:t 2))) ((n type)) nil)) (v (:t 0))) ((n type)))
         (((b (((v (:t1 1)) (v (:t2 2)) (v (:t3 0))) ((n j) (n k)) nil)) (v (:t 0))) ((n type)))
@@ -620,7 +614,10 @@
 
 *** note scope
 
-    - scope is handled by pass1
+    - pass1 handles scope by
+      by changing formal-var to var
+
+    - in var there is unique id
 
 *** pass1/arrow
 
