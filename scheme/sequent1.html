@@ -1,0 +1,1012 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-04-24 Sun 17:19 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>sequent1</title>
+<meta name="generator" content="Org-mode" />
+<meta name="author" content="XIE Yuheng" />
+<link rel="stylesheet" href="../asset/css/page.css" type="text/css" media="screen" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+喪以不執 所執者喪 執喪相比 方死方生
+</div>
+<div id="content">
+<h1 class="title">sequent1</h1>
+<div id="table-of-contents">
+<h2>overview</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orge28ca0c">1. <span class="done todo">todo</span> </a></li>
+<li><a href="#orgb05cf54">2. <span class="todo note">note</span> sequent</a></li>
+<li><a href="#orgabad33c">3. <span class="todo note">note</span> data type</a>
+<ul>
+<li><a href="#orgdc931c">3.1. form1</a></li>
+<li><a href="#orgb812eef">3.2. form2</a></li>
+<li><a href="#org59e3b4">3.3. data</a></li>
+<li><a href="#orga8b151a">3.4. env</a></li>
+<li><a href="#org742f72b">3.5. meaning</a></li>
+<li><a href="#org6eeca59">3.6. top1</a></li>
+<li><a href="#org92653aa">3.7. top2</a></li>
+<li><a href="#orga083508">3.8. report</a></li>
+</ul>
+</li>
+<li><a href="#orgd903177">4. <span class="todo note">note</span> old data type</a>
+<ul>
+<li><a href="#org259c1b7">4.1. formal-form</a></li>
+<li><a href="#org613ef3a">4.2. form</a></li>
+<li><a href="#orgfbca476">4.3. env</a></li>
+<li><a href="#org48851c8">4.4. data</a></li>
+<li><a href="#org8794e0b">4.5. function</a></li>
+<li><a href="#org6dbcde8">4.6. top</a></li>
+<li><a href="#org57685a3">4.7. report</a></li>
+</ul>
+</li>
+<li><a href="#org516686d">5. helper</a>
+<ul>
+<li><a href="#orgfdb86de">5.1. pattern match</a></li>
+<li><a href="#orga11549c">5.2. cat &amp; orz</a></li>
+<li><a href="#orged6f500">5.3. <span class="done test">test</span> ing</a></li>
+<li><a href="#org7727f04">5.4. list</a></li>
+<li><a href="#org4fbc9cc">5.5. string</a></li>
+</ul>
+</li>
+<li><a href="#orgcf42131">6. parse</a>
+<ul>
+<li><a href="#org3f793cc">6.1. <span class="todo note">note</span> </a></li>
+<li><a href="#orgd25d46a">6.2. parse/arrow</a></li>
+<li><a href="#orga2799e2">6.3. parse/cedent</a></li>
+<li><a href="#org3c35fbf">6.4. parse/dispatch</a></li>
+<li><a href="#orgb2a0193">6.5. parse/var</a></li>
+<li><a href="#orga7eb78d">6.6. <span class="done test">test</span> </a></li>
+</ul>
+</li>
+<li><a href="#orge85fb0c">7. pass1</a>
+<ul>
+<li><a href="#orgd846a8">7.1. <span class="todo note">note</span> scope</a></li>
+<li><a href="#org698b85f">7.2. pass1/arrow</a></li>
+<li><a href="#orgdc25b3f">7.3. pass1/cedent</a></li>
+<li><a href="#org910cdf5">7.4. pass1/dispatch</a></li>
+<li><a href="#org3dcaa76">7.5. pass1/var</a></li>
+<li><a href="#org262052a">7.6. pass1/bind</a></li>
+<li><a href="#org7a1f0c5">7.7. <span class="done test">test</span> </a></li>
+</ul>
+</li>
+<li><a href="#org3f60e9f">8. apply</a>
+<ul>
+<li><a href="#org1b4b69">8.1. apply/arrow</a></li>
+<li><a href="#org21454c4">8.2. apply/cedent</a></li>
+<li><a href="#org6a6687f">8.3. apply/dispatch</a></li>
+<li><a href="#orgac8c22">8.4. apply/literal-arrow</a></li>
+<li><a href="#org7e4a36a">8.5. apply/var</a></li>
+<li><a href="#org69c7d2d">8.6. apply/name</a></li>
+<li><a href="#org221cb04">8.7. id-&gt;ls</a></li>
+</ul>
+</li>
+<li><a href="#orgb610dc0">9. unify</a>
+<ul>
+<li><a href="#orgaf65aef">9.1. <span class="todo _gt__lt_">&gt;&lt;</span> unify</a></li>
+</ul>
+</li>
+<li><a href="#org6baf742">10. <span class="todo _gt__lt_">&gt;&lt;</span> eva</a></li>
+<li><a href="#org2c330ef">11. <span class="todo _gt__lt_">&gt;&lt;</span> check</a></li>
+<li><a href="#orga17d379">12. <span class="todo _gt__lt_">&gt;&lt;</span> type-apply</a></li>
+<li><a href="#org74dd09b">13. <span class="todo _gt__lt_">&gt;&lt;</span> sequent</a></li>
+<li><a href="#orgd881cfc">14. <span class="done test">test</span> </a>
+<ul>
+<li><a href="#orgb46de6c">14.1. natural</a></li>
+<li><a href="#orgc6369d8">14.2. list</a></li>
+<li><a href="#org92dbc1b">14.3. vector</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<ul class="org-ul">
+<li><p>a prototype interpreter for a functional language</p><p>which uses sequent calculus as dependent type system</p></li>
+
+<li><p>XIE Yuheng created</p></li></ul>
+
+<div id="outline-container-orge28ca0c" class="outline-2">
+<h2 id="orge28ca0c"><span class="section-number-2">1</span> <span class="done todo">todo</span> </h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li><p>data/print</p><p>different var should be print differently</p></li>
+
+<li><p>check-type</p><p>infer-arity</p><p>check-cover</p><p>check-end</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orgb05cf54" class="outline-2">
+<h2 id="orgb05cf54"><span class="section-number-2">2</span> <span class="todo note">note</span> sequent</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li><p>sequent is arrow</p><p>which is the core data type of the language</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orgabad33c" class="outline-2">
+<h2 id="orgabad33c"><span class="section-number-2">3</span> <span class="todo note">note</span> data type</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-orgdc931c" class="outline-3">
+<h3 id="orgdc931c"><span class="section-number-3">3.1</span> form1</h3>
+<div class="outline-text-3" id="text-3-1">
+<ul class="org-ul">
+<li><p>form1 =</p><p><ul class="org-ul"></p><p><li><p>form1/var =</p><p>:var</p><p>:var<sup>n</sup></p></li></p><p><li><p>form1/name =</p><p>name</p></li></p><p><li><p>form1/arrow =</p><p>(form1 &#x2026; -&gt; form1 &#x2026;)</p></li></p><p><li><p>form1/lambda =</p><p>(lambda form1/arrow</p><p>  form1/arrow</p><p>  &#x2026;)</p></li></p><p><li><p>form1/bind =</p><p>(form1/var &#x2026; : form1 &#x2026;)</p><p>(form1/var &#x2026; @ form1 &#x2026;)</p></li></ul></p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orgb812eef" class="outline-3">
+<h3 id="orgb812eef"><span class="section-number-3">3.2</span> form2</h3>
+<div class="outline-text-3" id="text-3-2">
+<ul class="org-ul">
+<li><p>form2 =</p><p>('form2/var    (symbol level))</p><p>('form2/name   symbol)</p><p>('form2/arrow  ((form2 &#x2026;) (form2 &#x2026;)))</p><p>('form2/lambda (form2/arrow (form2/arrow &#x2026;)))</p><p>('form2/bind   ((form2/var &#x2026;) (form2 &#x2026;) leave?))</p></li>
+<li><p>level = natural-number</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org59e3b4" class="outline-3">
+<h3 id="org59e3b4"><span class="section-number-3">3.3</span> data</h3>
+<div class="outline-text-3" id="text-3-3">
+<ul class="org-ul">
+<li><p>data =</p><p>('var    (id level))</p><p>('cons   (name (data &#x2026;)))</p><p>('arrow  ((data &#x2026;) (data &#x2026;)))</p><p>('lambda (arrow arity (arrow &#x2026;)))</p><p>('trunk  (arrow arity (arrow &#x2026;) (data &#x2026;)))</p></li>
+<li><p>id = #(symbol ls)</p></li>
+<li><p>arity = (number number)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orga8b151a" class="outline-3">
+<h3 id="orga8b151a"><span class="section-number-3">3.4</span> env</h3>
+<div class="outline-text-3" id="text-3-4">
+<ul class="org-ul">
+<li><p>env = (ds bs ns)</p></li>
+<li><p>ds = (data &#x2026;)</p></li>
+<li><p>bs = ((id . ls) &#x2026;)</p><p><ul class="org-ul"></p><p><li><p>ls = ((level . data) &#x2026;)</p></li></ul></p></li>
+<li><p>ns = ((name . meaning) &#x2026;)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org742f72b" class="outline-3">
+<h3 id="org742f72b"><span class="section-number-3">3.5</span> meaning</h3>
+<div class="outline-text-3" id="text-3-5">
+<ul class="org-ul">
+<li><p>meaning =</p><p>('lambda    (arrow arity (arrow &#x2026;)))</p><p>('cons/type (arrow arity name (name &#x2026;)))</p><p>('cons/data (arrow arity name name))</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org6eeca59" class="outline-3">
+<h3 id="org6eeca59"><span class="section-number-3">3.6</span> top1</h3>
+<div class="outline-text-3" id="text-3-6">
+<ul class="org-ul">
+<li><p>top1 =</p><p>('dt ((form1/name form1/arrow) ((form1/name form1/arrow) &#x2026;)))</p><p>('df ((form1/name form1/arrow) (form1/arrow &#x2026;)))</p><p>('ap form1/arrow)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org92653aa" class="outline-3">
+<h3 id="org92653aa"><span class="section-number-3">3.7</span> top2</h3>
+<div class="outline-text-3" id="text-3-7">
+<ul class="org-ul">
+<li><p>top2 =</p><p>('top2/dt ((form2/name form2/arrow) ((form2/name form2/arrow) &#x2026;)))</p><p>('top2/df ((form2/name form2/arrow) (form2/arrow &#x2026;)))</p><p>('top2/ap form2/arrow)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orga083508" class="outline-3">
+<h3 id="orga083508"><span class="section-number-3">3.8</span> report</h3>
+<div class="outline-text-3" id="text-3-8">
+<ul class="org-ul">
+<li><p>report =</p><p>('fail (info &#x2026;))</p><p>('success (info &#x2026;) env)</p></li>
+<li><p>info = ?</p></li></ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd903177" class="outline-2">
+<h2 id="orgd903177"><span class="section-number-2">4</span> <span class="todo note">note</span> old data type</h2>
+<div class="outline-text-2" id="text-4">
+</div><div id="outline-container-org259c1b7" class="outline-3">
+<h3 id="org259c1b7"><span class="section-number-3">4.1</span> formal-form</h3>
+<div class="outline-text-3" id="text-4-1">
+<ul class="org-ul">
+<li><p>formal-arrow = (formal-cedent formal-cedent)</p></li>
+<li><p>formal-cedent = (formal-form &#x2026;)</p></li>
+<li><p>formal-form =</p><p><ul class="org-ul"></p><p><li><p>('v formal-var)</p></li></p><p><li><p>('n formal-name)</p></li></p><p><li><p>('t type)</p></li></p><p><li><p>('l lambda)</p></li></p><p><li><p>('b formal-bind)</p></li></ul></p></li>
+<li><p>formal-var = (symbol level)</p></li>
+<li><p>formal-name = symbol</p></li>
+<li><p>formal-type = formal-arrow</p></li>
+<li><p>formal-lambda = ()</p></li>
+<li><p>formal-bind = ((formal-var &#x2026;) formal-cedent leave?)</p></li>
+<li><p>level = natural-number</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org613ef3a" class="outline-3">
+<h3 id="org613ef3a"><span class="section-number-3">4.2</span> form</h3>
+<div class="outline-text-3" id="text-4-2">
+<ul class="org-ul">
+<li><p>arrow = (cedent cedent)</p></li>
+<li><p>cedent = (form &#x2026;)</p></li>
+<li><p>form =</p><p><ul class="org-ul"></p><p><li><p>('var var)</p></li></p><p><li><p>('name name)</p></li></p><p><li><p>('arrow arrow)</p></li></p><p><li><p>('bind bind)</p></li></ul></p></li>
+<li><p>var = (id level)</p></li>
+<li><p>name = symbol</p></li>
+<li><p>bind = ((var &#x2026;) cedent leave?)</p></li>
+<li><p>id = #(symbol ls)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orgfbca476" class="outline-3">
+<h3 id="orgfbca476"><span class="section-number-3">4.3</span> env</h3>
+<div class="outline-text-3" id="text-4-3">
+<ul class="org-ul">
+<li><p>env = (ds bs ns)</p></li>
+<li><p>ds = (data &#x2026;)</p></li>
+<li><p>bs = ((id . ls) &#x2026;)</p><p><ul class="org-ul"></p><p><li><p>ls = ((level . data) &#x2026;)</p></li></ul></p></li>
+<li><p>ns = ((name . function) &#x2026;)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org48851c8" class="outline-3">
+<h3 id="org48851c8"><span class="section-number-3">4.4</span> data</h3>
+<div class="outline-text-3" id="text-4-4">
+<ul class="org-ul">
+<li><p>data =</p><p><ul class="org-ul"></p><p><li><p>('var var)</p></li></p><p><li><p>('cons (name (data &#x2026;)))</p></li></p><p><li><p>('arrow arrow)</p></li></p><p><li><p>('lambda lambda)</p></li></p><p><li><p>('trunk ((arrow &#x2026;) (data &#x2026;)))</p></li></ul></p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org8794e0b" class="outline-3">
+<h3 id="org8794e0b"><span class="section-number-3">4.5</span> function</h3>
+<div class="outline-text-3" id="text-4-5">
+<ul class="org-ul">
+<li><p>function =</p><p><ul class="org-ul"></p><p><li><p>('lambda lambda)</p></li></p><p><li><p>('type-constructor type-constructor)</p></li></p><p><li><p>('data-constructor data-constructor)</p></li></ul></p></li>
+<li><p>lambda = (formal-arrow arity (formal-arrow &#x2026;))</p></li>
+<li><p>type-constructor = (formal-arrow arity (name &#x2026;))</p></li>
+<li><p>data-constructor = (formal-arrow arity name)</p></li>
+<li><p>arity = (number number)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org6dbcde8" class="outline-3">
+<h3 id="org6dbcde8"><span class="section-number-3">4.6</span> top</h3>
+<div class="outline-text-3" id="text-4-6">
+<ul class="org-ul">
+<li><p>top =</p><p><ul class="org-ul"></p><p><li><p>('dt type-definition)</p></li></p><p><li><p>('df function-definition)</p></li></p><p><li><p>('ap formal-arrow)</p></li></ul></p></li>
+<li><p>type-definition =</p><p>((formal-name formal-arrow) ((formal-name formal-arrow) &#x2026;))</p></li>
+<li><p>function-definition =</p><p>((formal-name formal-arrow) (formal-arrow &#x2026;))</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org57685a3" class="outline-3">
+<h3 id="org57685a3"><span class="section-number-3">4.7</span> report</h3>
+<div class="outline-text-3" id="text-4-7">
+<ul class="org-ul">
+<li><p>report =</p><p><ul class="org-ul"></p><p><li><p>('fail (info &#x2026;))</p></li></p><p><li><p>('success (info &#x2026;) env)</p></li></ul></p></li>
+<li><p>info = ?</p></li></ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org516686d" class="outline-2">
+<h2 id="org516686d"><span class="section-number-2">5</span> helper</h2>
+<div class="outline-text-2" id="text-5">
+</div><div id="outline-container-orgfdb86de" class="outline-3">
+<h3 id="orgfdb86de"><span class="section-number-3">5.1</span> pattern match</h3>
+<div class="outline-text-3" id="text-5-1">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #FF8888;">;; </span><span style="color: #FF8888;">module system of guile</span>
+<span style="color: #FF8888;">;; </span><span style="color: #FF8888;">using http://synthcode.com/scheme/match.scm</span>
+(use-modules (ice-9 match))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga11549c" class="outline-3">
+<h3 id="orga11549c"><span class="section-number-3">5.2</span> cat &amp; orz</h3>
+<div class="outline-text-3" id="text-5-2">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define-syntax</span> <span style="color: #fd971f;">cat</span>
+  (<span style="color: #f92672; font-weight: bold;">syntax-rules</span> ()
+    [(cat (str . args))
+     (format #t str . args)]
+    [(cat (str . args) (str2 . args2) ...)
+     (string-append
+      (cat (str . args))
+      (cat (str2 . args2) ...))]))
+
+(<span style="color: #f92672; font-weight: bold;">define-syntax</span> <span style="color: #fd971f;">orz</span>
+  (<span style="color: #f92672; font-weight: bold;">syntax-rules</span> ()
+    [(<span style="color: #f92672; font-weight: bold;">orz</span> . body)
+     (<span style="color: #f92672; font-weight: bold;">error</span> (cat . body))]))
+
+(<span style="color: #f92672; font-weight: bold;">define-syntax</span> <span style="color: #fd971f;">note</span>
+  (<span style="color: #f92672; font-weight: bold;">syntax-rules</span> ()
+    [(<span style="color: #f92672; font-weight: bold;">note</span> . body)
+     '()]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orged6f500" class="outline-3">
+<h3 id="orged6f500"><span class="section-number-3">5.3</span> <span class="done test">test</span> ing</h3>
+<div class="outline-text-3" id="text-5-3">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(use-modules (ice-9 pretty-print))
+
+(<span style="color: #f92672; font-weight: bold;">define-syntax</span> <span style="color: #fd971f;">test</span>
+  (<span style="color: #f92672; font-weight: bold;">syntax-rules</span> ()
+    [(test b1 b2)
+     (<span style="color: #f92672; font-weight: bold;">if</span> (equal? b1 b2)
+       #t
+       (<span style="color: #f92672; font-weight: bold;">let</span> ()
+         (cat (<span style="color: #e6db74;">"\n"</span>))
+         (cat (<span style="color: #e6db74;">"&lt;test-fail-report-begin&gt;\n"</span>))
+         (cat (<span style="color: #e6db74;">"&lt;actual-form&gt; :\n"</span>))
+         (pretty-print (<span style="color: #f92672; font-weight: bold;">quote</span> b1))
+         (cat (<span style="color: #e6db74;">"&lt;actual-value&gt; :\n"</span>))
+         (pretty-print b1)
+         (cat (<span style="color: #e6db74;">"&lt;expect-form&gt; :\n"</span>))
+         (pretty-print (<span style="color: #f92672; font-weight: bold;">quote</span> b2))
+         (cat (<span style="color: #e6db74;">"&lt;expect-value&gt; :\n"</span>))
+         (pretty-print b2)
+         (<span style="color: #f92672; font-weight: bold;">orz</span> (<span style="color: #e6db74;">"&lt;test-fail-report-end&gt;\n"</span>))))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7727f04" class="outline-3">
+<h3 id="org7727f04"><span class="section-number-3">5.4</span> list</h3>
+<div class="outline-text-3" id="text-5-4">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">left-of</span> s l)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">sexp, list -&gt; list</span>
+  (<span style="color: #f92672; font-weight: bold;">cond</span> [(equal? s (car l)) '()]
+        [else (cons (car l) (left-of s (cdr l)))]))
+
+(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">right-of</span> s l)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">sexp, list -&gt; list</span>
+  (<span style="color: #f92672; font-weight: bold;">cond</span> [(equal? s (car l)) (cdr l)]
+        [else (right-of s (cdr l))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4fbc9cc" class="outline-3">
+<h3 id="org4fbc9cc"><span class="section-number-3">5.5</span> string</h3>
+<div class="outline-text-3" id="text-5-5">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">find-char</span> c s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">char, string -&gt; curser or #f</span>
+  (find-char/curser c s 0))
+
+(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">find-char/curser</span> c s curser)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">char, string, curser -&gt; curser or #f</span>
+  (<span style="color: #f92672; font-weight: bold;">if</span> (&gt;= curser (string-length s))
+    #f
+    (<span style="color: #f92672; font-weight: bold;">let</span> ([c0 (substring s curser (+ 1 curser))])
+      (<span style="color: #f92672; font-weight: bold;">if</span> (equal? c c0)
+        curser
+        (find-char/curser c s (+ 1 curser))))))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgcf42131" class="outline-2">
+<h2 id="orgcf42131"><span class="section-number-2">6</span> parse</h2>
+<div class="outline-text-2" id="text-6">
+</div><div id="outline-container-org3f793cc" class="outline-3">
+<h3 id="org3f793cc"><span class="section-number-3">6.1</span> <span class="todo note">note</span> </h3>
+<div class="outline-text-3" id="text-6-1">
+<ul class="org-ul">
+<li><p>sexp -&gt; formal (i.e. AST)</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orgd25d46a" class="outline-3">
+<h3 id="orgd25d46a"><span class="section-number-3">6.2</span> parse/arrow</h3>
+<div class="outline-text-3" id="text-6-2">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">parse/arrow</span> s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">sexp-arrow -&gt; formal-arrow</span>
+  (list (parse/cedent 0 (left-of '<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> s))
+        (parse/cedent 0 (right-of '<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> s))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga2799e2" class="outline-3">
+<h3 id="orga2799e2"><span class="section-number-3">6.3</span> parse/cedent</h3>
+<div class="outline-text-3" id="text-6-3">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">parse/cedent</span> default-level s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">default-level, sexp-cedent -&gt; formal-cedent</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> s
+    ['() '()]
+    [(h . r) (cons (parse/dispatch default-level h)
+                   (parse/cedent default-level r))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3c35fbf" class="outline-3">
+<h3 id="org3c35fbf"><span class="section-number-3">6.4</span> parse/dispatch</h3>
+<div class="outline-text-3" id="text-6-4">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">parse/dispatch</span> default-level v)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">default-level, sexp-form -&gt; formal-form</span>
+  (<span style="color: #f92672; font-weight: bold;">let</span> ([var? (<span style="color: #f92672; font-weight: bold;">lambda</span> (v)
+                (<span style="color: #f92672; font-weight: bold;">and</span> (symbol? v)
+                     (equal? <span style="color: #e6db74;">":"</span> (substring (symbol-&gt;string v) 0 1))))]
+        [name? (<span style="color: #f92672; font-weight: bold;">lambda</span> (v)
+                 (<span style="color: #f92672; font-weight: bold;">and</span> (symbol? v)
+                      (not (eq? <span style="color: #e6db74;">":"</span> (substring (symbol-&gt;string v) 0 1)))))]
+        [arrow? (<span style="color: #f92672; font-weight: bold;">lambda</span> (v) (<span style="color: #f92672; font-weight: bold;">and</span> (list? v) (member '<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> v)))]
+        [im-bind? (<span style="color: #f92672; font-weight: bold;">lambda</span> (v) (<span style="color: #f92672; font-weight: bold;">and</span> (list? v) (member ': v)))]
+        [ex-bind? (<span style="color: #f92672; font-weight: bold;">lambda</span> (v) (<span style="color: #f92672; font-weight: bold;">and</span> (list? v) (member '@ v)))])
+    (<span style="color: #f92672; font-weight: bold;">cond</span> [(var? v) (list 'v (parse/var default-level v))]
+          [(name? v) (list 'n v)]
+          [(arrow? v) (list 'a (parse/arrow v))]
+          [(im-bind? v) (list 'b
+                              (list (parse/cedent 1 (left-of ': v))
+                                    (parse/cedent 0 (right-of ': v))
+                                    #f))]
+          [(ex-bind? v) (list 'b
+                              (list (parse/cedent 1 (left-of '@ v))
+                                    (parse/cedent 0 (right-of '@ v))
+                                    #t))]
+          [else (<span style="color: #f92672; font-weight: bold;">orz</span> (<span style="color: #e6db74;">"parse/dispatch can not handle sexp-form:~a"</span> v))])))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb2a0193" class="outline-3">
+<h3 id="orgb2a0193"><span class="section-number-3">6.5</span> parse/var</h3>
+<div class="outline-text-3" id="text-6-5">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">parse/var</span> default-level v)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">default-level, symbol -&gt; formal-var</span>
+  (<span style="color: #f92672; font-weight: bold;">let*</span> ([str (symbol-&gt;string v)]
+         [cursor (find-char <span style="color: #e6db74;">"^"</span> str)])
+    (<span style="color: #f92672; font-weight: bold;">if</span> cursor
+      (list (string-&gt;symbol (substring str 0 cursor))
+            (string-&gt;number (substring str (+ 1 cursor))))
+      (list v default-level))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga7eb78d" class="outline-3">
+<h3 id="orga7eb78d"><span class="section-number-3">6.6</span> <span class="done test">test</span> </h3>
+<div class="outline-text-3" id="text-6-6">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(test
+ (list
+  (parse/arrow '(natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
+  (parse/arrow '(natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural) natural))
+  (parse/arrow '(<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>))
+  (parse/arrow '(<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ))
+  (parse/arrow '((<span style="color: #a6e22e;">:t</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+  (parse/arrow '((<span style="color: #a6e22e;">:t</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+  (parse/arrow '((<span style="color: #a6e22e;">:t^2</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+  (parse/arrow '((<span style="color: #a6e22e;">:t1</span> <span style="color: #a6e22e;">:t2^2</span> <span style="color: #a6e22e;">:t3^0</span> : j k) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+  (parse/arrow '((<span style="color: #a6e22e;">:t^2</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)))
+ '((((n natural) (n natural)) ((n natural)))
+   (((n natural) (n natural)) ((a (((n natural) (n natural)) ((n natural)))) (n natural)))
+   (((v (<span style="color: #a6e22e;">:m</span> 0)) (n zero)) ((v (<span style="color: #a6e22e;">:m</span> 0))))
+   (((v (<span style="color: #a6e22e;">:m</span> 0)) (v (<span style="color: #a6e22e;">:n</span> 0)) (n succ)) ((v (<span style="color: #a6e22e;">:m</span> 0)) (v (<span style="color: #a6e22e;">:n</span> 0)) (n recur) (n succ)))
+   (((b (((v (<span style="color: #a6e22e;">:t</span> 1))) ((n type)) #f)) (v (<span style="color: #a6e22e;">:t</span> 0))) ((n type)))
+   (((b (((v (<span style="color: #a6e22e;">:t</span> 1))) ((n type)) #t)) (v (<span style="color: #a6e22e;">:t</span> 0))) ((n type)))
+   (((b (((v (<span style="color: #a6e22e;">:t</span> 2))) ((n type)) #f)) (v (<span style="color: #a6e22e;">:t</span> 0))) ((n type)))
+   (((b (((v (<span style="color: #a6e22e;">:t1</span> 1)) (v (<span style="color: #a6e22e;">:t2</span> 2)) (v (<span style="color: #a6e22e;">:t3</span> 0))) ((n j) (n k)) #f)) (v (<span style="color: #a6e22e;">:t</span> 0))) ((n type)))
+   (((b (((v (<span style="color: #a6e22e;">:t</span> 2))) ((n type)) #t)) (v (<span style="color: #a6e22e;">:t</span> 0))) ((n type)))))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge85fb0c" class="outline-2">
+<h2 id="orge85fb0c"><span class="section-number-2">7</span> pass1</h2>
+<div class="outline-text-2" id="text-7">
+</div><div id="outline-container-orgd846a8" class="outline-3">
+<h3 id="orgd846a8"><span class="section-number-3">7.1</span> <span class="todo note">note</span> scope</h3>
+<div class="outline-text-3" id="text-7-1">
+<ul class="org-ul">
+<li><p>pass1 handles scope by</p><p>by changing formal-var to var</p></li>
+
+<li><p>in var there is unique id</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org698b85f" class="outline-3">
+<h3 id="org698b85f"><span class="section-number-3">7.2</span> pass1/arrow</h3>
+<div class="outline-text-3" id="text-7-2">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/arrow</span> f s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">formal-arrow, scope -&gt; arrow</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> f
+    [(fac fsc)
+     (<span style="color: #f92672; font-weight: bold;">match</span> (pass1/cedent fac s)
+       [(ac s0)
+        (<span style="color: #f92672; font-weight: bold;">match</span> (pass1/cedent fsc s0)
+          [(sc s1)
+           (list ac sc)])])]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgdc25b3f" class="outline-3">
+<h3 id="orgdc25b3f"><span class="section-number-3">7.3</span> pass1/cedent</h3>
+<div class="outline-text-3" id="text-7-3">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/cedent</span> f s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">formal-cedent, scope -&gt; (cedent scope)</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> f
+    ['() (list '() s)]
+    [(h . r)
+     (<span style="color: #f92672; font-weight: bold;">match</span> (pass1/dispatch h s)
+       [(v s0)
+        (<span style="color: #f92672; font-weight: bold;">match</span> (pass1/cedent r s0)
+          [(c s1)
+           (list (cons v c) s1)])])]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org910cdf5" class="outline-3">
+<h3 id="org910cdf5"><span class="section-number-3">7.4</span> pass1/dispatch</h3>
+<div class="outline-text-3" id="text-7-4">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/dispatch</span> f s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">formal-form, scope -&gt; (form scope)</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> f
+    [('v v) (pass1/var v s)]
+    [('n n) (list (list 'name n) s)]
+    [('a a) (list (list 'arrow (pass1/arrow a s)) s)]
+    [('b b) (pass1/bind b s)]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3dcaa76" class="outline-3">
+<h3 id="org3dcaa76"><span class="section-number-3">7.5</span> pass1/var</h3>
+<div class="outline-text-3" id="text-7-5">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/var</span> v s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">formal-var, scope -&gt; (var scope)</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> v
+    [(symbol level)
+     (<span style="color: #f92672; font-weight: bold;">let</span> ([found (assq symbol s)])
+       (<span style="color: #f92672; font-weight: bold;">if</span> found
+         (<span style="color: #f92672; font-weight: bold;">let</span> ([old (cdr found)])
+           (list (list 'var (list old level)) s))
+         (<span style="color: #f92672; font-weight: bold;">let</span> ([new (vector symbol '())])
+           (list (list 'var (list new level))
+                 (cons (cons symbol new) s)))))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org262052a" class="outline-3">
+<h3 id="org262052a"><span class="section-number-3">7.6</span> pass1/bind</h3>
+<div class="outline-text-3" id="text-7-6">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/bind</span> b s)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">formal-bind, scope -&gt; (bind scope)</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> b
+    [(fvs fc leave?)
+     (<span style="color: #f92672; font-weight: bold;">match</span> (pass1/cedent fvs s)
+       [(vs s0)
+        (<span style="color: #f92672; font-weight: bold;">match</span> (pass1/cedent fc s0)
+          <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">this means vars in fvs can occur in fc</span>
+          [(c s1)
+           (list (list 'bind (list vs c leave?)) s1)])])]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7a1f0c5" class="outline-3">
+<h3 id="org7a1f0c5"><span class="section-number-3">7.7</span> <span class="done test">test</span> </h3>
+<div class="outline-text-3" id="text-7-7">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(test
+ (<span style="color: #f92672; font-weight: bold;">map</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (x) (pass1/arrow x '()))
+   (list
+    (parse/arrow '(natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
+    (parse/arrow '(natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural) natural))
+    (parse/arrow '(<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>))
+    (parse/arrow '(<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ))
+    (parse/arrow '((<span style="color: #a6e22e;">:t</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+    (parse/arrow '((<span style="color: #a6e22e;">:t</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+    (parse/arrow '((<span style="color: #a6e22e;">:t^2</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+    (parse/arrow '((<span style="color: #a6e22e;">:t1</span> <span style="color: #a6e22e;">:t2^2</span> <span style="color: #a6e22e;">:t3^0</span> : j k) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+    (parse/arrow '((<span style="color: #a6e22e;">:t^2</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))))
+ '((((name natural) (name natural))
+    ((name natural)))
+   (((name natural) (name natural))
+    ((arrow (((name natural) (name natural))
+             ((name natural))))
+     (name natural)))
+   (((var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (name zero))
+    ((var (#(<span style="color: #a6e22e;">:m</span> ()) 0))))
+   (((var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (name succ))
+    ((var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (name recur) (name succ)))
+   (((bind (((var (#(<span style="color: #a6e22e;">:t</span> ()) 1))) ((name type)) #f)) (var (#(<span style="color: #a6e22e;">:t</span> ()) 0)))
+    ((name type)))
+   (((bind (((var (#(<span style="color: #a6e22e;">:t</span> ()) 1))) ((name type)) #t)) (var (#(<span style="color: #a6e22e;">:t</span> ()) 0)))
+    ((name type)))
+   (((bind (((var (#(<span style="color: #a6e22e;">:t</span> ()) 2))) ((name type)) #f)) (var (#(<span style="color: #a6e22e;">:t</span> ()) 0)))
+    ((name type)))
+   (((bind (((var (#(<span style="color: #a6e22e;">:t1</span> ()) 1)) (var (#(<span style="color: #a6e22e;">:t2</span> ()) 2)) (var (#(<span style="color: #a6e22e;">:t3</span> ()) 0))) ((name j) (name k)) #f)) (var (#(<span style="color: #a6e22e;">:t</span> ()) 0)))
+    ((name type)))
+   (((bind (((var (#(<span style="color: #a6e22e;">:t</span> ()) 2))) ((name type)) #t)) (var (#(<span style="color: #a6e22e;">:t</span> ()) 0)))
+    ((name type)))))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3f60e9f" class="outline-2">
+<h2 id="org3f60e9f"><span class="section-number-2">8</span> apply</h2>
+<div class="outline-text-2" id="text-8">
+</div><div id="outline-container-org1b4b69" class="outline-3">
+<h3 id="org1b4b69"><span class="section-number-3">8.1</span> apply/arrow</h3>
+<div class="outline-text-3" id="text-8-1">
+<ul class="org-ul">
+<li><p>apply/arrow is the only function that do commit</p></li>
+
+<li><p>it returns report instead of env or #f</p><p>because when calling it</p><p>it is more easy to forget to handle the #f returned</p></li></ul>
+
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">apply/arrow</span> a e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">arrow, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> e
+    [(ds bs ns)
+     (<span style="color: #f92672; font-weight: bold;">match</span> a
+       [(ac sc)
+        (<span style="color: #f92672; font-weight: bold;">match</span> (unify (<span style="color: #f92672; font-weight: bold;">lambda</span> (e) (apply/cedent ac e))
+                      (list ds
+                            (cons '(commit-point) bs)
+                            ns))
+          [('fail info-list) ('fail info-list)]
+          [('success info-list e1)
+           (<span style="color: #f92672; font-weight: bold;">match</span> (apply/cedent sc e1)
+             [(ds2 bs2 ns2)
+              (list 'success info-list
+                    (list ds2 (bs/commit! bs2) ns2))])])])]))
+
+(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">bs/commit!</span> bs)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">bs -&gt; bs</span>
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">effect on part of bs</span>
+  (<span style="color: #f92672; font-weight: bold;">cond</span> [(equal? '(commit-point) (car bs))
+         (cdr bs)]
+        [else
+         (<span style="color: #f92672; font-weight: bold;">let*</span> ([pair (car bs)]
+                [id (car pair)]
+                [ls (cdr pair)])
+           (id/commit! id ls)
+           (bs/commit! (cdr bs)))]))
+
+(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">id/commit!</span> id ls)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">id, ls -&gt; id</span>
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">effect on id</span>
+  (<span style="color: #f92672; font-weight: bold;">let</span> ()
+    (<span style="color: #f92672; font-weight: bold;">vector-set!</span> id (append ls (vector-ref id 1)))
+    id))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org21454c4" class="outline-3">
+<h3 id="org21454c4"><span class="section-number-3">8.2</span> apply/cedent</h3>
+<div class="outline-text-3" id="text-8-2">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">apply/cedent</span> c e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">cedent, env -&gt; env</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> c
+    ['() e]
+    [(h . r) (apply/cedent r (apply/dispatch h e))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6a6687f" class="outline-3">
+<h3 id="org6a6687f"><span class="section-number-3">8.3</span> apply/dispatch</h3>
+<div class="outline-text-3" id="text-8-3">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">apply/dispatch</span> f e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">form, env -&gt; env</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> f
+    [('var v) (apply/var v e)]
+    [('name n) (apply/name n e)]
+    [('arrow a) (apply/literal-arrow a e)]
+    [('bind b) (apply/bind b e)]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgac8c22" class="outline-3">
+<h3 id="orgac8c22"><span class="section-number-3">8.4</span> apply/literal-arrow</h3>
+</div>
+
+<div id="outline-container-org7e4a36a" class="outline-3">
+<h3 id="org7e4a36a"><span class="section-number-3">8.5</span> apply/var</h3>
+</div>
+
+<div id="outline-container-org69c7d2d" class="outline-3">
+<h3 id="org69c7d2d"><span class="section-number-3">8.6</span> apply/name</h3>
+</div>
+
+<div id="outline-container-org221cb04" class="outline-3">
+<h3 id="org221cb04"><span class="section-number-3">8.7</span> id-&gt;ls</h3>
+<div class="outline-text-3" id="text-8-7">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">id-&gt;ls</span> id)
+  (vector-ref id 1))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb610dc0" class="outline-2">
+<h2 id="orgb610dc0"><span class="section-number-2">9</span> unify</h2>
+<div class="outline-text-2" id="text-9">
+</div><div id="outline-container-orgaf65aef" class="outline-3">
+<h3 id="orgaf65aef"><span class="section-number-3">9.1</span> <span class="todo _gt__lt_">&gt;&lt;</span> unify</h3>
+<div class="outline-text-3" id="text-9-1">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify</span> e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(env -&gt; env), env -&gt; unify-report</span>
+  )
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6baf742" class="outline-2">
+<h2 id="org6baf742"><span class="section-number-2">10</span> <span class="todo _gt__lt_">&gt;&lt;</span> eva</h2>
+</div>
+
+<div id="outline-container-org2c330ef" class="outline-2">
+<h2 id="org2c330ef"><span class="section-number-2">11</span> <span class="todo _gt__lt_">&gt;&lt;</span> check</h2>
+</div>
+
+<div id="outline-container-orga17d379" class="outline-2">
+<h2 id="orga17d379"><span class="section-number-2">12</span> <span class="todo _gt__lt_">&gt;&lt;</span> type-apply</h2>
+</div>
+
+<div id="outline-container-org74dd09b" class="outline-2">
+<h2 id="org74dd09b"><span class="section-number-2">13</span> <span class="todo _gt__lt_">&gt;&lt;</span> sequent</h2>
+</div>
+
+<div id="outline-container-orgd881cfc" class="outline-2">
+<h2 id="orgd881cfc"><span class="section-number-2">14</span> <span class="done test">test</span> </h2>
+<div class="outline-text-2" id="text-14">
+</div><div id="outline-container-orgb46de6c" class="outline-3">
+<h3 id="orgb46de6c"><span class="section-number-3">14.1</span> natural</h3>
+<div class="outline-text-3" id="text-14-1">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(sequent
+
+  (dt type (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+
+  (dt natural (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
+      zero (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      succ (natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
+
+  (df add (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
+      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ))
+
+  (df mul (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero)
+      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add))
+
+  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       zero succ
+       zero succ succ
+       add))
+
+  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       zero succ succ
+       zero succ succ
+       mul))
+
+  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> mul)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc6369d8" class="outline-3">
+<h3 id="orgc6369d8"><span class="section-number-3">14.2</span> list</h3>
+<div class="outline-text-3" id="text-14-2">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(sequent
+
+  (dt type (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+
+  (dt natural (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
+      zero (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      succ (natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
+
+  (df add (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
+      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ))
+
+  (df mul (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero)
+      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add))
+
+  (dt list ((<span style="color: #a6e22e;">:t</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
+      null (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list)
+      cons (<span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list))
+
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(df map (:t1 list (:t1 -&gt; :t2) -&gt; :t2 list)</span>
+  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(null :f -&gt; null)</span>
+  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(:l :e cons :f -&gt; :e :f apply :l :f map cons))</span>
+
+  (df append (<span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> list <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t1</span> list)
+      (<span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span>)
+      (<span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons))
+
+  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       zero cons
+       append)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org92dbc1b" class="outline-3">
+<h3 id="org92dbc1b"><span class="section-number-3">14.3</span> vector</h3>
+<div class="outline-text-3" id="text-14-3">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(sequent
+
+  (dt type (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
+
+  (dt natural (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
+      zero (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      succ (natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
+
+  (df add (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
+      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ))
+
+  (df mul (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
+      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero)
+      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add))
+
+  (dt vector ((<span style="color: #a6e22e;">:t</span> : type) natural <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
+      null (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero <span style="color: #a6e22e;">:t</span> vector)
+      cons (<span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #a6e22e;">:t</span> vector))
+
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(df map (:n :t1 vector (:t1 -&gt; :t2) -&gt; :n :t2 vector)</span>
+  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(null :f -&gt; null)</span>
+  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(:l :e cons :f -&gt; :e :f apply :l :f map cons))</span>
+
+  (df append (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add <span style="color: #a6e22e;">:t</span> vector)
+      (<span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span>)
+      (<span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons))
+
+  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       zero cons
+       append)))
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+喪以不執 所執者喪 執喪相比 方死方生
+</div>
+</body>
+</html>
