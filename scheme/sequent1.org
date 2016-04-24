@@ -11,12 +11,94 @@
   - data/print
     different var should be print differently
 
+  - check-type
+    infer-arity
+    check-cover
+    check-end
+
 * note sequent
 
   - sequent is arrow
     which is the core data type of the language
 
 * note data type
+
+*** form1
+
+    - form1 =
+      - form1/var =
+        :var
+        :var^n
+      - form1/name =
+        name
+      - form1/arrow =
+        (form1 ... -> form1 ...)
+      - form1/lambda =
+        (lambda form1/arrow
+          form1/arrow
+          ...)
+      - form1/bind =
+        (form1/var ... : form1 ...)
+        (form1/var ... @ form1 ...)
+
+*** form2
+
+    - form2 =
+      ('form2/var    (symbol level))
+      ('form2/name   symbol)
+      ('form2/arrow  ((form2 ...) (form2 ...)))
+      ('form2/lambda (form2/arrow (form2/arrow ...)))
+      ('form2/bind   ((form2/var ...) (form2 ...) leave?))
+    - level = natural-number
+
+*** data
+
+    - data =
+      ('var    (id level))
+      ('cons   (name (data ...)))
+      ('arrow  ((data ...) (data ...)))
+      ('lambda (arrow arity (arrow ...)))
+      ('trunk  (arrow arity (arrow ...) (data ...)))
+    - id = #(symbol ls)
+    - arity = (number number)
+
+*** env
+
+    - env = (ds bs ns)
+    - ds = (data ...)
+    - bs = ((id . ls) ...)
+      - ls = ((level . data) ...)
+    - ns = ((name . meaning) ...)
+
+*** meaning
+
+    - meaning =
+      ('lambda    (arrow arity (arrow ...)))
+      ('cons/type (arrow arity name (name ...)))
+      ('cons/data (arrow arity name name))
+
+*** top1
+
+    - top1 =
+      ('dt ((form1/name form1/arrow) ((form1/name form1/arrow) ...)))
+      ('df ((form1/name form1/arrow) (form1/arrow ...)))
+      ('ap form1/arrow)
+
+*** top2
+
+    - top2 =
+      ('top2/dt ((form2/name form2/arrow) ((form2/name form2/arrow) ...)))
+      ('top2/df ((form2/name form2/arrow) (form2/arrow ...)))
+      ('top2/ap form2/arrow)
+
+*** report
+
+    - report =
+      ('fail (info ...))
+      ('success (info ...) env)
+    - info = ?
+
+* note old data type
 
 *** formal-form
 
@@ -25,10 +107,13 @@
     - formal-form =
       - ('v formal-var)
       - ('n formal-name)
-      - ('a formal-arrow)
+      - ('t type)
+      - ('l lambda)
       - ('b formal-bind)
     - formal-var = (symbol level)
     - formal-name = symbol
+    - formal-type = formal-arrow
+    - formal-lambda = ()
     - formal-bind = ((formal-var ...) formal-cedent leave?)
     - level = natural-number
 
@@ -59,15 +144,17 @@
     - data =
       - ('var var)
       - ('cons (name (data ...)))
-      - ('trunk (function (arrow ...) (data ...)))
+      - ('arrow arrow)
+      - ('lambda lambda)
+      - ('trunk ((arrow ...) (data ...)))
 
 *** function
 
     - function =
-      - ('normal-function normal-function)
+      - ('lambda lambda)
       - ('type-constructor type-constructor)
       - ('data-constructor data-constructor)
-    - normal-function = (formal-arrow arity (formal-arrow ...))
+    - lambda = (formal-arrow arity (formal-arrow ...))
     - type-constructor = (formal-arrow arity (name ...))
     - data-constructor = (formal-arrow arity name)
     - arity = (number number)
@@ -83,12 +170,12 @@
     - function-definition =
       ((formal-name formal-arrow) (formal-arrow ...))
 
-*** unify-report
+*** report
 
-    - unify-report =
-      - ('fail (report ...))
-      - ('success (report ...) env)
-    - report = ?
+    - report =
+      - ('fail (info ...))
+      - ('success (info ...) env)
+    - info = ?
 
 * helper
 
@@ -388,25 +475,104 @@
         ((name type)))))
     #+end_src
 
-* >< apply
+* apply
 
-*** ><
+*** apply/arrow
+
+    - apply/arrow is the only function that do commit
+
+    - it returns report instead of env or #f
+      because when calling it
+      it is more easy to forget to handle the #f returned
 
     #+begin_src scheme
+    (define (apply/arrow a e)
+      ;; arrow, env -> report
+      (match e
+        [(ds bs ns)
+         (match a
+           [(ac sc)
+            (match (unify (lambda (e) (apply/cedent ac e))
+                          (list ds
+                                (cons '(commit-point) bs)
+                                ns))
+              [('fail info-list) ('fail info-list)]
+              [('success info-list e1)
+               (match (apply/cedent sc e1)
+                 [(ds2 bs2 ns2)
+                  (list 'success info-list
+                        (list ds2 (bs/commit! bs2) ns2))])])])]))
 
+    (define (bs/commit! bs)
+      ;; bs -> bs
+      ;; effect on part of bs
+      (cond [(equal? '(commit-point) (car bs))
+             (cdr bs)]
+            [else
+             (let* ([pair (car bs)]
+                    [id (car pair)]
+                    [ls (cdr pair)])
+               (id/commit! id ls)
+               (bs/commit! (cdr bs)))]))
+
+    (define (id/commit! id ls)
+      ;; id, ls -> id
+      ;; effect on id
+      (let ()
+        (vector-set! id (append ls (vector-ref id 1)))
+        id))
     #+end_src
 
-* >< unify
-
-*** ><
+*** apply/cedent
 
     #+begin_src scheme
+    (define (apply/cedent c e)
+      ;; cedent, env -> env
+      (match c
+        ['() e]
+        [(h . r) (apply/cedent r (apply/dispatch h e))]))
+    #+end_src
 
+*** apply/dispatch
+
+    #+begin_src scheme
+    (define (apply/dispatch f e)
+      ;; form, env -> env
+      (match f
+        [('var v) (apply/var v e)]
+        [('name n) (apply/name n e)]
+        [('arrow a) (apply/literal-arrow a e)]
+        [('bind b) (apply/bind b e)]))
+    #+end_src
+
+*** apply/literal-arrow
+
+*** apply/var
+
+*** apply/name
+
+*** id->ls
+
+    #+begin_src scheme
+    (define (id->ls id)
+      (vector-ref id 1))
+    #+end_src
+
+* unify
+
+*** >< unify
+
+    #+begin_src scheme
+    (define (unify e)
+      ;; (env -> env), env -> unify-report
+      )
     #+end_src
 
 * >< eva
 
 * >< check
+
+* >< type-apply
 
 * >< sequent
 

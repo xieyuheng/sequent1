@@ -215,6 +215,59 @@
    (((bind (((var (#(:t ()) 2))) ((name type)) #t)) (var (#(:t ()) 0)))
     ((name type)))))
 
+(define (apply/arrow a e)
+  ;; arrow, env -> report
+  (match e
+    [(ds bs ns)
+     (match a
+       [(ac sc)
+        (match (unify (lambda (e) (apply/cedent ac e))
+                      (list ds
+                            (cons '(commit-point) bs)
+                            ns))
+          [('fail info-list) ('fail info-list)]
+          [('success info-list e1)
+           (match (apply/cedent sc e1)
+             [(ds2 bs2 ns2)
+              (list 'success info-list
+                    (list ds2 (bs/commit! bs2) ns2))])])])]))
 
+(define (bs/commit! bs)
+  ;; bs -> bs
+  ;; effect on part of bs
+  (cond [(equal? '(commit-point) (car bs))
+         (cdr bs)]
+        [else
+         (let* ([pair (car bs)]
+                [id (car pair)]
+                [ls (cdr pair)])
+           (id/commit! id ls)
+           (bs/commit! (cdr bs)))]))
 
+(define (id/commit! id ls)
+  ;; id, ls -> id
+  ;; effect on id
+  (let ()
+    (vector-set! id (append ls (vector-ref id 1)))
+    id))
 
+(define (apply/cedent c e)
+  ;; cedent, env -> env
+  (match c
+    ['() e]
+    [(h . r) (apply/cedent r (apply/dispatch h e))]))
+
+(define (apply/dispatch f e)
+  ;; form, env -> env
+  (match f
+    [('var v) (apply/var v e)]
+    [('name n) (apply/name n e)]
+    [('arrow a) (apply/literal-arrow a e)]
+    [('bind b) (apply/bind b e)]))
+
+(define (id->ls id)
+  (vector-ref id 1))
+
+(define (unify e)
+  ;; (env -> env), env -> unify-report
+  )

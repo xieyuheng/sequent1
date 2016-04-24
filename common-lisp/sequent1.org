@@ -10,8 +10,9 @@
 
   - improve the interface to get rid of 'unify-point and '(commit-point)
 
-  - success should track the path
+  - success should track the path into nested ???
     when fail path can be used in report
+
 
   - refactoring
     those labels
@@ -743,14 +744,6 @@
 
 * apply
 
-*** env
-
-    #+begin_src lisp
-    (defun env->ds (e) (car e))
-    (defun env->bs (e) (cadr e))
-    (defun env->ns (e) (caddr e))
-    #+end_src
-
 *** id
 
     #+begin_src lisp
@@ -759,7 +752,7 @@
 
     (defun id/commit! (id ls)
       (setf (svref id 1)
-            (append (svref id 1) ls)))
+            (append ls (svref id 1))))
     #+end_src
 
 *** apply/arrow
@@ -779,19 +772,18 @@
                          ns)))
             (:fail _) => nil
             (:success e1)
-            => (let ((e2 (apply/cedent sc e1)))
-                 (match e2
-                   (ds2 bs2 ns2) =>
-                   (labels ((recur (l) ;; side-effect on var
-                              (cond ((equal '(commit-point) (car l))
-                                     (cdr l))
-                                    (:else
-                                     (let* ((pair (car l))
-                                            (id (car pair))
-                                            (ls (cdr pair)))
-                                       (id/commit! id ls)
-                                       (recur (cdr l)))))))
-                     (list ds2 (recur bs2) ns2))))))))
+            => (match (apply/cedent sc e1)
+                 (ds2 bs2 ns2) =>
+                 (labels ((recur (l) ;; side-effect on var
+                            (cond ((equal '(commit-point) (car l))
+                                   (cdr l))
+                                  (:else
+                                   (let* ((pair (car l))
+                                          (id (car pair))
+                                          (ls (cdr pair)))
+                                     (id/commit! id ls)
+                                     (recur (cdr l)))))))
+                   (list ds2 (recur bs2) ns2)))))))
     #+end_src
 
 *** apply/cedent
@@ -845,18 +837,20 @@
     #+begin_src lisp
     (defun apply/name (n e)
       ;; name, env -> env
-      (let ((found (assoc n (env->ns e) :test #'eq)))
-        (if (not found)
-            (orz ()
-              ("apply/name unknow name : ~a~%" n))
-            (let ((store (cdr found)))
-              (match store
-                ('function f)
-                => (apply/name/function f e)
-                ('type-constructor (formal-arrow arity data-name-list))
-                => (apply/arity n arity e)
-                ('data-constructor (formal-arrow arity type-name))
-                => (apply/arity n arity e))))))
+      (match e
+        (ds bs ns) =>
+        (let ((found (assoc n ns :test #'eq)))
+          (if (not found)
+              (orz ()
+                ("apply/name unknow name : ~a~%" n))
+              (let ((store (cdr found)))
+                (match store
+                  ('function f)
+                  => (apply/name/function f e)
+                  ('type-constructor (formal-arrow arity data-name-list))
+                  => (apply/arity n arity e)
+                  ('data-constructor (formal-arrow arity type-name))
+                  => (apply/arity n arity e)))))))
     #+end_src
 
 *** apply/name/function
@@ -1491,6 +1485,8 @@
                                       report))))))))))
     #+end_src
 
+* type-apply
+
 *** type-apply/cedent
 
     #+begin_src lisp
@@ -1535,14 +1531,16 @@
     #+begin_src lisp
     (defun type-apply/name (n e)
       ;; name, env -> env
-      (let ((found (assoc n (env->ns e) :test #'eq)))
-        (if (not found)
-            (orz ()
-              ("type-apply/name unknow name : ~a~%" n))
-            (let ((store (cdr found)))
-              (match store
-                (any-store (formal-arrow arity . _)) =>
-                (apply/arrow (pass1/arrow formal-arrow ()) e))))))
+      (match e
+        (ds bs ns) =>
+        (let ((found (assoc n ns :test #'eq)))
+          (if (not found)
+              (orz ()
+                ("type-apply/name unknow name : ~a~%" n))
+              (let ((store (cdr found)))
+                (match store
+                  (any-store (formal-arrow arity . _)) =>
+                  (apply/arrow (pass1/arrow formal-arrow ()) e)))))))
     #+end_src
 
 *** >< type-apply/literal-arrow
