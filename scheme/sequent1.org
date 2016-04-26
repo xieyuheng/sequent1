@@ -106,6 +106,14 @@
              (sublist (cdr l) (- start 1) (- end 1))]
             [(and (eq? 0 start) (not (eq? 0 end)))
              (cons (car l) (sublist (cdr l) 0 (- end 1)))]))
+
+    (define (genlist len)
+      ;; length -> list
+      (define (recur len counter)
+        (cond [(eq? len counter) '()]
+              [else (cons counter
+                          (recur len (+ 1 counter)))]))
+      (recur len 0))
     #+end_src
 
 *** string
@@ -126,6 +134,11 @@
     #+end_src
 
 * note
+
+*** as prototype
+
+    - lazy-eval
+      call-by-name
 
 *** sequent
 
@@ -183,7 +196,7 @@
 *** data
 
     - form3 -pass3-> data
-      cons trunk multi proj are created here
+      cons trunk proj are created here
       arity is calculated here
     - pass3 will use env passing
       note that
@@ -202,14 +215,13 @@
       ('arrow  ((data ...) (data ...)))
       ('lambda (arrow (arrow ...)))
       ('trunk  (arrow (arrow ...) (data ...)))
-      ('multi  (arrow (arrow ...) (data ...)))
-      ('proj   (var number))
+      ('proj   (arrow (arrow ...) (data ...) index))
 
 *** arity
 
     - there can be
       arity = (number number)
-      in lambda trunk multi
+      in lambda & trunk
       but do not use separate arity for simplicity
       arity is calculated from arrow repeatly
 
@@ -678,12 +690,12 @@
                  (list (bs/deep-arrow bs a)
                        (bs/deep-arrow-list bs al)
                        (bs/deep-list bs dl)))]
-          [('multi (a al dl))
-           (list 'multi
+          [('proj (a al dl i))
+           (list 'proj
                  (list (bs/deep-arrow bs a)
                        (bs/deep-arrow-list bs al)
-                       (bs/deep-list bs dl)))]
-          [('proj p) ('proj p)]))
+                       (bs/deep-list bs dl)
+                       i))]))
       #+end_src
 
 ***** pass3/name
@@ -709,7 +721,7 @@
                    [('lambda ((ac sc) al))
                     (if (eq? 1 (length sc))
                       (pass3/name/trunk (length ac) l e)
-                      (pass3/name/multi (length ac) (length sc) l e))]))))]))
+                      (pass3/name/proj (length ac) (length sc) l e))]))))]))
       #+end_src
 
 ***** pass3/name/cons
@@ -726,31 +738,7 @@
                  ns)]))
       #+end_src
 
-***** note copy
-
-      - when forming trunk and multi from lambda which is fetched from ns
-        we have to copy the lambda
-
-      - copy is arrow by arrow
-        every var in new arrow is different from old arrow
-        thus
-        1. scope is also arrow by arrow
-        2. a non-determinate var can not be substituted into lambda as it is
-           but is copied
-
-      - this copy is the main place where can be optimized
-        a vm can be designed to replace this copy function
-        and change the interpreter to a compiler
-
-***** >< copy-arrow
-
-      #+begin_src scheme
-      (define (copy-arrow a)
-        ;; arrow -> arrow
-        ())
-      #+end_src
-
-***** >< pass3/name/trunk
+***** pass3/name/trunk
 
       #+begin_src scheme
       (define (pass3/name/trunk len l e)
@@ -759,30 +747,32 @@
           [(ds bs ns)
            (match l
              [(a al)
-              (list (cons (list 'trunk
-                                (list a al (sublist ds 0 len)))
-                          (sublist ds len -1))
-                    bs
-                    ns)])]))
+              (let ([a (copy-arrow a)]
+                    [al (map copy-arrow al)]
+                    [dl (sublist ds 0 len)])
+                (list (cons (list 'trunk (list a al dl))
+                            (sublist ds len -1))
+                      bs
+                      ns))])]))
       #+end_src
 
-***** >< pass3/name/multi
-
-      - create multi & proj
-        with the help of var
+***** pass3/name/proj
 
       #+begin_src scheme
-      (define (pass3/name/multi len1 len2 l e)
+      (define (pass3/name/proj len slen l e)
         ;; length, length, lambda, env -> env
         (match e
           [(ds bs ns)
            (match l
              [(a al)
-              (list (cons (list 'trunk
-                                (list a al (sublist ds 0 len)))
-                          (sublist ds len -1))
-                    bs
-                    ns)])]))
+              (let* ([a (copy-arrow a)]
+                     [al (map copy-arrow al)]
+                     [dl (sublist ds 0 len)]
+                     [make-proj (lambda (i) (list 'proj (list a al dl i)))])
+                (list (append (map make-proj (genlist slen))
+                              (sublist ds len -1))
+                      bs
+                      ns))])]))
       #+end_src
 
 ***** pass3/bind
@@ -820,6 +810,44 @@
           (vector-set! id (append ls (vector-ref id 1)))
           id))
       #+end_src
+
+* >< copy-arrow
+
+*** note copy
+
+    - when forming trunk from lambda which is fetched from ns
+      we have to copy the lambda
+
+    - copy is arrow by arrow
+      every var in new arrow is different from old arrow
+      thus
+      1. scope is also arrow by arrow
+      2. a non-determinate var can not be substituted into lambda as it is
+         but is copied
+
+    - this copy is one of the main place where this prototype can be optimized
+      a vm can be designed to replace this copy function
+      and change the interpreter to a compiler
+
+*** copy-arrow
+
+    #+begin_src scheme
+    (define (copy-arrow a)
+      ;; arrow -> arrow
+      ())
+    #+end_src
+
+*** copy/var
+
+*** copy/cons
+
+*** copy/arrow
+
+*** copy/lambda
+
+*** copy/trunk
+
+*** copy/proj
 
 * >< apply
 
