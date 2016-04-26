@@ -98,6 +98,14 @@
       ;; sexp, list -> list
       (cond [(equal? s (car l)) (cdr l)]
             [else (right-of s (cdr l))]))
+
+    (define (sublist l start end)
+      ;; list, index, index -> list
+      (cond [(and (eq? 0 start) (<= end 0)) '()]
+            [(and (not (eq? 0 start)))
+             (sublist (cdr l) (- start 1) (- end 1))]
+            [(and (eq? 0 start) (not (eq? 0 end)))
+             (cons (car l) (sublist (cdr l) 0 (- end 1)))]))
     #+end_src
 
 *** string
@@ -177,16 +185,33 @@
     - form3 -pass3-> data
       cons trunk multi proj are created here
       arity is calculated here
+    - pass3 will use env passing
+      note that
+      when env passing is used
+      those functions would not be separately testable
+    - no unification here
+      bs is not used here
+      bind just effect on the id of var
+    - ns is searched
+      but no effect on ns
+    - how should I express such in type ?
 
     - data =
       ('var    (id level))
       ('cons   (name (data ...)))
       ('arrow  ((data ...) (data ...)))
-      ('lambda (arrow arity (arrow ...)))
-      ('trunk  (arrow arity (arrow ...) (data ...)))
-      ('multi  (arrow arity (arrow ...) (data ...)))
-      ('proj   var)
-    - arity = (number number)
+      ('lambda (arrow (arrow ...)))
+      ('trunk  (arrow (arrow ...) (data ...)))
+      ('multi  (arrow (arrow ...) (data ...)))
+      ('proj   (var number))
+
+*** arity
+
+    - there can be
+      arity = (number number)
+      in lambda trunk multi
+      but do not use separate arity for simplicity
+      arity is calculated from arrow repeatly
 
 *** env
 
@@ -199,9 +224,9 @@
 *** meaning
 
     - meaning =
-      ('lambda    (arrow arity (arrow ...)))
-      ('cons/type (arrow arity name (name ...)))
-      ('cons/data (arrow arity name name))
+      ('cons/type (arrow name (name ...)))
+      ('cons/data (arrow name name))
+      ('lambda    (arrow (arrow ...)))
 
 *** top
 
@@ -495,13 +520,310 @@
          ((((form3/bind (((form3/var (#(:t ()) 2))) ((form3/name type)) not-leave)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ()))))))
       #+end_src
 
-*** >< pass3
+*** pass3
 
-* apply
+***** pass3/get-arrow
+
+      #+begin_src scheme
+      (define (pass3/get-arrow a e)
+        ;; form3/arrow, env -> arrow
+        (match (pass3/arrow a e)
+          [((('arrow arrow) . _) _ _)
+           arrow]))
+      #+end_src
+
+***** pass3/arrow
+
+      #+begin_src scheme
+      (define (pass3/arrow a e)
+        ;; form3/arrow, env -> env
+        (match e
+          [(ds bs ns)
+           (match a
+             [(ac sc)
+              (match (pass3/cedent ac e)
+                [((d1 . _) _ _)
+                 (match (pass3/cedent sc e)
+                   [((d2 . _) _ _)
+                    (list (cons (list 'arrow (list d1 d2))
+                                ds)
+                          bs
+                          ns)])])])]))
+      #+end_src
+
+***** pass3/cedent
+
+      #+begin_src scheme
+      (define (pass3/cedent c e)
+        ;; (form3 ...), env -> env
+        (match e
+          [(ds bs ns)
+           (match c
+             [() e]
+             [(h . r) (pass3/cedent r (pass3 h e))])]))
+      #+end_src
+
+***** pass3/lambda
+
+      #+begin_src scheme
+      (define (pass3/lambda l e)
+        ;; form3/lambda, env -> env
+        (match e
+          [(ds bs ns)
+           (match l
+             [(a al)
+              (list (cons (list 'lambda
+                                (pass3/get-arrow a e)
+                                (map (lambda (x)
+                                       (pass3/get-arrow x e))
+                                  al))
+                          ds)
+                    bs
+                    ns)])]))
+      #+end_src
+
+***** pass3
+
+      #+begin_src scheme
+      (define (pass3 f e)
+        ;; form3, env -> env
+        (match f
+          [('form3/var x) (pass3/var x e)]
+          [('form3/name x) (pass3/name x e)]
+          [('form3/arrow x) (pass3/arrow x e)]
+          [('form3/lambda x) (pass3/lambda x e)]
+          [('form3/bind x) (pass3/bind x e)]))
+      #+end_src
+
+***** pass3/var
+
+      #+begin_src scheme
+      (define (pass3/var v e)
+        ;; form3/var, env -> env
+        (match e
+          [(ds bs ns)
+           ;; actually there is no need to search bs
+           ;; but anyway
+           (list (cons (bs/deep bs (list 'var v)) ds)
+                 bs
+                 ns)]))
+      #+end_src
+
+***** id->ls
+
+      #+begin_src scheme
+      (define (id->ls id)
+        (vector-ref id 1))
+      #+end_src
+
+***** ><><>< bs/[find|walk|deep]
+
+      - infer level n can get level n+1
+
+      - note how the types of these functions are different
+
+      #+begin_src scheme
+      (define (bs/find bs v)
+        ;; bs, var -> data or #f
+        (match v
+          [(id level)
+           (let* ([level (if (eq? level #f)
+                           0
+                           level)]
+                  [found/commit (assq level (id->ls id))])
+             (if found/commit
+               (cdr found/commit)
+               (let* ([found/ls (assq id bs)]
+                      [found/bind
+                       (if found/ls
+                         (assq level (cdr found/ls))
+                         #f)])
+                 (if found/bind
+                   (cdr found/bind)
+                   #f))))]))
+
+      (define (bs/walk bs d)
+        ;; bs, data -> data
+        (match d
+          [('var v)
+           (let ([found (bs/find bs v)])
+             (if found
+               (bs/walk bs found)
+               d))]
+          [(_ e) d]))
+
+      (define (bs/deep bs d)
+        ;; bs, data -> data
+        (define (bs/deep-list bs dl)
+          (map (lambda (x) (bs/deep bs x)) dl))
+        (define (bs/deep-arrow bs a)
+          (match a
+            [(dl1 dl2)
+             (list (bs/deep-list bs dl1)
+                   (bs/deep-list bs dl2))]))
+        (define (bs/deep-arrow-list bs al)
+          (map (lambda (a) (bs/deep-arrow bs a)) al))
+        (match (bs/walk bs d)
+          [('var v) ('var v)]
+          [('cons (name dl))
+           (list 'cons
+                 (list name (bs/deep-list bs dl)))]
+          [('arrow a) (list 'arrow (bs/deep-arrow bs a))]
+          [('lambda (a al))
+           (list 'lambda
+                 (list (bs/deep-arrow bs a)
+                       (bs/deep-arrow-list bs al)))]
+          [('trunk (a al dl))
+           (list 'trunk
+                 (list (bs/deep-arrow bs a)
+                       (bs/deep-arrow-list bs al)
+                       (bs/deep-list bs dl)))]
+          [('multi (a al dl))
+           (list 'multi
+                 (list (bs/deep-arrow bs a)
+                       (bs/deep-arrow-list bs al)
+                       (bs/deep-list bs dl)))]
+          [('proj p) ('proj p)]))
+      #+end_src
+
+***** pass3/name
+
+      - apply can be used to optimize
+        i.e. to do more computations before storing things into ns
+        but I leave it for now
+
+      #+begin_src scheme
+      (define (pass3/name n e)
+        ;; form3/name, env -> env
+        (match e
+          [(ds bs ns)
+           (let ([found (assq n ns)])
+             (if (not found)
+               (orz ("pass3/name unknow name : ~a~%" n))
+               (let ([meaning (cdr found)])
+                 (match meaning
+                   [('cons/type ((ac sc) name _))
+                    (pass3/name/cons (length ac) name e)]
+                   [('cons/data ((ac sc) name _))
+                    (pass3/name/cons (length ac) name e)]
+                   [('lambda ((ac sc) al))
+                    (if (eq? 1 (length sc))
+                      (pass3/name/trunk (length ac) l e)
+                      (pass3/name/multi (length ac) (length sc) l e))]))))]))
+      #+end_src
+
+***** pass3/name/cons
+
+      #+begin_src scheme
+      (define (pass3/name/cons len name e)
+        ;; length, name, env -> env
+        (match e
+          [(ds bs ns)
+           (list (cons (list 'cons
+                             (list name (sublist ds 0 len)))
+                       (sublist ds len -1))
+                 bs
+                 ns)]))
+      #+end_src
+
+***** note copy
+
+      - when forming trunk and multi from lambda which is fetched from ns
+        we have to copy the lambda
+
+      - copy is arrow by arrow
+        every var in new arrow is different from old arrow
+        thus
+        1. scope is also arrow by arrow
+        2. a non-determinate var can not be substituted into lambda as it is
+           but is copied
+
+      - this copy is the main place where can be optimized
+        a vm can be designed to replace this copy function
+        and change the interpreter to a compiler
+
+***** >< copy-arrow
+
+      #+begin_src scheme
+      (define (copy-arrow a)
+        ;; arrow -> arrow
+        ())
+      #+end_src
+
+***** >< pass3/name/trunk
+
+      #+begin_src scheme
+      (define (pass3/name/trunk len l e)
+        ;; length, lambda, env -> env
+        (match e
+          [(ds bs ns)
+           (match l
+             [(a al)
+              (list (cons (list 'trunk
+                                (list a al (sublist ds 0 len)))
+                          (sublist ds len -1))
+                    bs
+                    ns)])]))
+      #+end_src
+
+***** >< pass3/name/multi
+
+      - create multi & proj
+        with the help of var
+
+      #+begin_src scheme
+      (define (pass3/name/multi len1 len2 l e)
+        ;; length, length, lambda, env -> env
+        (match e
+          [(ds bs ns)
+           (match l
+             [(a al)
+              (list (cons (list 'trunk
+                                (list a al (sublist ds 0 len)))
+                          (sublist ds len -1))
+                    bs
+                    ns)])]))
+      #+end_src
+
+***** pass3/bind
+
+      #+begin_src scheme
+      (define (pass3/bind b e)
+        ;; form3/bind, env -> env
+        (match b
+          [(vl c leave?)
+           (match (pass3/cedent c e)
+             [((d1 . _) _ _) ;; here I assume the c of bind is simple
+              (letrec ([recur
+                        (lambda (vl e)
+                          (match (list vl e)
+                            [(() _) e]
+                            [(((id level) . r) (ds bs ns))
+                             ;; ><><><
+                             ;; need to check if the bind already exist
+                             (id/commit! id (list (cons level d1)))
+                             (recur r (list (if leave?
+                                              (cons d1 ds)
+                                              ds)
+                                            bs
+                                            ns))]))])
+                (recur vl e))])]))
+      #+end_src
+
+***** id/commit!
+
+      #+begin_src scheme
+      (define (id/commit! id ls)
+        ;; id, ls -> id
+        ;; effect on id
+        (let ()
+          (vector-set! id (append ls (vector-ref id 1)))
+          id))
+      #+end_src
+
+* >< apply
 
 *** apply/arrow
-
-    - apply/arrow is the only function that do commit
 
     - it returns report instead of env or #f
       because when calling it
@@ -524,25 +846,6 @@
                  [(ds2 bs2 ns2)
                   (list 'success info-list
                         (list ds2 (bs/commit! bs2) ns2))])])])]))
-
-    (define (bs/commit! bs)
-      ;; bs -> bs
-      ;; effect on part of bs
-      (cond [(equal? '(commit-point) (car bs))
-             (cdr bs)]
-            [else
-             (let* ([pair (car bs)]
-                    [id (car pair)]
-                    [ls (cdr pair)])
-               (id/commit! id ls)
-               (bs/commit! (cdr bs)))]))
-
-    (define (id/commit! id ls)
-      ;; id, ls -> id
-      ;; effect on id
-      (let ()
-        (vector-set! id (append ls (vector-ref id 1)))
-        id))
     #+end_src
 
 *** apply/cedent
@@ -573,14 +876,43 @@
 
 *** apply/name
 
-*** id->ls
+*** >< bs/commit!
 
     #+begin_src scheme
-    (define (id->ls id)
-      (vector-ref id 1))
+    (define (bs/commit! bs)
+      ;; bs -> bs
+      ;; effect on part of bs
+      (cond [(equal? '(commit-point) (car bs))
+             (cdr bs)]
+            [else
+             (let* ([pair (car bs)]
+                    [id (car pair)]
+                    [ls (cdr pair)])
+               (id/commit! id ls)
+               (bs/commit! (cdr bs)))]))
     #+end_src
 
-* unify
+*** >< bs/extend
+
+    #+begin_src scheme
+    (defun bs/extend (default-level bs v d)
+      ;; bs var data -> bs
+      (match v
+        (id level) =>
+        (let* ((level (if (eq nil level)
+                          default-level
+                          level))
+               (found/ls (assoc id bs :test #'eq)))
+          (if found/ls
+              (substitute (cons id (cons (cons level d)
+                                         (cdr found/ls)))
+                          (lambda (pair) (eq (car pair) id))
+                          bs)
+              (cons (cons id (list (cons level d)))
+                    bs)))))
+    #+end_src
+
+* >< unify
 
 *** >< unify
 
