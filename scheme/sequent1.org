@@ -32,24 +32,16 @@
 *** cat & orz
 
     #+begin_src scheme
-    ;; guile
     (define-syntax cat
       (syntax-rules ()
         [(cat (str . args))
+         ;; (format str . args)
+         ;; guile
          (format #t str . args)]
         [(cat (str . args) (str2 . args2) ...)
          (string-append
           (cat (str . args))
           (cat (str2 . args2) ...))]))
-
-    ;; (define-syntax cat
-    ;;   (syntax-rules ()
-    ;;     [(cat (str . args))
-    ;;      (format str . args)]
-    ;;     [(cat (str . args) (str2 . args2) ...)
-    ;;      (string-append
-    ;;       (cat (str . args))
-    ;;       (cat (str2 . args2) ...))]))
 
     (define-syntax orz
       (syntax-rules ()
@@ -282,7 +274,7 @@
       (define (pass1/cedent default-level s)
         ;; default-level, (form1 ...) -> (form2 ...)
         (match s
-          ['() '()]
+          [() '()]
           [(h . r) (cons (pass1 default-level h)
                          (pass1/cedent default-level r))]))
       #+end_src
@@ -422,7 +414,7 @@
       (define (pass2/cedent c s)
         ;; (form2 ...), scope -> ((form3 ...) scope)
         (match c
-          ['() (list '() s)]
+          [() (list '() s)]
           [(h . r)
            (match (pass2 h s)
              [(3f s1)
@@ -621,9 +613,12 @@
                  ns)]))
       #+end_src
 
-***** id->ls
+***** id->[symbol|ls]
 
       #+begin_src scheme
+      (define (id->symbol id)
+        (vector-ref id 0))
+
       (define (id->ls id)
         (vector-ref id 1))
       #+end_src
@@ -811,7 +806,7 @@
           id))
       #+end_src
 
-* >< copy-arrow
+* copy-arrow
 
 *** note copy
 
@@ -834,20 +829,179 @@
     #+begin_src scheme
     (define (copy-arrow a)
       ;; arrow -> arrow
-      ())
+      (match (copy/arrow a '())
+        [(a s) a]))
+    #+end_src
+
+*** copy/arrow
+
+    #+begin_src scheme
+    (define (copy/arrow a s)
+      ;; arrow, scope -> (arrow scope)
+      (match a
+        [(ac sc)
+         (match (copy/cedent ac s)
+           [(ac1 s1)
+            (match (copy/cedent sc s1)
+              [(sc1 s2)
+               (list ac1 sc1 s2)])])]))
+    #+end_src
+
+*** copy/cedent
+
+    #+begin_src scheme
+    (define (copy/cedent c s)
+      ;; (data ...), scope -> ((data ...) scope)
+      (match c
+        [() (list '() s)]
+        [(h . r)
+         (match (copy h s)
+           [(h1 s1)
+            (match (copy/cedent r s1)
+              [(r1 s2)
+               (list (cons h1 r1) s2)])])]))
+    #+end_src
+
+*** copy/lambda
+
+    #+begin_src scheme
+    (define (copy/lambda l s)
+      ;; lambda, scope -> (lambda scope)
+      (match l
+        [(a al)
+         (match (copy/arrow a s)
+           [(a1 s1)
+            (match (copy/arrow-list al s1)
+              [(al1 s2)
+               (list (list a1 al1) s2)])])]))
+    #+end_src
+
+*** copy/arrow-list
+
+    #+begin_src scheme
+    (define (copy/arrow-list al s)
+      ;; (arrow ...), scope -> ((arrow ...) scope)
+      (match al
+        [() (list '() s)]
+        [(h . r)
+         (match (copy/arrow h s)
+           [(h1 s1)
+            (match (copy/arrow-list r s1)
+              [(r1 s2)
+               (list (cons h1 r1) s2)])])]))
+    #+end_src
+
+*** copy
+
+    #+begin_src scheme
+    (define (copy d s)
+      ;; data, scope -> (data scope)
+      (match d
+        [('var x)
+         (match (copy/var x s)
+           [(x1 s1)
+            (list (list 'var x1) s1)])]
+        [('cons x)
+         (match (copy/cons x s)
+           [(x1 s1)
+            (list (list 'cons x1) s1)])]
+        [('arrow x)
+         (match (copy/arrow x s)
+           [(x1 s1)
+            (list (list 'arrow x1) s1)])]
+        [('lambda x)
+         (match (copy/lambda x s)
+           [(x1 s1)
+            (list (list 'lambda x1) s1)])]
+        [('trunk x)
+         (match (copy/trunk x s)
+           [(x1 s1)
+            (list (list 'trunk x1) s1)])]
+        [('proj x)
+         (match (copy/proj x s)
+           [(x1 s1)
+            (list (list 'proj x1) s1)])]))
     #+end_src
 
 *** copy/var
 
+    #+begin_src scheme
+    (define (copy/var v s)
+      ;; var, scope -> (var scope)
+      (match v
+        [(id level)
+         (let ([found (assq id scope)])
+           (if found
+             (list (list (cdr found) level) s)
+             (let* ([ls (id->ls id)]
+                    [id1 (vector (id->symbol id) '())]
+                    [s1 (cons (cons id id1) s)])
+               (match (copy/ls ls s1)
+                 [(ls1 s2)
+                  (id/commit! id1 ls1)
+                  (list (list id1 level) s2)]))))]))
+    #+end_src
+
+*** copy/ls
+
+    #+begin_src scheme
+    (define (copy/ls ls s)
+      ;; ls, scope -> (ls scope)
+      (match ls
+        [() (list '() s)]
+        [((level . data) . r)
+         (match (copy data s)
+           [(data1 s1)
+            (match (copy/ls r s1)
+              [(r1 s2)
+               (list (cons (cons level data1)
+                           r1)
+                     s2)])])]))
+    #+end_src
+
 *** copy/cons
 
-*** copy/arrow
-
-*** copy/lambda
+    #+begin_src scheme
+    (define (copy/cons c s)
+      ;; cons, scope -> (cons scope)
+      (match c
+        [(n dl)
+         (match (copy/cedent dl s)
+           [(dl1 s1)
+            (list (list n dl1) s1)])]))
+    #+end_src
 
 *** copy/trunk
 
+    #+begin_src scheme
+    (define (copy/trunk t s)
+      ;; trunk, scope -> (trunk scope)
+      (match t
+        [(a al dl)
+         (match (copy/arrow a s)
+           [(a1 s1)
+            (match (copy/arrow-list al s1)
+              [(al1 s2)
+               (match (copy/cedent dl s2)
+                 [(dl1 s3)
+                  (list (list a1 al1 dl1) s3)])])])]))
+    #+end_src
+
 *** copy/proj
+
+    #+begin_src scheme
+    (define (copy/proj p s)
+      ;; proj, scope -> (proj scope)
+      (match p
+        [(a al dl i)
+         (match (copy/arrow a s)
+           [(a1 s1)
+            (match (copy/arrow-list al s1)
+              [(al1 s2)
+               (match (copy/cedent dl s2)
+                 [(dl1 s3)
+                  (list (list a1 al1 dl1 i) s3)])])])]))
+    #+end_src
 
 * >< apply
 
@@ -882,7 +1036,7 @@
     (define (apply/cedent c e)
       ;; cedent, env -> env
       (match c
-        ['() e]
+        [() e]
         [(h . r) (apply/cedent r (apply/dispatch h e))]))
     #+end_src
 
