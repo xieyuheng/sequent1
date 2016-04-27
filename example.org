@@ -1,10 +1,5 @@
 + sequent1 example
 
-+ this is a prototype
-  it is not useful for it is lack of so many important features
-
-+ XIE Yuheng created
-
 * sexp
 
 *** natural
@@ -52,7 +47,7 @@
         (:m zero -> zero)
         (:m :n succ -> :m :n mul :m add))
 
-    (dt list ((:t :> type) :t -> type)
+    (dt list ((:t : type) :t -> type)
         null (-> :t list)
         cons (:t list :t -> :t list))
 
@@ -79,7 +74,7 @@
 *** has-length
 
     #+begin_src lisp
-    (dt has-length ((:t :> type) :t list natural -> type)
+    (dt has-length ((:t : type) :t list natural -> type)
         null/has-length (-> null zero has-length)
         cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
 
@@ -105,7 +100,7 @@
         (:m zero -> zero)
         (:m :n succ -> :m :n mul :m add))
 
-    (dt vector ((:t :> type) natural :t -> type)
+    (dt vector ((:t : type) natural :t -> type)
         null (-> zero :t vector)
         cons (:n :t vector :t -> :n succ :t vector))
 
