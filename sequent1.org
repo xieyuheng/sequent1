@@ -54,7 +54,7 @@
          '()]))
     #+end_src
 
-*** testing
+*** little-test
 
     #+begin_src scheme
     (use-modules (ice-9 pretty-print))
@@ -252,7 +252,7 @@
 
     - report =
       ('fail (info ...))
-      ('success (info ...) env)
+      ('success env)
     - info = <free>
 
 * pass
@@ -695,8 +695,8 @@
 
 ***** pass3/name
 
-      - apply can be used to optimize
-        i.e. to do more computations before storing things into ns
+      - this can be optimized by
+        to do more computations before storing things into ns
         but I leave it for now
 
       #+begin_src scheme
@@ -1003,62 +1003,34 @@
                   (list (list a1 al1 dl1 i) s3)])])])]))
     #+end_src
 
-* >< apply
+* compute-arrow
 
-*** apply/arrow
+*** compute-arrow
 
-    - it returns report instead of env or #f
-      because when calling it
-      it is more easy to forget to handle the #f returned
+    - compute is actually done by unification
 
     #+begin_src scheme
-    (define (apply/arrow a e)
+    (define (compute-arrow a e)
       ;; arrow, env -> report
       (match e
         [(ds bs ns)
          (match a
            [(ac sc)
-            (match (unify (lambda (e) (apply/cedent ac e))
+            (match (unify (lambda (e) (compute/cedent ac e))
                           (list ds
                                 (cons '(commit-point) bs)
                                 ns))
-              [('fail info-list) ('fail info-list)]
-              [('success info-list e1)
-               (match (apply/cedent sc e1)
+              [('fail info-list)
+               (list 'fail
+                     (cons `(compute-arrow fail (arrow ,a)) info-list))]
+              [('success e1)
+               (match (compute/cedent sc e1)
                  [(ds2 bs2 ns2)
-                  (list 'success info-list
+                  (list 'success
                         (list ds2 (bs/commit! bs2) ns2))])])])]))
     #+end_src
 
-*** apply/cedent
-
-    #+begin_src scheme
-    (define (apply/cedent c e)
-      ;; cedent, env -> env
-      (match c
-        [() e]
-        [(h . r) (apply/cedent r (apply/dispatch h e))]))
-    #+end_src
-
-*** apply/dispatch
-
-    #+begin_src scheme
-    (define (apply/dispatch f e)
-      ;; form, env -> env
-      (match f
-        [('var v) (apply/var v e)]
-        [('name n) (apply/name n e)]
-        [('arrow a) (apply/literal-arrow a e)]
-        [('bind b) (apply/bind b e)]))
-    #+end_src
-
-*** apply/literal-arrow
-
-*** apply/var
-
-*** apply/name
-
-*** >< bs/commit!
+*** bs/commit!
 
     #+begin_src scheme
     (define (bs/commit! bs)
@@ -1072,6 +1044,48 @@
                     [ls (cdr pair)])
                (id/commit! id ls)
                (bs/commit! (cdr bs)))]))
+    #+end_src
+
+*** compute/cedent
+
+    #+begin_src scheme
+    (define (compute/cedent c e)
+      ;; cedent, env -> env
+      (match c
+        [() e]
+        [(h . r) (compute/cedent r (compute h e))]))
+    #+end_src
+
+*** compute
+
+    #+begin_src scheme
+    (define (compute f e)
+      ;; data, env -> env
+      (match e
+        [(ds bs ns)
+         (list (cons f ds) bs ns)]))
+
+    ;; (define (compute f e)
+    ;;   ;; data, env -> env
+    ;;   (match e
+    ;;     [(ds bs ns)
+    ;;      (match f
+    ;;        [('var x) (list (cons (bs/deep bs f) ds) bs ns)]
+    ;;        [('cons x) (list (cons f ds) bs ns)]
+    ;;        [('arrow x) (list (cons f ds) bs ns)]
+    ;;        [('lambda x) (list (cons f ds) bs ns)]
+    ;;        [('trunk x) (list (cons f ds) bs ns)]
+    ;;        [('proj x) (list (cons f ds) bs ns)])]))
+    #+end_src
+
+* >< unify
+
+*** >< unify
+
+    #+begin_src scheme
+    (define (unify e)
+      ;; (env -> env), env -> unify-report
+      )
     #+end_src
 
 *** >< bs/extend
@@ -1094,21 +1108,11 @@
                     bs)))))
     #+end_src
 
-* >< unify
-
-*** >< unify
-
-    #+begin_src scheme
-    (define (unify e)
-      ;; (env -> env), env -> unify-report
-      )
-    #+end_src
-
 * >< eva
 
 * >< check
 
-* >< type-apply
+* >< type-compute
 
 * >< sequent
 

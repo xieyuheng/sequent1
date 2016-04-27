@@ -644,36 +644,24 @@
              [(dl1 s3)
               (list (list a1 al1 dl1 i) s3)])])])]))
 
-(define (apply/arrow a e)
+(define (compute-arrow a e)
   ;; arrow, env -> report
   (match e
     [(ds bs ns)
      (match a
        [(ac sc)
-        (match (unify (lambda (e) (apply/cedent ac e))
+        (match (unify (lambda (e) (compute/cedent ac e))
                       (list ds
                             (cons '(commit-point) bs)
                             ns))
-          [('fail info-list) ('fail info-list)]
-          [('success info-list e1)
-           (match (apply/cedent sc e1)
+          [('fail info-list)
+           (list 'fail
+                 (cons `(compute-arrow fail (arrow ,a)) info-list))]
+          [('success e1)
+           (match (compute/cedent sc e1)
              [(ds2 bs2 ns2)
-              (list 'success info-list
+              (list 'success
                     (list ds2 (bs/commit! bs2) ns2))])])])]))
-
-(define (apply/cedent c e)
-  ;; cedent, env -> env
-  (match c
-    [() e]
-    [(h . r) (apply/cedent r (apply/dispatch h e))]))
-
-(define (apply/dispatch f e)
-  ;; form, env -> env
-  (match f
-    [('var v) (apply/var v e)]
-    [('name n) (apply/name n e)]
-    [('arrow a) (apply/literal-arrow a e)]
-    [('bind b) (apply/bind b e)]))
 
 (define (bs/commit! bs)
   ;; bs -> bs
@@ -686,6 +674,34 @@
                 [ls (cdr pair)])
            (id/commit! id ls)
            (bs/commit! (cdr bs)))]))
+
+(define (compute/cedent c e)
+  ;; cedent, env -> env
+  (match c
+    [() e]
+    [(h . r) (compute/cedent r (compute h e))]))
+
+(define (compute f e)
+  ;; data, env -> env
+  (match e
+    [(ds bs ns)
+     (list (cons f ds) bs ns)]))
+
+;; (define (compute f e)
+;;   ;; data, env -> env
+;;   (match e
+;;     [(ds bs ns)
+;;      (match f
+;;        [('var x) (list (cons (bs/deep bs f) ds) bs ns)]
+;;        [('cons x) (list (cons f ds) bs ns)]
+;;        [('arrow x) (list (cons f ds) bs ns)]
+;;        [('lambda x) (list (cons f ds) bs ns)]
+;;        [('trunk x) (list (cons f ds) bs ns)]
+;;        [('proj x) (list (cons f ds) bs ns)])]))
+
+(define (unify e)
+  ;; (env -> env), env -> unify-report
+  )
 
 (defun bs/extend (default-level bs v d)
   ;; bs var data -> bs
@@ -702,7 +718,3 @@
                       bs)
           (cons (cons id (list (cons level d)))
                 bs)))))
-
-(define (unify e)
-  ;; (env -> env), env -> unify-report
-  )
