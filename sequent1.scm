@@ -553,19 +553,19 @@
              [(dl1 s3)
               (list (list a1 al1 dl1 i) s3)])])])]))
 
-(define (compute-arrow a e)
+(define (compute/arrow a e)
   ;; arrow, env -> report
   (match e
     [(ds bs ns)
      (match a
        [(ac sc)
-        (match (unify (lambda (e) (compute/cedent ac e))
+        (match (unify (lambda (x) (compute/cedent ac x))
                       (list ds
                             (cons '(commit-point) bs)
                             ns))
-          [('fail info-list)
+          [('fail il)
            (list 'fail
-                 (cons `(compute-arrow fail (arrow ,a)) info-list))]
+                 (cons `(compute/arrow fail (arrow ,a)) il))]
           [('success e1)
            (match (compute/cedent sc e1)
              [(ds2 bs2 ns2)
@@ -585,35 +585,97 @@
            (bs/commit! (cdr bs)))]))
 
 (define (compute/cedent c e)
-  ;; cedent, env -> env
+  ;; cedent, env -> report
   (match c
-    [() e]
-    [(h . r) (compute/cedent r (compute h e))]))
+    [() (list 'success e)]
+    [(h . r)
+     (match (compute h e)
+       [('fail il) ('fail il)]
+       [('success e1) (compute/cedent r e1)])]))
 
-(define (compute f e)
-  ;; data, env -> env
+(define (compute d e)
+  ;; data, env -> report
   (match e
     [(ds bs ns)
-     (list (cons f ds) bs ns)]))
+     (match d
+       [('var _) (list (cons (bs/deep bs d) ds) bs ns)]
+       [('trunk t) (compute/trunk t e)]
+       [_ (list (cons d ds) bs ns)])]))
+
+(define (compute/trunk t e)
+  ;; trunk, env -> report
+  (match e
+    [(ds bs ns)
+     (match t
+       [(a al dl i)
+        (let* ([dl1 (map (lambda (x) (bs/deep bs x)) dl)]
+               [al1 (filter-arrow-list al dl1 e)])
+          (match al1
+            [()
+             (list 'fail
+                   (list `(compute/trunk
+                           no antecedent match
+                           (trunk: ,t))))]
+            [(a1)
+             (match (compute/arrow a1 (list dl1 bs ns))
+               ;; after this compute/arrow
+               ;; binds are commited
+               ;; then the old env e is used
+               [('success e1)
+                (list 'success
+                      (list (cons (proj i e1) ds)
+                            bs
+                            ns))]
+               [('fail il) ('fail il)])]
+            [(a1 a2 . _)
+             (list 'success
+                   (list a al1 dl i))]))])]))
+
+(define (filter-arrow-list al dl e)
+  ;; (arrow ...), (data ...), env -> (arrow ...)
+  (if (eq? '() al)
+    '()
+    (match e
+      [(ds bs ns)
+        (match (car al)
+          [(ac sc)
+           (match (unify (lambda (x) (compute/cedent ac x))
+                         (list (append dl ds)
+                               bs
+                               ns))
+             [('fail _)
+              (filter-arrow-list (cdr al) dl e)]
+             [('success e1)
+              (cons (car al)
+                    (filter-arrow-list (cdr al) dl e))])])])))
+
+(define (proj i e)
+  ;; index, env -> data
+  (match e
+    [(ds bs ns)
+     (list-ref ds (- (length ds) i))]))
 
 (define (unify f e)
-  ;; (env -> env), env -> report
+  ;; (env -> report), env -> report
   (match e
     [(ds bs ns)
      (match (f (list (cons 'unify-point ds) bs ns))
-       [(ds1 bs1 ns1)
+       [('fail il)
+        (list 'fail
+              (cons `(unify (with: ,f)) il))]
+       [('success (ds1 bs1 ns1))
         (let* ([pl (left-of 'unify-point ds1)]
                [tmp (right-of 'unify-point ds1)]
                [len (length pl)]
                [dl (sublist tmp 0 len)]
                [ds2 (sublist tmp len -1)])
           (unify/data-list pl dl
-                      (list 'success (list ds2 bs ns))))])]))
+                           (list 'success (list ds2 bs ns))))])]))
 
 (define (unify/data-list pl dl r)
   ;; (pattern ...), (data ...), report -> report
   (match r
-    [('fail info-list) ('fail info-list)]
+    [('fail il) ('fail il)]
     [('success e)
      (if (eq? pl '())
        r
@@ -695,11 +757,11 @@
      (match (unify/data-list ac1 ac2 (list 'success e))
        [('success e1)
         (unify/data-list sc1 sc2 (list 'success e1))]
-       [('fail info-list)
+       [('fail il)
         (list 'fail
               (cons `(unify/arrow
                       fail  (arrow1: ,a1) (arrow2: ,a2))
-                    info-list))])]))
+                    il))])]))
 
 (define (unify/lambda l1 l2 e)
   ;; lambda, lambda, env -> report
@@ -710,7 +772,7 @@
 (define (unify/arrow-list al1 al2 r)
   ;; (arrow ...), (arrow ...), report -> report
   (match r
-    [('fail info-list) ('fail info-list)]
+    [('fail il) ('fail il)]
     [('success e)
      (if (eq? al1 '())
        r
@@ -726,55 +788,119 @@
 
 (define (unify/trunk/data t d e)
   ;; trunk, data, env -> report
+  (match (compute/trunk t e)
+    [('fail il)
+     (list 'fail
+           (cons `(unify/trunk/data
+                   (trunk: ,t)
+                   (data: ,d))
+                 il))]
+    [('success e1)
+     (match (env/pop e1)
+       [(('trunk t1) e2)
+        (list 'fail
+              (list `(unify/trunk/data
+                      (trunk: ,t)
+                      compute to
+                      (trunk: ,t1))))]
+       [(d1 e2)
+        (unify/data d1 d e2)])]))
+
+(define (env/pop e)
+  ;; env -> (data env)
+  (match e
+    [((d . r) bs ns)
+     (list d (list r bs ns))]))
+
+(define-syntax eva
+  (syntax-rules ()
+    [(eva e ...)
+     (eva/top-list
+      (quote (e ...))
+      '(() () ()))]))
+
+(define (eva/top-list tl e)
+  ;; (top ...), env -> env
+  (match tl
+    [() e]
+    [(t . r) (eva/top-list r (eva/top t e))]))
+
+(define (eva/top t e)
+  ;; top, env -> env
+  (match t
+    [('dt dt) (eva/dt dt e)]
+    [('df df) (eva/df df e)]
+    [('ap a) (eva/ap a e)]))
+
+(define (eva/dt dt e)
+  ;; ((form1/name form1/arrow) ((form1/name form1/arrow) ...)), env -> env
   (match e
     [(ds bs ns)
-     (match t
-       [(a al dl i)
-        (let* ([dl1 (map (lambda (x) (bs/deep bs x)) dl)]
-               [al1 (filter-arrow-list al dl1 e)])
-          (match al1
-            [()
-             (list 'fail
-                   (list `(unify/trunk/data
-                           fail arrow-list filter to
-                           ()
-                           (trunk: ,t)
-                           (data: ,d))))]
-            [(a1)
-             (match (compute-arrow a1 (list dl1 bs ns))
-               ;; after this compute-arrow
-               ;; binds are commited
-               ;; then the old env is used
-               [('success e1) (unify/data (proj i e1) d e)]
-               [('fail info) ('fail info)])]
-            [(a1 a2 . _)
-             (list 'fail
-                   (list `(unify/trunk/data
-                           fail arrow-list filter to
-                           (arrow-list: ,al1)
-                           (trunk: ,t)
-                           (data: ,d))))]))])]))
+     (match dt
+       [((n a) nal)
+        (let* ([nl (map car nal)]
+               [a0 (match (pass2/arrow (pass1/arrow 0 a) '())
+                     [(a1 s) (pass3/get-arrow a1 e)])]
+               [ns1 (cons (list 'cons/type
+                                (list a0 n nl))
+                          ns)])
+          (eva/dt/data-constructor-list n nal (list ds bs ns1)))])]))
 
-(define (proj i e)
-  ;; index, env -> data
+(define (eva/dt/data-constructor type-name na e)
+  ;; name, (form1/name form1/arrow), env -> env
   (match e
     [(ds bs ns)
-     (list-ref ds (- (length ds) i))]))
+     (match na
+       [(n a)
+        (let ([a0 (match (pass2/arrow (pass1/arrow 0 a) '())
+                    [(a1 s) (pass3/get-arrow a1 e)])])
+          (list ds
+                bs
+                (cons (cons n
+                            (list 'cons/data
+                                  (list a0 n type-name)))
+                      ns)))])]))
 
-(define (filter-arrow-list al dl e)
-  ;; (arrow ...), (data ...), env -> (arrow ...)
-  (if (eq? '() al)
-    '()
-    (match e
-      [(ds bs ns)
-        (match (car al)
-          [(ac sc)
-           (match (unify (lambda (x) (compute/cedent ac x))
-                         (list (append dl ds)
-                               bs
-                               ns))
-             [('fail _)
-              (filter-arrow-list (cdr al) dl e)]
-             [('success e1)
-              (cons (car al)
-                    (filter-arrow-list (cdr al) dl e))])])])))
+(define (eva/dt/data-constructor-list type-name nal e)
+  ;; name, ((form1/name form1/arrow) ...), env -> env
+  (match nal
+    [() e]
+    [(na . r)
+     (eva/dt/data-constructor-list
+      type-name r
+      (eva/dt/data-constructor type-name na e))]))
+
+(define (eva/df df e)
+  ;; ((form1/name form1/arrow) (form1/arrow ...)), env -> env
+  (match e
+    [(ds bs ns)
+     (match df
+       [((n a) al)
+        (let* ([a0 (a)]
+               [ns1 (cons (cons n
+                                (list 'lambda
+                                      (list a
+                                            (formal-arrow->arity a e)
+                                            l)))
+                          ns)])
+          (match (check a l (list ds bs ns1))
+            ;; note that the bs of the env
+            ;; returned by check is not clean
+            ;; thus e1 is not used as return env
+            (:success e1) => (list ds bs ns1)
+            (:fail check-report) =>
+            (orz ()
+                 ("eva/df fail to define : ~a~%" function-definition)
+                 ("check-report : ~a" check-report))))])]))
+
+(define (eva/ap a e)
+  ;; form1/arrow, env -> env
+  (let ([a0 (match (pass2/arrow (pass1/arrow 0 a) '())
+              [(a1 s) (pass3/get-arrow a1 e)])])
+    (match (compute/arrow a e)
+      [('success e1) e1]
+      [('fail il)
+       (cat ("eva/ap fail~%"))
+       (pretty-print il)
+       (cat ("~%"))
+       (orz ("end of report~%"))])))
