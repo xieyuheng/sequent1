@@ -1,7 +1,5 @@
-a prototype interpreter for a functional language
+a prototype interpreter for a lovely functional language
 which uses sequent calculus as dependent type system
-
-XIE Yuheng created
 
 prepared for scheme and functional programming workshop 2016 ::
 http://scheme2016.snow-fort.org

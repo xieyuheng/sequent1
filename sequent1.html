@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-04-28 Thu 06:32 -->
+<!-- 2016-04-28 Thu 21:47 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>sequent1</title>
@@ -67,135 +67,130 @@ for the JavaScript code in this tag.
 <h2>overview</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orga7a3b9a"><span class="done todo">todo</span> </a></li>
-<li><a href="#org4dba259">helper</a>
+<li><a href="#orga81a85e"><span class="done todo">todo</span> </a></li>
+<li><a href="#orgd0f18c5">helper</a>
 <ul>
-<li><a href="#org4992828">pattern match</a></li>
-<li><a href="#org2c19978">cat &amp; orz</a></li>
-<li><a href="#orga75d756">little-test</a></li>
-<li><a href="#org887f69c">list</a></li>
-<li><a href="#org466056d">string</a></li>
+<li><a href="#orgb29b658">pattern match</a></li>
+<li><a href="#org21d6929">cat &amp; orz</a></li>
+<li><a href="#orgbacd4a4">little-test</a></li>
+<li><a href="#org8704d86">list</a></li>
+<li><a href="#org69e9ae0">string</a></li>
 </ul>
 </li>
-<li><a href="#org720ae05"><span class="todo note">note</span> </a>
+<li><a href="#org12e9b1a"><span class="todo note">note</span> data type</a>
 <ul>
-<li><a href="#orgf6fdd8a">as prototype</a></li>
-<li><a href="#org4fc26b8">sequent</a></li>
-<li><a href="#orgbaafa99">form</a>
+<li><a href="#org7e60d08">form1</a></li>
+<li><a href="#orge12acf8">form2</a></li>
+<li><a href="#orgd64dbd3">form3</a></li>
+<li><a href="#org234b0e5">data</a></li>
+<li><a href="#org7e73c3f">arity</a></li>
+<li><a href="#org2c572d8">env</a></li>
+<li><a href="#org2fc4032">meaning</a></li>
+<li><a href="#orgc705823"><span class="todo _gt__lt_">&gt;&lt;</span> top</a>
 <ul>
-<li><a href="#org8f1555e">form1</a></li>
-<li><a href="#orgbb92374">form2</a></li>
-<li><a href="#org591c97f">form3</a></li>
+<li><a href="#org6b635b9">top1</a></li>
+<li><a href="#org58fefa">top2</a></li>
 </ul>
 </li>
-<li><a href="#orgb69e583">data</a></li>
-<li><a href="#orgcd398af">arity</a></li>
-<li><a href="#orgd1d12f2">env</a></li>
-<li><a href="#org43f1133">meaning</a></li>
-<li><a href="#orgcb3fe43">top</a>
+<li><a href="#org3ed7226">report</a></li>
+</ul>
+</li>
+<li><a href="#org7974b3d">pass1</a>
 <ul>
-<li><a href="#org3f02f3e">top1</a></li>
-<li><a href="#org51d9149">top2</a></li>
+<li><a href="#org493e20d">pass1/arrow</a></li>
+<li><a href="#org7fa5115">pass1/cedent</a></li>
+<li><a href="#org1d0f1ae">predicates</a></li>
+<li><a href="#org9236da0">pass1</a></li>
+<li><a href="#orgc86b45e">pass1/var</a></li>
 </ul>
 </li>
-<li><a href="#org1849ce0">report</a></li>
-</ul>
-</li>
-<li><a href="#org17c0943">pass</a>
+<li><a href="#org154def4">pass2</a>
 <ul>
-<li><a href="#org58584ed">pass1</a>
+<li><a href="#org44471b3">pass2/arrow</a></li>
+<li><a href="#orgcbe332c">pass2/cedent</a></li>
+<li><a href="#orgae99190">pass2/lambda</a></li>
+<li><a href="#org10ac423">pass2</a></li>
+<li><a href="#org5d48e95">pass2/var</a></li>
+<li><a href="#orgbe33360">pass2/bind</a></li>
+</ul>
+</li>
+<li><a href="#org779a759">pass3</a>
 <ul>
-<li><a href="#orgcc9eb0c">pass1/arrow</a></li>
-<li><a href="#org419b726">pass1/cedent</a></li>
-<li><a href="#org75e5b15">predicates</a></li>
-<li><a href="#org4b8e6e6">pass1</a></li>
-<li><a href="#org913464f">pass1/var</a></li>
-<li><a href="#org88c294c"><span class="done test">test</span> </a></li>
+<li><a href="#orgba65182">pass3/get-arrow</a></li>
+<li><a href="#orgd1b7af9">pass3/arrow</a></li>
+<li><a href="#orga788d35">pass3/cedent</a></li>
+<li><a href="#org5c4cdec">pass3/lambda</a></li>
+<li><a href="#org195b3c0">pass3</a></li>
+<li><a href="#org66b5098">pass3/var</a></li>
+<li><a href="#orgd4cff08">id-&gt;[symbol|ls]</a></li>
+<li><a href="#org3af8b78"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> bs/[find|walk|deep]</a></li>
+<li><a href="#org45fffc">pass3/name</a></li>
+<li><a href="#org7609bc">pass3/name/cons</a></li>
+<li><a href="#orga9d3a33">pass3/name/trunk</a></li>
+<li><a href="#orgaca0575"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> pass3/bind</a></li>
+<li><a href="#org260e89a">id/commit!</a></li>
 </ul>
 </li>
-<li><a href="#orgd8b173a">pass2</a>
+<li><a href="#org10ae3e7">copy-arrow</a>
 <ul>
-<li><a href="#orgbdede7a">pass2/arrow</a></li>
-<li><a href="#orge1de7">pass2/cedent</a></li>
-<li><a href="#org1f2fb37">pass2/lambda</a></li>
-<li><a href="#org842d206">pass2</a></li>
-<li><a href="#org9119521">pass2/var</a></li>
-<li><a href="#orgd827d92">pass2/bind</a></li>
-<li><a href="#orgef202e4"><span class="done test">test</span> </a></li>
+<li><a href="#orgc772662"><span class="todo note">note</span> copy</a></li>
+<li><a href="#orgdb135b7">copy-arrow</a></li>
+<li><a href="#orgee3089c">copy/arrow</a></li>
+<li><a href="#orgab67fd4">copy/cedent</a></li>
+<li><a href="#org3720dcf">copy/lambda</a></li>
+<li><a href="#orgd23c252">copy/arrow-list</a></li>
+<li><a href="#orgba82d9e">copy</a></li>
+<li><a href="#orgd7a53ae">copy/var</a></li>
+<li><a href="#orgf265733">copy/ls</a></li>
+<li><a href="#orgf933d8e">copy/cons</a></li>
+<li><a href="#org7310e9">copy/trunk</a></li>
 </ul>
 </li>
-<li><a href="#org428ac4c">pass3</a>
+<li><a href="#org56ba480">compute-arrow</a>
 <ul>
-<li><a href="#orgc4e93bb">pass3/get-arrow</a></li>
-<li><a href="#orgf277e98">pass3/arrow</a></li>
-<li><a href="#org9b216b">pass3/cedent</a></li>
-<li><a href="#orgcf6260d">pass3/lambda</a></li>
-<li><a href="#org29df1e">pass3</a></li>
-<li><a href="#orgfbaeddf">pass3/var</a></li>
-<li><a href="#org58a0070">id-&gt;[symbol|ls]</a></li>
-<li><a href="#org9ca6700"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> bs/[find|walk|deep]</a></li>
-<li><a href="#org2323c4a">pass3/name</a></li>
-<li><a href="#org32bfa71">pass3/name/cons</a></li>
-<li><a href="#org497bdad">pass3/name/trunk</a></li>
-<li><a href="#orga71507">pass3/name/proj</a></li>
-<li><a href="#orgaa8a51d">pass3/bind</a></li>
-<li><a href="#org666c374">id/commit!</a></li>
+<li><a href="#org9979246">compute-arrow</a></li>
+<li><a href="#org2e548ab">bs/commit!</a></li>
+<li><a href="#org16e7f8a">compute/cedent</a></li>
+<li><a href="#orgc31f01f">compute</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#orga8ccf91">copy-arrow</a>
+<li><a href="#org6739f20">unify</a>
 <ul>
-<li><a href="#org1a7f60b"><span class="todo note">note</span> copy</a></li>
-<li><a href="#org899a3b0">copy-arrow</a></li>
-<li><a href="#org98ca98e">copy/arrow</a></li>
-<li><a href="#orga495979">copy/cedent</a></li>
-<li><a href="#orgb275f1d">copy/lambda</a></li>
-<li><a href="#org2473edf">copy/arrow-list</a></li>
-<li><a href="#orgdf906b8">copy</a></li>
-<li><a href="#orga5c6b24">copy/var</a></li>
-<li><a href="#org753ed69">copy/ls</a></li>
-<li><a href="#org27d791c">copy/cons</a></li>
-<li><a href="#org426a0ce">copy/trunk</a></li>
-<li><a href="#org1c12b16">copy/proj</a></li>
+<li><a href="#org7d9d2cd">unify</a></li>
+<li><a href="#org2b8e12a">unify/data-list</a></li>
+<li><a href="#org6d45385">var/eq?</a></li>
+<li><a href="#org74e5b56"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> unify/data</a></li>
+<li><a href="#org1334f1e">bs/extend</a></li>
+<li><a href="#orga1d84d2">unify/var/data</a></li>
+<li><a href="#org27af760">unify/cons</a></li>
+<li><a href="#org8587b3f">unify/arrow</a></li>
+<li><a href="#org234a01">unify/lambda</a></li>
+<li><a href="#orgd362278">unify/arrow-list</a></li>
+<li><a href="#org78ee75d">unify/trunk</a></li>
+<li><a href="#orgcf0b21d">unify/trunk/data</a></li>
+<li><a href="#orga286efc">proj</a></li>
 </ul>
 </li>
-<li><a href="#org461d9cd">compute-arrow</a>
-<ul>
-<li><a href="#orgf9d28b9">compute-arrow</a></li>
-<li><a href="#orge829e12">bs/commit!</a></li>
-<li><a href="#orgbf00343">compute/cedent</a></li>
-<li><a href="#orgb3834be">compute</a></li>
-</ul>
-</li>
-<li><a href="#orgdebb49f"><span class="todo _gt__lt_">&gt;&lt;</span> unify</a>
-<ul>
-<li><a href="#orga4d623b"><span class="todo _gt__lt_">&gt;&lt;</span> unify</a></li>
-<li><a href="#org809f8bd"><span class="todo _gt__lt_">&gt;&lt;</span> bs/extend</a></li>
-</ul>
-</li>
-<li><a href="#orgd109c17"><span class="todo _gt__lt_">&gt;&lt;</span> eva</a></li>
-<li><a href="#org54de80e"><span class="todo _gt__lt_">&gt;&lt;</span> check</a></li>
-<li><a href="#orge87fc27"><span class="todo _gt__lt_">&gt;&lt;</span> type-compute</a></li>
-<li><a href="#org487fcea"><span class="todo _gt__lt_">&gt;&lt;</span> sequent</a></li>
-<li><a href="#orge94bf23"><span class="done test">test</span> </a>
-<ul>
-<li><a href="#org1e9f619">natural</a></li>
-<li><a href="#orge94192b">list</a></li>
-<li><a href="#org261d930">vector</a></li>
-</ul>
-</li>
+<li><a href="#org7406b69">filter-arrow-list</a></li>
+<li><a href="#orgf3c49f6"><span class="todo _gt__lt_">&gt;&lt;</span> eva</a></li>
+<li><a href="#orge67ddba"><span class="todo _gt__lt_">&gt;&lt;</span> check</a></li>
+<li><a href="#orgd01b133"><span class="todo _gt__lt_">&gt;&lt;</span> type-compute</a></li>
+<li><a href="#orgd3d0d28"><span class="todo _gt__lt_">&gt;&lt;</span> sequent</a></li>
 </ul>
 </div>
 </div>
 <ul class="org-ul">
-<li><p>a prototype interpreter for a functional language</p><p>which uses sequent calculus as dependent type system</p></li>
+<li><p>a prototype interpreter for a lovely functional language</p><p>which uses sequent calculus as dependent type system</p></li>
+
+<li><p>it is lazy-eval and call-by-name</p></li>
+
+<li><p>sequent is called arrow here</p><p>which is the core data type of the language</p></li>
 
 <li><p>XIE Yuheng created</p></li></ul>
 
-<div id="outline-container-orga7a3b9a" class="outline-2">
-<h2 id="orga7a3b9a"><span class="done todo">todo</span> </h2>
-<div class="outline-text-2" id="text-orga7a3b9a">
+<div id="outline-container-orga81a85e" class="outline-2">
+<h2 id="orga81a85e"><span class="done todo">todo</span> </h2>
+<div class="outline-text-2" id="text-orga81a85e">
 <ul class="org-ul">
 <li><p>data/print</p><p>different var should be print differently</p></li>
 
@@ -203,12 +198,12 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org4dba259" class="outline-2">
-<h2 id="org4dba259">helper</h2>
-<div class="outline-text-2" id="text-org4dba259">
-</div><div id="outline-container-org4992828" class="outline-3">
-<h3 id="org4992828">pattern match</h3>
-<div class="outline-text-3" id="text-org4992828">
+<div id="outline-container-orgd0f18c5" class="outline-2">
+<h2 id="orgd0f18c5">helper</h2>
+<div class="outline-text-2" id="text-orgd0f18c5">
+</div><div id="outline-container-orgb29b658" class="outline-3">
+<h3 id="orgb29b658">pattern match</h3>
+<div class="outline-text-3" id="text-orgb29b658">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #FF8888;">;; </span><span style="color: #FF8888;">module system of guile</span>
@@ -219,9 +214,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org2c19978" class="outline-3">
-<h3 id="org2c19978">cat &amp; orz</h3>
-<div class="outline-text-3" id="text-org2c19978">
+<div id="outline-container-org21d6929" class="outline-3">
+<h3 id="org21d6929">cat &amp; orz</h3>
+<div class="outline-text-3" id="text-org21d6929">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define-syntax</span> <span style="color: #fd971f;">cat</span>
@@ -249,9 +244,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orga75d756" class="outline-3">
-<h3 id="orga75d756">little-test</h3>
-<div class="outline-text-3" id="text-orga75d756">
+<div id="outline-container-orgbacd4a4" class="outline-3">
+<h3 id="orgbacd4a4">little-test</h3>
+<div class="outline-text-3" id="text-orgbacd4a4">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(use-modules (ice-9 pretty-print))
@@ -278,9 +273,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org887f69c" class="outline-3">
-<h3 id="org887f69c">list</h3>
-<div class="outline-text-3" id="text-org887f69c">
+<div id="outline-container-org8704d86" class="outline-3">
+<h3 id="org8704d86">list</h3>
+<div class="outline-text-3" id="text-org8704d86">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">left-of</span> s l)
@@ -308,14 +303,20 @@ for the JavaScript code in this tag.
           [else (cons counter
                       (recur len (+ 1 counter)))]))
   (recur len 0))
+
+(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">substitute</span> e p? l)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">element, (element -&gt; bool), (element ...) -&gt; (element ...)</span>
+  (<span style="color: #f92672; font-weight: bold;">cond</span> [(eq? '() l) '()]
+        [(p? (car l)) (cons e (cdr l))]
+        [else (cons (car l) (substitute e p? (cdr l)))]))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org466056d" class="outline-3">
-<h3 id="org466056d">string</h3>
-<div class="outline-text-3" id="text-org466056d">
+<div id="outline-container-org69e9ae0" class="outline-3">
+<h3 id="org69e9ae0">string</h3>
+<div class="outline-text-3" id="text-org69e9ae0">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">find-char</span> c s)
@@ -336,41 +337,22 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org720ae05" class="outline-2">
-<h2 id="org720ae05"><span class="todo note">note</span> </h2>
-<div class="outline-text-2" id="text-org720ae05">
-</div><div id="outline-container-orgf6fdd8a" class="outline-3">
-<h3 id="orgf6fdd8a">as prototype</h3>
-<div class="outline-text-3" id="text-orgf6fdd8a">
-<ul class="org-ul">
-<li><p>lazy-eval</p><p>call-by-name</p></li></ul>
-</div>
-</div>
-
-<div id="outline-container-org4fc26b8" class="outline-3">
-<h3 id="org4fc26b8">sequent</h3>
-<div class="outline-text-3" id="text-org4fc26b8">
-<ul class="org-ul">
-<li><p>sequent is arrow</p><p>which is the core data type of the language</p></li></ul>
-</div>
-</div>
-
-<div id="outline-container-orgbaafa99" class="outline-3">
-<h3 id="orgbaafa99">form</h3>
-<div class="outline-text-3" id="text-orgbaafa99">
-</div><div id="outline-container-org8f1555e" class="outline-4">
-<h4 id="org8f1555e">form1</h4>
-<div class="outline-text-4" id="text-org8f1555e">
+<div id="outline-container-org12e9b1a" class="outline-2">
+<h2 id="org12e9b1a"><span class="todo note">note</span> data type</h2>
+<div class="outline-text-2" id="text-org12e9b1a">
+</div><div id="outline-container-org7e60d08" class="outline-3">
+<h3 id="org7e60d08">form1</h3>
+<div class="outline-text-3" id="text-org7e60d08">
 <ul class="org-ul">
 <li><p>form1 =</p><p><ul class="org-ul"></p><p><li><p>form1/var =</p><p>:var</p><p>:var<sup>n</sup></p></li></p><p><li><p>form1/name =</p><p>name</p></li></p><p><li><p>form1/arrow =</p><p>(form1 &#x2026; -&gt; form1 &#x2026;)</p></li></p><p><li><p>form1/lambda =</p><p>(lambda form1/arrow</p><p>  form1/arrow</p><p>  &#x2026;)</p></li></p><p><li><p>form1/im-bind =</p><p>(form1/var &#x2026; : form1 &#x2026;)</p></li></p><p><li><p>form1/ex-bind =</p><p>(form1/var &#x2026; @ form1 &#x2026;)</p></li></ul></p></li></ul>
 </div>
 </div>
 
-<div id="outline-container-orgbb92374" class="outline-4">
-<h4 id="orgbb92374">form2</h4>
-<div class="outline-text-4" id="text-orgbb92374">
+<div id="outline-container-orge12acf8" class="outline-3">
+<h3 id="orge12acf8">form2</h3>
+<div class="outline-text-3" id="text-orge12acf8">
 <ul class="org-ul">
-<li><p>form1 -pass1-&gt; form2</p><p>level of var is handled here</p></li>
+<li><p>form1 -pass1-&gt; form2</p><p>default-level of var is handled here</p></li>
 
 <li><p>form2 =</p><p>('form2/var    (symbol level))</p><p>('form2/name   symbol)</p><p>('form2/arrow  ((form2 &#x2026;) (form2 &#x2026;)))</p><p>('form2/lambda (form2/arrow (form2/arrow &#x2026;)))</p><p>('form2/bind   ((form2/var &#x2026;) (form2 &#x2026;) leave?))</p></li>
 <li><p>level = natural-number</p></li>
@@ -378,9 +360,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org591c97f" class="outline-4">
-<h4 id="org591c97f">form3</h4>
-<div class="outline-text-4" id="text-org591c97f">
+<div id="outline-container-orgd64dbd3" class="outline-3">
+<h3 id="orgd64dbd3">form3</h3>
+<div class="outline-text-3" id="text-orgd64dbd3">
 <ul class="org-ul">
 <li><p>form2 -pass2-&gt; form3</p><p>id of var is handled here</p></li>
 
@@ -388,33 +370,32 @@ for the JavaScript code in this tag.
 <li><p>id = #(symbol ls)</p></li></ul>
 </div>
 </div>
-</div>
 
-<div id="outline-container-orgb69e583" class="outline-3">
-<h3 id="orgb69e583">data</h3>
-<div class="outline-text-3" id="text-orgb69e583">
+<div id="outline-container-org234b0e5" class="outline-3">
+<h3 id="org234b0e5">data</h3>
+<div class="outline-text-3" id="text-org234b0e5">
 <ul class="org-ul">
-<li><p>form3 -pass3-&gt; data</p><p>cons trunk proj are created here</p><p>arity is calculated here</p></li>
+<li><p>form3 -pass3-&gt; data</p><p>cons &amp; trunk are created here</p></li>
 <li><p>pass3 will use env passing</p><p>note that</p><p>when env passing is used</p><p>those functions would not be separately testable</p></li>
 <li><p>no unification here</p><p>bs is not used here</p><p>bind just effect on the id of var</p></li>
 <li><p>ns is searched</p><p>but no effect on ns</p></li>
 <li><p>how should I express such in type ?</p></li>
 
-<li><p>data =</p><p>('var    (id level))</p><p>('cons   (name (data &#x2026;)))</p><p>('arrow  ((data &#x2026;) (data &#x2026;)))</p><p>('lambda (arrow (arrow &#x2026;)))</p><p>('trunk  (arrow (arrow &#x2026;) (data &#x2026;)))</p><p>('proj   (arrow (arrow &#x2026;) (data &#x2026;) index))</p></li></ul>
+<li><p>data =</p><p>('var    (id level))</p><p>('cons   (name (data &#x2026;)))</p><p>('arrow  ((data &#x2026;) (data &#x2026;)))</p><p>('lambda (arrow (arrow &#x2026;)))</p><p>('trunk  (arrow (arrow &#x2026;) (data &#x2026;) index))</p></li></ul>
 </div>
 </div>
 
-<div id="outline-container-orgcd398af" class="outline-3">
-<h3 id="orgcd398af">arity</h3>
-<div class="outline-text-3" id="text-orgcd398af">
+<div id="outline-container-org7e73c3f" class="outline-3">
+<h3 id="org7e73c3f">arity</h3>
+<div class="outline-text-3" id="text-org7e73c3f">
 <ul class="org-ul">
 <li><p>there can be</p><p>arity = (number number)</p><p>in lambda &amp; trunk</p><p>but do not use separate arity for simplicity</p><p>arity is calculated from arrow repeatly</p></li></ul>
 </div>
 </div>
 
-<div id="outline-container-orgd1d12f2" class="outline-3">
-<h3 id="orgd1d12f2">env</h3>
-<div class="outline-text-3" id="text-orgd1d12f2">
+<div id="outline-container-org2c572d8" class="outline-3">
+<h3 id="org2c572d8">env</h3>
+<div class="outline-text-3" id="text-org2c572d8">
 <ul class="org-ul">
 <li><p>env = (ds bs ns)</p></li>
 <li><p>ds = (data &#x2026;)</p></li>
@@ -423,37 +404,37 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org43f1133" class="outline-3">
-<h3 id="org43f1133">meaning</h3>
-<div class="outline-text-3" id="text-org43f1133">
+<div id="outline-container-org2fc4032" class="outline-3">
+<h3 id="org2fc4032">meaning</h3>
+<div class="outline-text-3" id="text-org2fc4032">
 <ul class="org-ul">
 <li><p>meaning =</p><p>('cons/type (arrow name (name &#x2026;)))</p><p>('cons/data (arrow name name))</p><p>('lambda    (arrow (arrow &#x2026;)))</p></li></ul>
 </div>
 </div>
 
-<div id="outline-container-orgcb3fe43" class="outline-3">
-<h3 id="orgcb3fe43">top</h3>
-<div class="outline-text-3" id="text-orgcb3fe43">
-</div><div id="outline-container-org3f02f3e" class="outline-4">
-<h4 id="org3f02f3e">top1</h4>
-<div class="outline-text-4" id="text-org3f02f3e">
+<div id="outline-container-orgc705823" class="outline-3">
+<h3 id="orgc705823"><span class="todo _gt__lt_">&gt;&lt;</span> top</h3>
+<div class="outline-text-3" id="text-orgc705823">
+</div><div id="outline-container-org6b635b9" class="outline-4">
+<h4 id="org6b635b9">top1</h4>
+<div class="outline-text-4" id="text-org6b635b9">
 <ul class="org-ul">
 <li><p>top1 =</p><p>('dt ((form1/name form1/arrow) ((form1/name form1/arrow) &#x2026;)))</p><p>('df ((form1/name form1/arrow) (form1/arrow &#x2026;)))</p><p>('ap form1/arrow)</p></li></ul>
 </div>
 </div>
 
-<div id="outline-container-org51d9149" class="outline-4">
-<h4 id="org51d9149">top2</h4>
-<div class="outline-text-4" id="text-org51d9149">
+<div id="outline-container-org58fefa" class="outline-4">
+<h4 id="org58fefa">top2</h4>
+<div class="outline-text-4" id="text-org58fefa">
 <ul class="org-ul">
 <li><p>top2 =</p><p>('top2/dt ((form2/name form2/arrow) ((form2/name form2/arrow) &#x2026;)))</p><p>('top2/df ((form2/name form2/arrow) (form2/arrow &#x2026;)))</p><p>('top2/ap form2/arrow)</p></li></ul>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org1849ce0" class="outline-3">
-<h3 id="org1849ce0">report</h3>
-<div class="outline-text-3" id="text-org1849ce0">
+<div id="outline-container-org3ed7226" class="outline-3">
+<h3 id="org3ed7226">report</h3>
+<div class="outline-text-3" id="text-org3ed7226">
 <ul class="org-ul">
 <li><p>report =</p><p>('fail (info &#x2026;))</p><p>('success env)</p></li>
 <li><p>info = &lt;free&gt;</p></li></ul>
@@ -461,15 +442,12 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org17c0943" class="outline-2">
-<h2 id="org17c0943">pass</h2>
-<div class="outline-text-2" id="text-org17c0943">
-</div><div id="outline-container-org58584ed" class="outline-3">
-<h3 id="org58584ed">pass1</h3>
-<div class="outline-text-3" id="text-org58584ed">
-</div><div id="outline-container-orgcc9eb0c" class="outline-4">
-<h4 id="orgcc9eb0c">pass1/arrow</h4>
-<div class="outline-text-4" id="text-orgcc9eb0c">
+<div id="outline-container-org7974b3d" class="outline-2">
+<h2 id="org7974b3d">pass1</h2>
+<div class="outline-text-2" id="text-org7974b3d">
+</div><div id="outline-container-org493e20d" class="outline-3">
+<h3 id="org493e20d">pass1/arrow</h3>
+<div class="outline-text-3" id="text-org493e20d">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/arrow</span> default-level s)
@@ -481,9 +459,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org419b726" class="outline-4">
-<h4 id="org419b726">pass1/cedent</h4>
-<div class="outline-text-4" id="text-org419b726">
+<div id="outline-container-org7fa5115" class="outline-3">
+<h3 id="org7fa5115">pass1/cedent</h3>
+<div class="outline-text-3" id="text-org7fa5115">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/cedent</span> default-level s)
@@ -497,9 +475,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org75e5b15" class="outline-4">
-<h4 id="org75e5b15">predicates</h4>
-<div class="outline-text-4" id="text-org75e5b15">
+<div id="outline-container-org1d0f1ae" class="outline-3">
+<h3 id="org1d0f1ae">predicates</h3>
+<div class="outline-text-3" id="text-org1d0f1ae">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">form1/var?</span> v)
@@ -530,9 +508,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org4b8e6e6" class="outline-4">
-<h4 id="org4b8e6e6">pass1</h4>
-<div class="outline-text-4" id="text-org4b8e6e6">
+<div id="outline-container-org9236da0" class="outline-3">
+<h3 id="org9236da0">pass1</h3>
+<div class="outline-text-3" id="text-org9236da0">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1</span> default-level v)
@@ -568,9 +546,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org913464f" class="outline-4">
-<h4 id="org913464f">pass1/var</h4>
-<div class="outline-text-4" id="text-org913464f">
+<div id="outline-container-orgc86b45e" class="outline-3">
+<h3 id="orgc86b45e">pass1/var</h3>
+<div class="outline-text-3" id="text-orgc86b45e">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass1/var</span> default-level v)
@@ -585,58 +563,14 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
-
-<div id="outline-container-org88c294c" class="outline-4">
-<h4 id="org88c294c"><span class="done test">test</span> </h4>
-<div class="outline-text-4" id="text-org88c294c">
-<div class="org-src-container">
-
-<pre class="src src-scheme">(test
- (<span style="color: #f92672; font-weight: bold;">map</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (x) (pass1/arrow 0 x))
-   '((natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-     (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural) natural)
-     (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
-     (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ)
-     (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-                            (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ)
-                            (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ)))
-     ((<span style="color: #a6e22e;">:t</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-     ((<span style="color: #a6e22e;">:t</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-     ((<span style="color: #a6e22e;">:t^2</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-     ((<span style="color: #a6e22e;">:t1</span> <span style="color: #a6e22e;">:t2^2</span> <span style="color: #a6e22e;">:t3^0</span> : j k) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-     ((<span style="color: #a6e22e;">:t^2</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)))
- '((((form2/name natural) (form2/name natural))
-    ((form2/name natural)))
-   (((form2/name natural) (form2/name natural))
-    ((form2/arrow (((form2/name natural) (form2/name natural)) ((form2/name natural)))) (form2/name natural)))
-   (((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/name zero))
-    ((form2/var (<span style="color: #a6e22e;">:m</span> 0))))
-   (((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name succ))
-    ((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name recur) (form2/name succ)))
-   (((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name succ))
-    ((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/lambda ((((form2/name natural) (form2/name natural)) ((form2/name natural))) ((((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name succ)) ((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name recur) (form2/name succ))) (((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name succ)) ((form2/var (<span style="color: #a6e22e;">:m</span> 0)) (form2/var (<span style="color: #a6e22e;">:n</span> 0)) (form2/name recur) (form2/name succ))))))))
-   (((form2/bind (((form2/var (<span style="color: #a6e22e;">:t</span> 1))) ((form2/name type)) leave)) (form2/var (<span style="color: #a6e22e;">:t</span> 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (<span style="color: #a6e22e;">:t</span> 1))) ((form2/name type)) not-leave)) (form2/var (<span style="color: #a6e22e;">:t</span> 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (<span style="color: #a6e22e;">:t</span> 2))) ((form2/name type)) leave)) (form2/var (<span style="color: #a6e22e;">:t</span> 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (<span style="color: #a6e22e;">:t1</span> 1)) (form2/var (<span style="color: #a6e22e;">:t2</span> 2)) (form2/var (<span style="color: #a6e22e;">:t3</span> 0))) ((form2/name j) (form2/name k)) leave)) (form2/var (<span style="color: #a6e22e;">:t</span> 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (<span style="color: #a6e22e;">:t</span> 2))) ((form2/name type)) not-leave)) (form2/var (<span style="color: #a6e22e;">:t</span> 0)))
-    ((form2/name type)))))
-</pre>
-</div>
-</div>
-</div>
 </div>
 
-<div id="outline-container-orgd8b173a" class="outline-3">
-<h3 id="orgd8b173a">pass2</h3>
-<div class="outline-text-3" id="text-orgd8b173a">
-</div><div id="outline-container-orgbdede7a" class="outline-4">
-<h4 id="orgbdede7a">pass2/arrow</h4>
-<div class="outline-text-4" id="text-orgbdede7a">
+<div id="outline-container-org154def4" class="outline-2">
+<h2 id="org154def4">pass2</h2>
+<div class="outline-text-2" id="text-org154def4">
+</div><div id="outline-container-org44471b3" class="outline-3">
+<h3 id="org44471b3">pass2/arrow</h3>
+<div class="outline-text-3" id="text-org44471b3">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass2/arrow</span> a s)
@@ -653,9 +587,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orge1de7" class="outline-4">
-<h4 id="orge1de7">pass2/cedent</h4>
-<div class="outline-text-4" id="text-orge1de7">
+<div id="outline-container-orgcbe332c" class="outline-3">
+<h3 id="orgcbe332c">pass2/cedent</h3>
+<div class="outline-text-3" id="text-orgcbe332c">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass2/cedent</span> c s)
@@ -673,9 +607,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org1f2fb37" class="outline-4">
-<h4 id="org1f2fb37">pass2/lambda</h4>
-<div class="outline-text-4" id="text-org1f2fb37">
+<div id="outline-container-orgae99190" class="outline-3">
+<h3 id="orgae99190">pass2/lambda</h3>
+<div class="outline-text-3" id="text-orgae99190">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass2/lambda</span> l s)
@@ -691,9 +625,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org842d206" class="outline-4">
-<h4 id="org842d206">pass2</h4>
-<div class="outline-text-4" id="text-org842d206">
+<div id="outline-container-org10ac423" class="outline-3">
+<h3 id="org10ac423">pass2</h3>
+<div class="outline-text-3" id="text-org10ac423">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass2</span> f s)
@@ -722,9 +656,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org9119521" class="outline-4">
-<h4 id="org9119521">pass2/var</h4>
-<div class="outline-text-4" id="text-org9119521">
+<div id="outline-container-org5d48e95" class="outline-3">
+<h3 id="org5d48e95">pass2/var</h3>
+<div class="outline-text-3" id="text-org5d48e95">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass2/var</span> v s)
@@ -744,9 +678,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgd827d92" class="outline-4">
-<h4 id="orgd827d92">pass2/bind</h4>
-<div class="outline-text-4" id="text-orgd827d92">
+<div id="outline-container-orgbe33360" class="outline-3">
+<h3 id="orgbe33360">pass2/bind</h3>
+<div class="outline-text-3" id="text-orgbe33360">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass2/bind</span> b s)
@@ -763,49 +697,14 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
-
-<div id="outline-container-orgef202e4" class="outline-4">
-<h4 id="orgef202e4"><span class="done test">test</span> </h4>
-<div class="outline-text-4" id="text-orgef202e4">
-<div class="org-src-container">
-
-<pre class="src src-scheme">(test
- (<span style="color: #f92672; font-weight: bold;">map</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (x) (pass2/arrow x '()))
-   (<span style="color: #f92672; font-weight: bold;">map</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (x) (pass1/arrow 0 x))
-     '((natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-       (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural) natural)
-       (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
-       (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ)
-       (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-                              (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ)
-                              (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> recur succ)))
-       ((<span style="color: #a6e22e;">:t</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-       ((<span style="color: #a6e22e;">:t</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-       ((<span style="color: #a6e22e;">:t^2</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-       ((<span style="color: #a6e22e;">:t1</span> <span style="color: #a6e22e;">:t2^2</span> <span style="color: #a6e22e;">:t3^0</span> : j k) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-       ((<span style="color: #a6e22e;">:t^2</span> @ type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))))
- '(((((form3/name natural) (form3/name natural)) ((form3/name natural))) ())
-   ((((form3/name natural) (form3/name natural)) ((form3/arrow (((form3/name natural) (form3/name natural)) ((form3/name natural)))) (form3/name natural))) ())
-   ((((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/name zero)) ((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)))) ((<span style="color: #a6e22e;">:m</span> . #(<span style="color: #a6e22e;">:m</span> ()))))
-   ((((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name succ)) ((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name recur) (form3/name succ))) ((<span style="color: #a6e22e;">:n</span> . #(<span style="color: #a6e22e;">:n</span> ())) (<span style="color: #a6e22e;">:m</span> . #(<span style="color: #a6e22e;">:m</span> ()))))
-   ((((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name succ)) ((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/lambda (((((form3/name natural) (form3/name natural)) ((form3/name natural))) ((<span style="color: #a6e22e;">:n</span> . #(<span style="color: #a6e22e;">:n</span> ())) (<span style="color: #a6e22e;">:m</span> . #(<span style="color: #a6e22e;">:m</span> ())))) (((((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name succ)) ((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name recur) (form3/name succ))) ((<span style="color: #a6e22e;">:n</span> . #(<span style="color: #a6e22e;">:n</span> ())) (<span style="color: #a6e22e;">:m</span> . #(<span style="color: #a6e22e;">:m</span> ())))) ((((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name succ)) ((form3/var (#(<span style="color: #a6e22e;">:m</span> ()) 0)) (form3/var (#(<span style="color: #a6e22e;">:n</span> ()) 0)) (form3/name recur) (form3/name succ))) ((<span style="color: #a6e22e;">:n</span> . #(<span style="color: #a6e22e;">:n</span> ())) (<span style="color: #a6e22e;">:m</span> . #(<span style="color: #a6e22e;">:m</span> ()))))))))) ((<span style="color: #a6e22e;">:n</span> . #(<span style="color: #a6e22e;">:n</span> ())) (<span style="color: #a6e22e;">:m</span> . #(<span style="color: #a6e22e;">:m</span> ()))))
-   ((((form3/bind (((form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 1))) ((form3/name type)) leave)) (form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 0))) ((form3/name type))) ((<span style="color: #a6e22e;">:t</span> . #(<span style="color: #a6e22e;">:t</span> ()))))
-   ((((form3/bind (((form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 1))) ((form3/name type)) not-leave)) (form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 0))) ((form3/name type))) ((<span style="color: #a6e22e;">:t</span> . #(<span style="color: #a6e22e;">:t</span> ()))))
-   ((((form3/bind (((form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 2))) ((form3/name type)) leave)) (form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 0))) ((form3/name type))) ((<span style="color: #a6e22e;">:t</span> . #(<span style="color: #a6e22e;">:t</span> ()))))
-   ((((form3/bind (((form3/var (#(<span style="color: #a6e22e;">:t1</span> ()) 1)) (form3/var (#(<span style="color: #a6e22e;">:t2</span> ()) 2)) (form3/var (#(<span style="color: #a6e22e;">:t3</span> ()) 0))) ((form3/name j) (form3/name k)) leave)) (form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 0))) ((form3/name type))) ((<span style="color: #a6e22e;">:t</span> . #(<span style="color: #a6e22e;">:t</span> ())) (<span style="color: #a6e22e;">:t3</span> . #(<span style="color: #a6e22e;">:t3</span> ())) (<span style="color: #a6e22e;">:t2</span> . #(<span style="color: #a6e22e;">:t2</span> ())) (<span style="color: #a6e22e;">:t1</span> . #(<span style="color: #a6e22e;">:t1</span> ()))))
-   ((((form3/bind (((form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 2))) ((form3/name type)) not-leave)) (form3/var (#(<span style="color: #a6e22e;">:t</span> ()) 0))) ((form3/name type))) ((<span style="color: #a6e22e;">:t</span> . #(<span style="color: #a6e22e;">:t</span> ()))))))
-</pre>
-</div>
-</div>
-</div>
 </div>
 
-<div id="outline-container-org428ac4c" class="outline-3">
-<h3 id="org428ac4c">pass3</h3>
-<div class="outline-text-3" id="text-org428ac4c">
-</div><div id="outline-container-orgc4e93bb" class="outline-4">
-<h4 id="orgc4e93bb">pass3/get-arrow</h4>
-<div class="outline-text-4" id="text-orgc4e93bb">
+<div id="outline-container-org779a759" class="outline-2">
+<h2 id="org779a759">pass3</h2>
+<div class="outline-text-2" id="text-org779a759">
+</div><div id="outline-container-orgba65182" class="outline-3">
+<h3 id="orgba65182">pass3/get-arrow</h3>
+<div class="outline-text-3" id="text-orgba65182">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/get-arrow</span> a e)
@@ -818,9 +717,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgf277e98" class="outline-4">
-<h4 id="orgf277e98">pass3/arrow</h4>
-<div class="outline-text-4" id="text-orgf277e98">
+<div id="outline-container-orgd1b7af9" class="outline-3">
+<h3 id="orgd1b7af9">pass3/arrow</h3>
+<div class="outline-text-3" id="text-orgd1b7af9">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/arrow</span> a e)
@@ -842,9 +741,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org9b216b" class="outline-4">
-<h4 id="org9b216b">pass3/cedent</h4>
-<div class="outline-text-4" id="text-org9b216b">
+<div id="outline-container-orga788d35" class="outline-3">
+<h3 id="orga788d35">pass3/cedent</h3>
+<div class="outline-text-3" id="text-orga788d35">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/cedent</span> c e)
@@ -859,9 +758,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgcf6260d" class="outline-4">
-<h4 id="orgcf6260d">pass3/lambda</h4>
-<div class="outline-text-4" id="text-orgcf6260d">
+<div id="outline-container-org5c4cdec" class="outline-3">
+<h3 id="org5c4cdec">pass3/lambda</h3>
+<div class="outline-text-3" id="text-org5c4cdec">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/lambda</span> l e)
@@ -883,9 +782,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org29df1e" class="outline-4">
-<h4 id="org29df1e">pass3</h4>
-<div class="outline-text-4" id="text-org29df1e">
+<div id="outline-container-org195b3c0" class="outline-3">
+<h3 id="org195b3c0">pass3</h3>
+<div class="outline-text-3" id="text-org195b3c0">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3</span> f e)
@@ -901,9 +800,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgfbaeddf" class="outline-4">
-<h4 id="orgfbaeddf">pass3/var</h4>
-<div class="outline-text-4" id="text-orgfbaeddf">
+<div id="outline-container-org66b5098" class="outline-3">
+<h3 id="org66b5098">pass3/var</h3>
+<div class="outline-text-3" id="text-org66b5098">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/var</span> v e)
@@ -920,9 +819,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org58a0070" class="outline-4">
-<h4 id="org58a0070">id-&gt;[symbol|ls]</h4>
-<div class="outline-text-4" id="text-org58a0070">
+<div id="outline-container-orgd4cff08" class="outline-3">
+<h3 id="orgd4cff08">id-&gt;[symbol|ls]</h3>
+<div class="outline-text-3" id="text-orgd4cff08">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">id-&gt;symbol</span> id)
@@ -935,9 +834,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org9ca6700" class="outline-4">
-<h4 id="org9ca6700"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> bs/[find|walk|deep]</h4>
-<div class="outline-text-4" id="text-org9ca6700">
+<div id="outline-container-org3af8b78" class="outline-3">
+<h3 id="org3af8b78"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> bs/[find|walk|deep]</h3>
+<div class="outline-text-3" id="text-org3af8b78">
 <ul class="org-ul">
 <li><p>infer level n can get level n+1</p></li>
 
@@ -995,13 +894,8 @@ for the JavaScript code in this tag.
      (list 'lambda
            (list (bs/deep-arrow bs a)
                  (bs/deep-arrow-list bs al)))]
-    [('trunk (a al dl))
+    [('trunk (a al dl i))
      (list 'trunk
-           (list (bs/deep-arrow bs a)
-                 (bs/deep-arrow-list bs al)
-                 (bs/deep-list bs dl)))]
-    [('proj (a al dl i))
-     (list 'proj
            (list (bs/deep-arrow bs a)
                  (bs/deep-arrow-list bs al)
                  (bs/deep-list bs dl)
@@ -1011,9 +905,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org2323c4a" class="outline-4">
-<h4 id="org2323c4a">pass3/name</h4>
-<div class="outline-text-4" id="text-org2323c4a">
+<div id="outline-container-org45fffc" class="outline-3">
+<h3 id="org45fffc">pass3/name</h3>
+<div class="outline-text-3" id="text-org45fffc">
 <ul class="org-ul">
 <li><p>this can be optimized by</p><p>to do more computations before storing things into ns</p><p>but I leave it for now</p></li></ul>
 
@@ -1033,17 +927,15 @@ for the JavaScript code in this tag.
              [('cons/data ((ac sc) name _))
               (pass3/name/cons (length ac) name e)]
              [('lambda ((ac sc) al))
-              (<span style="color: #f92672; font-weight: bold;">if</span> (eq? 1 (length sc))
-                (pass3/name/trunk (length ac) l e)
-                (pass3/name/proj (length ac) (length sc) l e))]))))]))
+              (pass3/name/trunk (length ac) (length sc) (cadr meaning) e)]))))]))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org32bfa71" class="outline-4">
-<h4 id="org32bfa71">pass3/name/cons</h4>
-<div class="outline-text-4" id="text-org32bfa71">
+<div id="outline-container-org7609bc" class="outline-3">
+<h3 id="org7609bc">pass3/name/cons</h3>
+<div class="outline-text-3" id="text-org7609bc">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/name/cons</span> len name e)
@@ -1060,35 +952,12 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org497bdad" class="outline-4">
-<h4 id="org497bdad">pass3/name/trunk</h4>
-<div class="outline-text-4" id="text-org497bdad">
+<div id="outline-container-orga9d3a33" class="outline-3">
+<h3 id="orga9d3a33">pass3/name/trunk</h3>
+<div class="outline-text-3" id="text-orga9d3a33">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/name/trunk</span> len l e)
-  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">length, lambda, env -&gt; env</span>
-  (<span style="color: #f92672; font-weight: bold;">match</span> e
-    [(ds bs ns)
-     (<span style="color: #f92672; font-weight: bold;">match</span> l
-       [(a al)
-        (<span style="color: #f92672; font-weight: bold;">let</span> ([a (copy-arrow a)]
-              [al (<span style="color: #f92672; font-weight: bold;">map</span> copy-arrow al)]
-              [dl (sublist ds 0 len)])
-          (list (cons (list 'trunk (list a al dl))
-                      (sublist ds len -1))
-                bs
-                ns))])]))
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orga71507" class="outline-4">
-<h4 id="orga71507">pass3/name/proj</h4>
-<div class="outline-text-4" id="text-orga71507">
-<div class="org-src-container">
-
-<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/name/proj</span> len slen l e)
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/name/trunk</span> len slen l e)
   <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">length, length, lambda, env -&gt; env</span>
   (<span style="color: #f92672; font-weight: bold;">match</span> e
     [(ds bs ns)
@@ -1097,8 +966,8 @@ for the JavaScript code in this tag.
         (<span style="color: #f92672; font-weight: bold;">let*</span> ([a (copy-arrow a)]
                [al (<span style="color: #f92672; font-weight: bold;">map</span> copy-arrow al)]
                [dl (sublist ds 0 len)]
-               [make-proj (<span style="color: #f92672; font-weight: bold;">lambda</span> (i) (list 'proj (list a al dl i)))])
-          (list (append (<span style="color: #f92672; font-weight: bold;">map</span> make-proj (genlist slen))
+               [make-trunk (<span style="color: #f92672; font-weight: bold;">lambda</span> (i) (list 'trunk (list a al dl i)))])
+          (list (append (<span style="color: #f92672; font-weight: bold;">map</span> make-trunk (genlist slen))
                         (sublist ds len -1))
                 bs
                 ns))])]))
@@ -1107,9 +976,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgaa8a51d" class="outline-4">
-<h4 id="orgaa8a51d">pass3/bind</h4>
-<div class="outline-text-4" id="text-orgaa8a51d">
+<div id="outline-container-orgaca0575" class="outline-3">
+<h3 id="orgaca0575"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> pass3/bind</h3>
+<div class="outline-text-3" id="text-orgaca0575">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">pass3/bind</span> b e)
@@ -1125,6 +994,7 @@ for the JavaScript code in this tag.
                       [(((id level) . r) (ds bs ns))
                        <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">&gt;&lt;&gt;&lt;&gt;&lt;</span>
                        <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">need to check if the bind already exist</span>
+                       <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">and to check type</span>
                        (id/commit! id (list (cons level d1)))
                        (recur r (list (<span style="color: #f92672; font-weight: bold;">if</span> leave?
                                         (cons d1 ds)
@@ -1137,30 +1007,29 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org666c374" class="outline-4">
-<h4 id="org666c374">id/commit!</h4>
-<div class="outline-text-4" id="text-org666c374">
+<div id="outline-container-org260e89a" class="outline-3">
+<h3 id="org260e89a">id/commit!</h3>
+<div class="outline-text-3" id="text-org260e89a">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">id/commit!</span> id ls)
   <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">id, ls -&gt; id</span>
   <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">effect on id</span>
   (<span style="color: #f92672; font-weight: bold;">let</span> ()
-    (<span style="color: #f92672; font-weight: bold;">vector-set!</span> id (append ls (vector-ref id 1)))
+    (<span style="color: #f92672; font-weight: bold;">vector-set!</span> id 1 (append ls (vector-ref id 1)))
     id))
 </pre>
 </div>
 </div>
 </div>
 </div>
-</div>
 
-<div id="outline-container-orga8ccf91" class="outline-2">
-<h2 id="orga8ccf91">copy-arrow</h2>
-<div class="outline-text-2" id="text-orga8ccf91">
-</div><div id="outline-container-org1a7f60b" class="outline-3">
-<h3 id="org1a7f60b"><span class="todo note">note</span> copy</h3>
-<div class="outline-text-3" id="text-org1a7f60b">
+<div id="outline-container-org10ae3e7" class="outline-2">
+<h2 id="org10ae3e7">copy-arrow</h2>
+<div class="outline-text-2" id="text-org10ae3e7">
+</div><div id="outline-container-orgc772662" class="outline-3">
+<h3 id="orgc772662"><span class="todo note">note</span> copy</h3>
+<div class="outline-text-3" id="text-orgc772662">
 <ul class="org-ul">
 <li><p>when forming trunk from lambda which is fetched from ns</p><p>we have to copy the lambda</p></li>
 
@@ -1170,9 +1039,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org899a3b0" class="outline-3">
-<h3 id="org899a3b0">copy-arrow</h3>
-<div class="outline-text-3" id="text-org899a3b0">
+<div id="outline-container-orgdb135b7" class="outline-3">
+<h3 id="orgdb135b7">copy-arrow</h3>
+<div class="outline-text-3" id="text-orgdb135b7">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy-arrow</span> a)
@@ -1184,9 +1053,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org98ca98e" class="outline-3">
-<h3 id="org98ca98e">copy/arrow</h3>
-<div class="outline-text-3" id="text-org98ca98e">
+<div id="outline-container-orgee3089c" class="outline-3">
+<h3 id="orgee3089c">copy/arrow</h3>
+<div class="outline-text-3" id="text-orgee3089c">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/arrow</span> a s)
@@ -1203,9 +1072,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orga495979" class="outline-3">
-<h3 id="orga495979">copy/cedent</h3>
-<div class="outline-text-3" id="text-orga495979">
+<div id="outline-container-orgab67fd4" class="outline-3">
+<h3 id="orgab67fd4">copy/cedent</h3>
+<div class="outline-text-3" id="text-orgab67fd4">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/cedent</span> c s)
@@ -1223,9 +1092,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgb275f1d" class="outline-3">
-<h3 id="orgb275f1d">copy/lambda</h3>
-<div class="outline-text-3" id="text-orgb275f1d">
+<div id="outline-container-org3720dcf" class="outline-3">
+<h3 id="org3720dcf">copy/lambda</h3>
+<div class="outline-text-3" id="text-org3720dcf">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/lambda</span> l s)
@@ -1242,9 +1111,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org2473edf" class="outline-3">
-<h3 id="org2473edf">copy/arrow-list</h3>
-<div class="outline-text-3" id="text-org2473edf">
+<div id="outline-container-orgd23c252" class="outline-3">
+<h3 id="orgd23c252">copy/arrow-list</h3>
+<div class="outline-text-3" id="text-orgd23c252">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/arrow-list</span> al s)
@@ -1262,9 +1131,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgdf906b8" class="outline-3">
-<h3 id="orgdf906b8">copy</h3>
-<div class="outline-text-3" id="text-orgdf906b8">
+<div id="outline-container-orgba82d9e" class="outline-3">
+<h3 id="orgba82d9e">copy</h3>
+<div class="outline-text-3" id="text-orgba82d9e">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy</span> d s)
@@ -1289,26 +1158,22 @@ for the JavaScript code in this tag.
     [('trunk x)
      (<span style="color: #f92672; font-weight: bold;">match</span> (copy/trunk x s)
        [(x1 s1)
-        (list (list 'trunk x1) s1)])]
-    [('proj x)
-     (<span style="color: #f92672; font-weight: bold;">match</span> (copy/proj x s)
-       [(x1 s1)
-        (list (list 'proj x1) s1)])]))
+        (list (list 'trunk x1) s1)])]))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orga5c6b24" class="outline-3">
-<h3 id="orga5c6b24">copy/var</h3>
-<div class="outline-text-3" id="text-orga5c6b24">
+<div id="outline-container-orgd7a53ae" class="outline-3">
+<h3 id="orgd7a53ae">copy/var</h3>
+<div class="outline-text-3" id="text-orgd7a53ae">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/var</span> v s)
   <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">var, scope -&gt; (var scope)</span>
   (<span style="color: #f92672; font-weight: bold;">match</span> v
     [(id level)
-     (<span style="color: #f92672; font-weight: bold;">let</span> ([found (assq id scope)])
+     (<span style="color: #f92672; font-weight: bold;">let</span> ([found (assq id s)])
        (<span style="color: #f92672; font-weight: bold;">if</span> found
          (list (list (cdr found) level) s)
          (<span style="color: #f92672; font-weight: bold;">let*</span> ([ls (id-&gt;ls id)]
@@ -1323,9 +1188,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org753ed69" class="outline-3">
-<h3 id="org753ed69">copy/ls</h3>
-<div class="outline-text-3" id="text-org753ed69">
+<div id="outline-container-orgf265733" class="outline-3">
+<h3 id="orgf265733">copy/ls</h3>
+<div class="outline-text-3" id="text-orgf265733">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/ls</span> ls s)
@@ -1345,9 +1210,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org27d791c" class="outline-3">
-<h3 id="org27d791c">copy/cons</h3>
-<div class="outline-text-3" id="text-org27d791c">
+<div id="outline-container-orgf933d8e" class="outline-3">
+<h3 id="orgf933d8e">copy/cons</h3>
+<div class="outline-text-3" id="text-orgf933d8e">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/cons</span> c s)
@@ -1362,34 +1227,13 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org426a0ce" class="outline-3">
-<h3 id="org426a0ce">copy/trunk</h3>
-<div class="outline-text-3" id="text-org426a0ce">
+<div id="outline-container-org7310e9" class="outline-3">
+<h3 id="org7310e9">copy/trunk</h3>
+<div class="outline-text-3" id="text-org7310e9">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/trunk</span> t s)
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/trunk</span> p s)
   <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">trunk, scope -&gt; (trunk scope)</span>
-  (<span style="color: #f92672; font-weight: bold;">match</span> t
-    [(a al dl)
-     (<span style="color: #f92672; font-weight: bold;">match</span> (copy/arrow a s)
-       [(a1 s1)
-        (<span style="color: #f92672; font-weight: bold;">match</span> (copy/arrow-list al s1)
-          [(al1 s2)
-           (<span style="color: #f92672; font-weight: bold;">match</span> (copy/cedent dl s2)
-             [(dl1 s3)
-              (list (list a1 al1 dl1) s3)])])])]))
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org1c12b16" class="outline-3">
-<h3 id="org1c12b16">copy/proj</h3>
-<div class="outline-text-3" id="text-org1c12b16">
-<div class="org-src-container">
-
-<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">copy/proj</span> p s)
-  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">proj, scope -&gt; (proj scope)</span>
   (<span style="color: #f92672; font-weight: bold;">match</span> p
     [(a al dl i)
      (<span style="color: #f92672; font-weight: bold;">match</span> (copy/arrow a s)
@@ -1405,12 +1249,12 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org461d9cd" class="outline-2">
-<h2 id="org461d9cd">compute-arrow</h2>
-<div class="outline-text-2" id="text-org461d9cd">
-</div><div id="outline-container-orgf9d28b9" class="outline-3">
-<h3 id="orgf9d28b9">compute-arrow</h3>
-<div class="outline-text-3" id="text-orgf9d28b9">
+<div id="outline-container-org56ba480" class="outline-2">
+<h2 id="org56ba480">compute-arrow</h2>
+<div class="outline-text-2" id="text-org56ba480">
+</div><div id="outline-container-org9979246" class="outline-3">
+<h3 id="org9979246">compute-arrow</h3>
+<div class="outline-text-3" id="text-org9979246">
 <ul class="org-ul">
 <li><p>compute is actually done by unification</p></li></ul>
 
@@ -1439,9 +1283,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orge829e12" class="outline-3">
-<h3 id="orge829e12">bs/commit!</h3>
-<div class="outline-text-3" id="text-orge829e12">
+<div id="outline-container-org2e548ab" class="outline-3">
+<h3 id="org2e548ab">bs/commit!</h3>
+<div class="outline-text-3" id="text-org2e548ab">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">bs/commit!</span> bs)
@@ -1460,9 +1304,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgbf00343" class="outline-3">
-<h3 id="orgbf00343">compute/cedent</h3>
-<div class="outline-text-3" id="text-orgbf00343">
+<div id="outline-container-org16e7f8a" class="outline-3">
+<h3 id="org16e7f8a">compute/cedent</h3>
+<div class="outline-text-3" id="text-org16e7f8a">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">compute/cedent</span> c e)
@@ -1475,9 +1319,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgb3834be" class="outline-3">
-<h3 id="orgb3834be">compute</h3>
-<div class="outline-text-3" id="text-orgb3834be">
+<div id="outline-container-orgc31f01f" class="outline-3">
+<h3 id="orgc31f01f">compute</h3>
+<div class="outline-text-3" id="text-orgc31f01f">
 <div class="org-src-container">
 
 <pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">compute</span> f e)
@@ -1485,217 +1329,348 @@ for the JavaScript code in this tag.
   (<span style="color: #f92672; font-weight: bold;">match</span> e
     [(ds bs ns)
      (list (cons f ds) bs ns)]))
-
-<span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(define (compute f e)</span>
-<span style="color: #FF8888;">;;   </span><span style="color: #FF8888;">;; data, env -&gt; env</span>
-<span style="color: #FF8888;">;;   </span><span style="color: #FF8888;">(match e</span>
-<span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">[(ds bs ns)</span>
-<span style="color: #FF8888;">;;      </span><span style="color: #FF8888;">(match f</span>
-<span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">[('var x) (list (cons (bs/deep bs f) ds) bs ns)]</span>
-<span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">[('cons x) (list (cons f ds) bs ns)]</span>
-<span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">[('arrow x) (list (cons f ds) bs ns)]</span>
-<span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">[('lambda x) (list (cons f ds) bs ns)]</span>
-<span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">[('trunk x) (list (cons f ds) bs ns)]</span>
-<span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">[('proj x) (list (cons f ds) bs ns)])]))</span>
 </pre>
 </div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgdebb49f" class="outline-2">
-<h2 id="orgdebb49f"><span class="todo _gt__lt_">&gt;&lt;</span> unify</h2>
-<div class="outline-text-2" id="text-orgdebb49f">
-</div><div id="outline-container-orga4d623b" class="outline-3">
-<h3 id="orga4d623b"><span class="todo _gt__lt_">&gt;&lt;</span> unify</h3>
-<div class="outline-text-3" id="text-orga4d623b">
+<div id="outline-container-org6739f20" class="outline-2">
+<h2 id="org6739f20">unify</h2>
+<div class="outline-text-2" id="text-org6739f20">
+</div><div id="outline-container-org7d9d2cd" class="outline-3">
+<h3 id="org7d9d2cd">unify</h3>
+<div class="outline-text-3" id="text-org7d9d2cd">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify</span> e)
-  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(env -&gt; env), env -&gt; unify-report</span>
-  )
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify</span> f e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(env -&gt; env), env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> e
+    [(ds bs ns)
+     (<span style="color: #f92672; font-weight: bold;">match</span> (f (list (cons 'unify-point ds) bs ns))
+       [(ds1 bs1 ns1)
+        (<span style="color: #f92672; font-weight: bold;">let*</span> ([pl (left-of 'unify-point ds1)]
+               [tmp (right-of 'unify-point ds1)]
+               [len (length pl)]
+               [dl (sublist tmp 0 len)]
+               [ds2 (sublist tmp len -1)])
+          (unify/data-list pl dl
+                      (list 'success (list ds2 bs ns))))])]))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org809f8bd" class="outline-3">
-<h3 id="org809f8bd"><span class="todo _gt__lt_">&gt;&lt;</span> bs/extend</h3>
-<div class="outline-text-3" id="text-org809f8bd">
+<div id="outline-container-org2b8e12a" class="outline-3">
+<h3 id="org2b8e12a">unify/data-list</h3>
+<div class="outline-text-3" id="text-org2b8e12a">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">defun</span> bs/extend (default-level bs v d)
-  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">bs var data -&gt; bs</span>
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/data-list</span> pl dl r)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(pattern ...), (data ...), report -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> r
+    [('fail info-list) ('fail info-list)]
+    [('success e)
+     (<span style="color: #f92672; font-weight: bold;">if</span> (eq? pl '())
+       r
+       (unify/data-list
+        (cdr pl) (cdr dl)
+        (unify/data (car pl) (car dl) e)))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6d45385" class="outline-3">
+<h3 id="org6d45385">var/eq?</h3>
+<div class="outline-text-3" id="text-org6d45385">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">var/eq?</span> v1 v2)
+  (<span style="color: #f92672; font-weight: bold;">match</span> (list v1 v2)
+    [((id1 level1) (id2 level2))
+     (<span style="color: #f92672; font-weight: bold;">and</span> (eq? id1 id2)
+          (eq? level1 level2))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org74e5b56" class="outline-3">
+<h3 id="org74e5b56"><span class="todo _gt__lt__gt__lt__gt__lt_">&gt;&lt;&gt;&lt;&gt;&lt;</span> unify/data</h3>
+<div class="outline-text-3" id="text-org74e5b56">
+<ul class="org-ul">
+<li><p>need to check type for fresh var</p><p>maybe more then var</p></li></ul>
+
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/data</span> p d e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">pattern, data, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> e
+    [(ds bs ns)
+     <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">var -walk-&gt; fresh-var</span>
+     (<span style="color: #f92672; font-weight: bold;">let</span> ([p (bs/walk bs p)]
+           [d (bs/walk bs d)])
+       (<span style="color: #f92672; font-weight: bold;">match</span> (list p d)
+         [(('var v1) ('var v2))
+          (<span style="color: #f92672; font-weight: bold;">if</span> (var/eq? v1 v2)
+            (list 'success e)
+            (list 'success
+                  (list ds
+                        (bs/extend bs v1 d)
+                        ns)))]
+         [(('var v) _) (unify/var/data v d e)]
+         [(_ ('var v)) (unify/var/data v p e)]
+
+         [(('trunk t1) ('trunk t2)) (unify/trunk t1 t2 e)]
+         [(('trunk t) _) (unify/trunk/data t d e)]
+         [(_ ('trunk t)) (unify/trunk/data t p e)]
+
+         [(('cons c1) ('cons c2)) (unify/cons c1 c2 e)]
+         [(('arrow a1) ('arrow a2)) (unify/arrow a1 a2 e)]
+         [(('lambda l1) ('lambda l2)) (unify/lambda l1 l2 e)]
+         [(_ _)
+          (list 'fail
+                (list '(unify/data
+                        fail to unify
+                        (pattern: ,p) (data: ,d))))]))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1334f1e" class="outline-3">
+<h3 id="org1334f1e">bs/extend</h3>
+<div class="outline-text-3" id="text-org1334f1e">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">bs/extend</span> bs v d)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">bs, var, data -&gt; bs</span>
   (<span style="color: #f92672; font-weight: bold;">match</span> v
-    (id level) =&gt;
-    (<span style="color: #f92672; font-weight: bold;">let*</span> ((level (<span style="color: #f92672; font-weight: bold;">if</span> (eq nil level)
-                      default-level
-                      level))
-           (found/ls (assoc id bs <span style="color: #a6e22e;">:test</span> #'eq)))
-      (<span style="color: #f92672; font-weight: bold;">if</span> found/ls
-          (substitute (cons id (cons (cons level d)
-                                     (cdr found/ls)))
-                      (<span style="color: #f92672; font-weight: bold;">lambda</span> (pair) (eq (car pair) id))
-                      bs)
-          (cons (cons id (list (cons level d)))
-                bs)))))
+    [(id level)
+     (<span style="color: #f92672; font-weight: bold;">let</span> ([found/ls (assq id bs)])
+       (<span style="color: #f92672; font-weight: bold;">if</span> found/ls
+         (substitute (cons id (cons (cons level d)
+                                    (cdr found/ls)))
+                     (<span style="color: #f92672; font-weight: bold;">lambda</span> (pair) (eq? (car pair) id))
+                     bs)
+         (cons (cons id (list (cons level d)))
+               bs)))]))
 </pre>
 </div>
 </div>
 </div>
-</div>
 
-<div id="outline-container-orgd109c17" class="outline-2">
-<h2 id="orgd109c17"><span class="todo _gt__lt_">&gt;&lt;</span> eva</h2>
-</div>
-
-<div id="outline-container-org54de80e" class="outline-2">
-<h2 id="org54de80e"><span class="todo _gt__lt_">&gt;&lt;</span> check</h2>
-</div>
-
-<div id="outline-container-orge87fc27" class="outline-2">
-<h2 id="orge87fc27"><span class="todo _gt__lt_">&gt;&lt;</span> type-compute</h2>
-</div>
-
-<div id="outline-container-org487fcea" class="outline-2">
-<h2 id="org487fcea"><span class="todo _gt__lt_">&gt;&lt;</span> sequent</h2>
-</div>
-
-<div id="outline-container-orge94bf23" class="outline-2">
-<h2 id="orge94bf23"><span class="done test">test</span> </h2>
-<div class="outline-text-2" id="text-orge94bf23">
-</div><div id="outline-container-org1e9f619" class="outline-3">
-<h3 id="org1e9f619">natural</h3>
-<div class="outline-text-3" id="text-org1e9f619">
+<div id="outline-container-orga1d84d2" class="outline-3">
+<h3 id="orga1d84d2">unify/var/data</h3>
+<div class="outline-text-3" id="text-orga1d84d2">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(sequent
-
-  (dt type (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
-
-  (dt natural (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-      zero (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      succ (natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
-
-  (df add (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
-      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ))
-
-  (df mul (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero)
-      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add))
-
-  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-       zero succ
-       zero succ succ
-       add))
-
-  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-       zero succ succ
-       zero succ succ
-       mul))
-
-  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> mul)))
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/var/data</span> v d e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">var, data, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> e
+    [(ds bs ns)
+     (list 'success
+           (list ds (bs/extend bs v d) ns))]))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orge94192b" class="outline-3">
-<h3 id="orge94192b">list</h3>
-<div class="outline-text-3" id="text-orge94192b">
+<div id="outline-container-org27af760" class="outline-3">
+<h3 id="org27af760">unify/cons</h3>
+<div class="outline-text-3" id="text-org27af760">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(sequent
-
-  (dt type (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
-
-  (dt natural (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-      zero (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      succ (natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
-
-  (df add (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
-      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ))
-
-  (df mul (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero)
-      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add))
-
-  (dt list ((<span style="color: #a6e22e;">:t</span> : type) <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-      null (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list)
-      cons (<span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list))
-
-  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(df map (:t1 list (:t1 -&gt; :t2) -&gt; :t2 list)</span>
-  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(null :f -&gt; null)</span>
-  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(:l :e cons :f -&gt; :e :f apply :l :f map cons))</span>
-
-  (df append (<span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> list <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t1</span> list)
-      (<span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span>)
-      (<span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons))
-
-  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-       null
-       zero cons
-       zero cons
-       zero cons
-       null
-       zero cons
-       zero cons
-       zero cons
-       append)))
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/cons</span> c1 c2 e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">cons, cons, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> (list c1 c2)
+    [((n1 dl1) (n2 dl2))
+     (<span style="color: #f92672; font-weight: bold;">if</span> (eq? n1 n2)
+       (unify/data-list dl1 dl2 (list 'success e))
+       (list 'fail
+             (list `(unify/cons
+                     fail (cons1: ,c1) (cons: ,c2)))))]))
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org261d930" class="outline-3">
-<h3 id="org261d930">vector</h3>
-<div class="outline-text-3" id="text-org261d930">
+<div id="outline-container-org8587b3f" class="outline-3">
+<h3 id="org8587b3f">unify/arrow</h3>
+<div class="outline-text-3" id="text-org8587b3f">
 <div class="org-src-container">
 
-<pre class="src src-scheme">(sequent
-
-  (dt type (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type))
-
-  (dt natural (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-      zero (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      succ (natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural))
-
-  (df add (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span>)
-      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ))
-
-  (df mul (natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural)
-      (<span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero)
-      (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add))
-
-  (dt vector ((<span style="color: #a6e22e;">:t</span> : type) natural <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type)
-      null (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero <span style="color: #a6e22e;">:t</span> vector)
-      cons (<span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #a6e22e;">:t</span> vector))
-
-  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(df map (:n :t1 vector (:t1 -&gt; :t2) -&gt; :n :t2 vector)</span>
-  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(null :f -&gt; null)</span>
-  <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">(:l :e cons :f -&gt; :e :f apply :l :f map cons))</span>
-
-  (df append (<span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add <span style="color: #a6e22e;">:t</span> vector)
-      (<span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span>)
-      (<span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons))
-
-  (ap (<span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-       null
-       zero cons
-       zero cons
-       zero cons
-       null
-       zero cons
-       zero cons
-       zero cons
-       append)))
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/arrow</span> a1 a2 e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">arrow, arrow, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> (list a1 a2)
+    [((ac1 sc1) (ac2 sc2))
+     (<span style="color: #f92672; font-weight: bold;">match</span> (unify/data-list ac1 ac2 (list 'success e))
+       [('success e1)
+        (unify/data-list sc1 sc2 (list 'success e1))]
+       [('fail info-list)
+        (list 'fail
+              (cons `(unify/arrow
+                      fail  (arrow1: ,a1) (arrow2: ,a2))
+                    info-list))])]))
 </pre>
 </div>
 </div>
 </div>
+
+<div id="outline-container-org234a01" class="outline-3">
+<h3 id="org234a01">unify/lambda</h3>
+<div class="outline-text-3" id="text-org234a01">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/lambda</span> l1 l2 e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">lambda, lambda, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> (list l1 l2)
+    [((a1 al1) (a2 al2))
+     (unify/arrow-list al1 al2 (unify/arrow a1 a2 e))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd362278" class="outline-3">
+<h3 id="orgd362278">unify/arrow-list</h3>
+<div class="outline-text-3" id="text-orgd362278">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/arrow-list</span> al1 al2 r)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(arrow ...), (arrow ...), report -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> r
+    [('fail info-list) ('fail info-list)]
+    [('success e)
+     (<span style="color: #f92672; font-weight: bold;">if</span> (eq? al1 '())
+       r
+       (unify/arrow-list
+        (cdr al1) (cdr al2)
+        (unify/arrow (car al1) (car al2) e)))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org78ee75d" class="outline-3">
+<h3 id="org78ee75d">unify/trunk</h3>
+<div class="outline-text-3" id="text-org78ee75d">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/trunk</span> t1 t2 e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">trunk, trunk, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> (list t1 t2)
+    [((a1 al1 dl1) (a2 al2 dl2))
+     (unify/data-list dl1 dl2 (unify/lambda (list a1 al1) (list a2 al2) e))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgcf0b21d" class="outline-3">
+<h3 id="orgcf0b21d">unify/trunk/data</h3>
+<div class="outline-text-3" id="text-orgcf0b21d">
+<ul class="org-ul">
+<li><p>filter here arrow-list</p></li></ul>
+
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">unify/trunk/data</span> t d e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">trunk, data, env -&gt; report</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> e
+    [(ds bs ns)
+     (<span style="color: #f92672; font-weight: bold;">match</span> t
+       [(a al dl i)
+        (<span style="color: #f92672; font-weight: bold;">let*</span> ([dl1 (<span style="color: #f92672; font-weight: bold;">map</span> (<span style="color: #f92672; font-weight: bold;">lambda</span> (x) (bs/deep bs x)) dl)]
+               [al1 (filter-arrow-list al dl1 e)])
+          (<span style="color: #f92672; font-weight: bold;">match</span> al1
+            [()
+             (list 'fail
+                   (list `(unify/trunk/data
+                           fail arrow-list filter to
+                           ()
+                           (trunk: ,t)
+                           (data: ,d))))]
+            [(a1)
+             (<span style="color: #f92672; font-weight: bold;">match</span> (compute-arrow a1 (list dl1 bs ns))
+               <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">after this compute-arrow</span>
+               <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">binds are commited</span>
+               <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">then the old env is used</span>
+               [('success e1) (unify/data (proj i e1) d e)]
+               [('fail info) ('fail info)])]
+            [(a1 a2 . _)
+             (list 'fail
+                   (list `(unify/trunk/data
+                           fail arrow-list filter to
+                           (arrow-list: ,al1)
+                           (trunk: ,t)
+                           (data: ,d))))]))])]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga286efc" class="outline-3">
+<h3 id="orga286efc">proj</h3>
+<div class="outline-text-3" id="text-orga286efc">
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">proj</span> i e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">index, env -&gt; data</span>
+  (<span style="color: #f92672; font-weight: bold;">match</span> e
+    [(ds bs ns)
+     (list-ref ds (- (length ds) i))]))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7406b69" class="outline-2">
+<h2 id="org7406b69">filter-arrow-list</h2>
+<div class="outline-text-2" id="text-org7406b69">
+<ul class="org-ul">
+<li><p>no commit should be made here</p></li></ul>
+
+<div class="org-src-container">
+
+<pre class="src src-scheme">(<span style="color: #f92672; font-weight: bold;">define</span> (<span style="color: #a6e22e;">filter-arrow-list</span> al dl e)
+  <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(arrow ...), (data ...), env -&gt; (arrow ...)</span>
+  (<span style="color: #f92672; font-weight: bold;">if</span> (eq? '() al)
+    '()
+    (<span style="color: #f92672; font-weight: bold;">match</span> e
+      [(ds bs ns)
+        (<span style="color: #f92672; font-weight: bold;">match</span> (car al)
+          [(ac sc)
+           (<span style="color: #f92672; font-weight: bold;">match</span> (unify (<span style="color: #f92672; font-weight: bold;">lambda</span> (x) (compute/cedent ac x))
+                         (list (append dl ds)
+                               bs
+                               ns))
+             [('fail _)
+              (filter-arrow-list (cdr al) dl e)]
+             [('success e1)
+              (cons (car al)
+                    (filter-arrow-list (cdr al) dl e))])])])))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgf3c49f6" class="outline-2">
+<h2 id="orgf3c49f6"><span class="todo _gt__lt_">&gt;&lt;</span> eva</h2>
+</div>
+
+<div id="outline-container-orge67ddba" class="outline-2">
+<h2 id="orge67ddba"><span class="todo _gt__lt_">&gt;&lt;</span> check</h2>
+</div>
+
+<div id="outline-container-orgd01b133" class="outline-2">
+<h2 id="orgd01b133"><span class="todo _gt__lt_">&gt;&lt;</span> type-compute</h2>
+</div>
+
+<div id="outline-container-orgd3d0d28" class="outline-2">
+<h2 id="orgd3d0d28"><span class="todo _gt__lt_">&gt;&lt;</span> sequent</h2>
 </div>
 </div>
 <div id="postamble" class="status">

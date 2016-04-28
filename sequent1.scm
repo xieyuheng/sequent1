@@ -69,6 +69,12 @@
                       (recur len (+ 1 counter)))]))
   (recur len 0))
 
+(define (substitute e p? l)
+  ;; element, (element -> bool), (element ...) -> (element ...)
+  (cond [(eq? '() l) '()]
+        [(p? (car l)) (cons e (cdr l))]
+        [else (cons (car l) (substitute e p? (cdr l)))]))
+
 (define (find-char c s)
   ;; char, string -> curser or #f
   (find-char/curser c s 0))
@@ -156,41 +162,6 @@
             (string->number (substring str (+ 1 cursor))))
       (list v default-level))))
 
-(test
- (map (lambda (x) (pass1/arrow 0 x))
-   '((natural natural -> natural)
-     (natural natural -> (natural natural -> natural) natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n recur succ)
-     (:m :n succ -> :m :n (lambda (natural natural -> natural)
-                            (:m :n succ -> :m :n recur succ)
-                            (:m :n succ -> :m :n recur succ)))
-     ((:t : type) :t -> type)
-     ((:t @ type) :t -> type)
-     ((:t^2 : type) :t -> type)
-     ((:t1 :t2^2 :t3^0 : j k) :t -> type)
-     ((:t^2 @ type) :t -> type)))
- '((((form2/name natural) (form2/name natural))
-    ((form2/name natural)))
-   (((form2/name natural) (form2/name natural))
-    ((form2/arrow (((form2/name natural) (form2/name natural)) ((form2/name natural)))) (form2/name natural)))
-   (((form2/var (:m 0)) (form2/name zero))
-    ((form2/var (:m 0))))
-   (((form2/var (:m 0)) (form2/var (:n 0)) (form2/name succ))
-    ((form2/var (:m 0)) (form2/var (:n 0)) (form2/name recur) (form2/name succ)))
-   (((form2/var (:m 0)) (form2/var (:n 0)) (form2/name succ))
-    ((form2/var (:m 0)) (form2/var (:n 0)) (form2/lambda ((((form2/name natural) (form2/name natural)) ((form2/name natural))) ((((form2/var (:m 0)) (form2/var (:n 0)) (form2/name succ)) ((form2/var (:m 0)) (form2/var (:n 0)) (form2/name recur) (form2/name succ))) (((form2/var (:m 0)) (form2/var (:n 0)) (form2/name succ)) ((form2/var (:m 0)) (form2/var (:n 0)) (form2/name recur) (form2/name succ))))))))
-   (((form2/bind (((form2/var (:t 1))) ((form2/name type)) leave)) (form2/var (:t 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (:t 1))) ((form2/name type)) not-leave)) (form2/var (:t 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (:t 2))) ((form2/name type)) leave)) (form2/var (:t 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (:t1 1)) (form2/var (:t2 2)) (form2/var (:t3 0))) ((form2/name j) (form2/name k)) leave)) (form2/var (:t 0)))
-    ((form2/name type)))
-   (((form2/bind (((form2/var (:t 2))) ((form2/name type)) not-leave)) (form2/var (:t 0)))
-    ((form2/name type)))))
-
 (define (pass2/arrow a s)
   ;; form2/arrow, scope -> (form3/arrow scope)
   (match a
@@ -266,32 +237,6 @@
           ;; this means vars in vs can occur in c
           [(3c s2)
            (list (list 3vs 3c leave?) s2)])])]))
-
-(test
- (map (lambda (x) (pass2/arrow x '()))
-   (map (lambda (x) (pass1/arrow 0 x))
-     '((natural natural -> natural)
-       (natural natural -> (natural natural -> natural) natural)
-       (:m zero -> :m)
-       (:m :n succ -> :m :n recur succ)
-       (:m :n succ -> :m :n (lambda (natural natural -> natural)
-                              (:m :n succ -> :m :n recur succ)
-                              (:m :n succ -> :m :n recur succ)))
-       ((:t : type) :t -> type)
-       ((:t @ type) :t -> type)
-       ((:t^2 : type) :t -> type)
-       ((:t1 :t2^2 :t3^0 : j k) :t -> type)
-       ((:t^2 @ type) :t -> type))))
- '(((((form3/name natural) (form3/name natural)) ((form3/name natural))) ())
-   ((((form3/name natural) (form3/name natural)) ((form3/arrow (((form3/name natural) (form3/name natural)) ((form3/name natural)))) (form3/name natural))) ())
-   ((((form3/var (#(:m ()) 0)) (form3/name zero)) ((form3/var (#(:m ()) 0)))) ((:m . #(:m ()))))
-   ((((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name succ)) ((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name recur) (form3/name succ))) ((:n . #(:n ())) (:m . #(:m ()))))
-   ((((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name succ)) ((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/lambda (((((form3/name natural) (form3/name natural)) ((form3/name natural))) ((:n . #(:n ())) (:m . #(:m ())))) (((((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name succ)) ((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name recur) (form3/name succ))) ((:n . #(:n ())) (:m . #(:m ())))) ((((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name succ)) ((form3/var (#(:m ()) 0)) (form3/var (#(:n ()) 0)) (form3/name recur) (form3/name succ))) ((:n . #(:n ())) (:m . #(:m ()))))))))) ((:n . #(:n ())) (:m . #(:m ()))))
-   ((((form3/bind (((form3/var (#(:t ()) 1))) ((form3/name type)) leave)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ()))))
-   ((((form3/bind (((form3/var (#(:t ()) 1))) ((form3/name type)) not-leave)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ()))))
-   ((((form3/bind (((form3/var (#(:t ()) 2))) ((form3/name type)) leave)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ()))))
-   ((((form3/bind (((form3/var (#(:t1 ()) 1)) (form3/var (#(:t2 ()) 2)) (form3/var (#(:t3 ()) 0))) ((form3/name j) (form3/name k)) leave)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ())) (:t3 . #(:t3 ())) (:t2 . #(:t2 ())) (:t1 . #(:t1 ()))))
-   ((((form3/bind (((form3/var (#(:t ()) 2))) ((form3/name type)) not-leave)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ()))))))
 
 (define (pass3/get-arrow a e)
   ;; form3/arrow, env -> arrow
@@ -412,13 +357,8 @@
      (list 'lambda
            (list (bs/deep-arrow bs a)
                  (bs/deep-arrow-list bs al)))]
-    [('trunk (a al dl))
+    [('trunk (a al dl i))
      (list 'trunk
-           (list (bs/deep-arrow bs a)
-                 (bs/deep-arrow-list bs al)
-                 (bs/deep-list bs dl)))]
-    [('proj (a al dl i))
-     (list 'proj
            (list (bs/deep-arrow bs a)
                  (bs/deep-arrow-list bs al)
                  (bs/deep-list bs dl)
@@ -438,9 +378,7 @@
              [('cons/data ((ac sc) name _))
               (pass3/name/cons (length ac) name e)]
              [('lambda ((ac sc) al))
-              (if (eq? 1 (length sc))
-                (pass3/name/trunk (length ac) l e)
-                (pass3/name/proj (length ac) (length sc) l e))]))))]))
+              (pass3/name/trunk (length ac) (length sc) (cadr meaning) e)]))))]))
 
 (define (pass3/name/cons len name e)
   ;; length, name, env -> env
@@ -452,21 +390,7 @@
            bs
            ns)]))
 
-(define (pass3/name/trunk len l e)
-  ;; length, lambda, env -> env
-  (match e
-    [(ds bs ns)
-     (match l
-       [(a al)
-        (let ([a (copy-arrow a)]
-              [al (map copy-arrow al)]
-              [dl (sublist ds 0 len)])
-          (list (cons (list 'trunk (list a al dl))
-                      (sublist ds len -1))
-                bs
-                ns))])]))
-
-(define (pass3/name/proj len slen l e)
+(define (pass3/name/trunk len slen l e)
   ;; length, length, lambda, env -> env
   (match e
     [(ds bs ns)
@@ -475,8 +399,8 @@
         (let* ([a (copy-arrow a)]
                [al (map copy-arrow al)]
                [dl (sublist ds 0 len)]
-               [make-proj (lambda (i) (list 'proj (list a al dl i)))])
-          (list (append (map make-proj (genlist slen))
+               [make-trunk (lambda (i) (list 'trunk (list a al dl i)))])
+          (list (append (map make-trunk (genlist slen))
                         (sublist ds len -1))
                 bs
                 ns))])]))
@@ -494,6 +418,7 @@
                       [(((id level) . r) (ds bs ns))
                        ;; ><><><
                        ;; need to check if the bind already exist
+                       ;; and to check type
                        (id/commit! id (list (cons level d1)))
                        (recur r (list (if leave?
                                         (cons d1 ds)
@@ -506,7 +431,7 @@
   ;; id, ls -> id
   ;; effect on id
   (let ()
-    (vector-set! id (append ls (vector-ref id 1)))
+    (vector-set! id 1 (append ls (vector-ref id 1)))
     id))
 
 (define (copy-arrow a)
@@ -578,17 +503,13 @@
     [('trunk x)
      (match (copy/trunk x s)
        [(x1 s1)
-        (list (list 'trunk x1) s1)])]
-    [('proj x)
-     (match (copy/proj x s)
-       [(x1 s1)
-        (list (list 'proj x1) s1)])]))
+        (list (list 'trunk x1) s1)])]))
 
 (define (copy/var v s)
   ;; var, scope -> (var scope)
   (match v
     [(id level)
-     (let ([found (assq id scope)])
+     (let ([found (assq id s)])
        (if found
          (list (list (cdr found) level) s)
          (let* ([ls (id->ls id)]
@@ -620,20 +541,8 @@
        [(dl1 s1)
         (list (list n dl1) s1)])]))
 
-(define (copy/trunk t s)
+(define (copy/trunk p s)
   ;; trunk, scope -> (trunk scope)
-  (match t
-    [(a al dl)
-     (match (copy/arrow a s)
-       [(a1 s1)
-        (match (copy/arrow-list al s1)
-          [(al1 s2)
-           (match (copy/cedent dl s2)
-             [(dl1 s3)
-              (list (list a1 al1 dl1) s3)])])])]))
-
-(define (copy/proj p s)
-  ;; proj, scope -> (proj scope)
   (match p
     [(a al dl i)
      (match (copy/arrow a s)
@@ -687,34 +596,185 @@
     [(ds bs ns)
      (list (cons f ds) bs ns)]))
 
-;; (define (compute f e)
-;;   ;; data, env -> env
-;;   (match e
-;;     [(ds bs ns)
-;;      (match f
-;;        [('var x) (list (cons (bs/deep bs f) ds) bs ns)]
-;;        [('cons x) (list (cons f ds) bs ns)]
-;;        [('arrow x) (list (cons f ds) bs ns)]
-;;        [('lambda x) (list (cons f ds) bs ns)]
-;;        [('trunk x) (list (cons f ds) bs ns)]
-;;        [('proj x) (list (cons f ds) bs ns)])]))
+(define (unify f e)
+  ;; (env -> env), env -> report
+  (match e
+    [(ds bs ns)
+     (match (f (list (cons 'unify-point ds) bs ns))
+       [(ds1 bs1 ns1)
+        (let* ([pl (left-of 'unify-point ds1)]
+               [tmp (right-of 'unify-point ds1)]
+               [len (length pl)]
+               [dl (sublist tmp 0 len)]
+               [ds2 (sublist tmp len -1)])
+          (unify/data-list pl dl
+                      (list 'success (list ds2 bs ns))))])]))
 
-(define (unify e)
-  ;; (env -> env), env -> unify-report
-  )
+(define (unify/data-list pl dl r)
+  ;; (pattern ...), (data ...), report -> report
+  (match r
+    [('fail info-list) ('fail info-list)]
+    [('success e)
+     (if (eq? pl '())
+       r
+       (unify/data-list
+        (cdr pl) (cdr dl)
+        (unify/data (car pl) (car dl) e)))]))
 
-(defun bs/extend (default-level bs v d)
-  ;; bs var data -> bs
+(define (var/eq? v1 v2)
+  (match (list v1 v2)
+    [((id1 level1) (id2 level2))
+     (and (eq? id1 id2)
+          (eq? level1 level2))]))
+
+(define (unify/data p d e)
+  ;; pattern, data, env -> report
+  (match e
+    [(ds bs ns)
+     ;; var -walk-> fresh-var
+     (let ([p (bs/walk bs p)]
+           [d (bs/walk bs d)])
+       (match (list p d)
+         [(('var v1) ('var v2))
+          (if (var/eq? v1 v2)
+            (list 'success e)
+            (list 'success
+                  (list ds
+                        (bs/extend bs v1 d)
+                        ns)))]
+         [(('var v) _) (unify/var/data v d e)]
+         [(_ ('var v)) (unify/var/data v p e)]
+
+         [(('trunk t1) ('trunk t2)) (unify/trunk t1 t2 e)]
+         [(('trunk t) _) (unify/trunk/data t d e)]
+         [(_ ('trunk t)) (unify/trunk/data t p e)]
+
+         [(('cons c1) ('cons c2)) (unify/cons c1 c2 e)]
+         [(('arrow a1) ('arrow a2)) (unify/arrow a1 a2 e)]
+         [(('lambda l1) ('lambda l2)) (unify/lambda l1 l2 e)]
+         [(_ _)
+          (list 'fail
+                (list '(unify/data
+                        fail to unify
+                        (pattern: ,p) (data: ,d))))]))]))
+
+(define (bs/extend bs v d)
+  ;; bs, var, data -> bs
   (match v
-    (id level) =>
-    (let* ((level (if (eq nil level)
-                      default-level
-                      level))
-           (found/ls (assoc id bs :test #'eq)))
-      (if found/ls
-          (substitute (cons id (cons (cons level d)
-                                     (cdr found/ls)))
-                      (lambda (pair) (eq (car pair) id))
-                      bs)
-          (cons (cons id (list (cons level d)))
-                bs)))))
+    [(id level)
+     (let ([found/ls (assq id bs)])
+       (if found/ls
+         (substitute (cons id (cons (cons level d)
+                                    (cdr found/ls)))
+                     (lambda (pair) (eq? (car pair) id))
+                     bs)
+         (cons (cons id (list (cons level d)))
+               bs)))]))
+
+(define (unify/var/data v d e)
+  ;; var, data, env -> report
+  (match e
+    [(ds bs ns)
+     (list 'success
+           (list ds (bs/extend bs v d) ns))]))
+
+(define (unify/cons c1 c2 e)
+  ;; cons, cons, env -> report
+  (match (list c1 c2)
+    [((n1 dl1) (n2 dl2))
+     (if (eq? n1 n2)
+       (unify/data-list dl1 dl2 (list 'success e))
+       (list 'fail
+             (list `(unify/cons
+                     fail (cons1: ,c1) (cons: ,c2)))))]))
+
+(define (unify/arrow a1 a2 e)
+  ;; arrow, arrow, env -> report
+  (match (list a1 a2)
+    [((ac1 sc1) (ac2 sc2))
+     (match (unify/data-list ac1 ac2 (list 'success e))
+       [('success e1)
+        (unify/data-list sc1 sc2 (list 'success e1))]
+       [('fail info-list)
+        (list 'fail
+              (cons `(unify/arrow
+                      fail  (arrow1: ,a1) (arrow2: ,a2))
+                    info-list))])]))
+
+(define (unify/lambda l1 l2 e)
+  ;; lambda, lambda, env -> report
+  (match (list l1 l2)
+    [((a1 al1) (a2 al2))
+     (unify/arrow-list al1 al2 (unify/arrow a1 a2 e))]))
+
+(define (unify/arrow-list al1 al2 r)
+  ;; (arrow ...), (arrow ...), report -> report
+  (match r
+    [('fail info-list) ('fail info-list)]
+    [('success e)
+     (if (eq? al1 '())
+       r
+       (unify/arrow-list
+        (cdr al1) (cdr al2)
+        (unify/arrow (car al1) (car al2) e)))]))
+
+(define (unify/trunk t1 t2 e)
+  ;; trunk, trunk, env -> report
+  (match (list t1 t2)
+    [((a1 al1 dl1) (a2 al2 dl2))
+     (unify/data-list dl1 dl2 (unify/lambda (list a1 al1) (list a2 al2) e))]))
+
+(define (unify/trunk/data t d e)
+  ;; trunk, data, env -> report
+  (match e
+    [(ds bs ns)
+     (match t
+       [(a al dl i)
+        (let* ([dl1 (map (lambda (x) (bs/deep bs x)) dl)]
+               [al1 (filter-arrow-list al dl1 e)])
+          (match al1
+            [()
+             (list 'fail
+                   (list `(unify/trunk/data
+                           fail arrow-list filter to
+                           ()
+                           (trunk: ,t)
+                           (data: ,d))))]
+            [(a1)
+             (match (compute-arrow a1 (list dl1 bs ns))
+               ;; after this compute-arrow
+               ;; binds are commited
+               ;; then the old env is used
+               [('success e1) (unify/data (proj i e1) d e)]
+               [('fail info) ('fail info)])]
+            [(a1 a2 . _)
+             (list 'fail
+                   (list `(unify/trunk/data
+                           fail arrow-list filter to
+                           (arrow-list: ,al1)
+                           (trunk: ,t)
+                           (data: ,d))))]))])]))
+
+(define (proj i e)
+  ;; index, env -> data
+  (match e
+    [(ds bs ns)
+     (list-ref ds (- (length ds) i))]))
+
+(define (filter-arrow-list al dl e)
+  ;; (arrow ...), (data ...), env -> (arrow ...)
+  (if (eq? '() al)
+    '()
+    (match e
+      [(ds bs ns)
+        (match (car al)
+          [(ac sc)
+           (match (unify (lambda (x) (compute/cedent ac x))
+                         (list (append dl ds)
+                               bs
+                               ns))
+             [('fail _)
+              (filter-arrow-list (cdr al) dl e)]
+             [('success e1)
+              (cons (car al)
+                    (filter-arrow-list (cdr al) dl e))])])])))
