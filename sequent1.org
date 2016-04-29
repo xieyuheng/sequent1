@@ -24,6 +24,12 @@
   - check-cover
     check-end
 
+* todo problem
+
+  - I do not clearly know the nature of the mechanism
+    what uses id/commit!
+    I do not know how to remove this side effect
+
 * helper
 
 *** pattern match
@@ -1072,7 +1078,7 @@
                                 ns))
               [('fail il)
                (list 'fail
-                     (cons `(compute/arrow fail (arrow ,a)) il))]
+                     (cons `(compute/arrow fail (arrow: ,a)) il))]
               [('success e1)
                (match (compute/cedent sc e1)
                  [(ds2 bs2 ns2)
@@ -1561,7 +1567,8 @@
                                     (list 'lambda
                                           (list a0 al0)))
                               ns)])
-              (match (check a0 al0 (list ds bs ns1))
+              (match (check (copy-arrow a0) (map copy-arrow al0)
+                            (list ds bs ns1))
                 ;; note that the bs of the env
                 ;; returned by check is not clean
                 ;; thus e1 is not used as return env
@@ -1588,16 +1595,112 @@
            (orz ("end of report~%"))])))
     #+end_src
 
-* >< check
+* check
 
-*** >< check
+*** check
 
     #+begin_src scheme
-    (define (check a al e)
+    (define (check t al e)
       (: arrow (arrow ...) env -> env)
-      )
+      (match al
+        [() (list 'success e)]
+        [(a . r)
+         (match (check/arrow t a e)
+           [('success e) (check t r e)]
+           [('fail il) ('fail il)])]))
     #+end_src
 
-* >< type-compute
+*** check/arrow
+
+    #+begin_src scheme
+    (define (check/arrow t a e)
+      (: arrow arrow env -> report)
+      (match (list t a)
+        [((tac tsc) (ac sc))
+         (match (compute/arrow tac e)
+           [('fail il)
+            (list 'fail
+                  (cons `(check/arrow
+                          fail on
+                          (tac ,tac))
+                        il))]
+           [('success e1)
+            (match (unify (lambda (x) (type-compute/cedent ac x))
+                          e1)
+              [('fail il)
+               (list 'fail
+                     (cons `(check/arrow
+                             fail on
+                             (ac ,ac))
+                           il))]
+              [('success e2)
+               (match (compute/arrow tsc e2)
+                 [('fail il)
+                  (list 'fail
+                        (cons `(check/arrow
+                                fail on
+                                (tsc ,tsc))
+                              il))]
+                 [('success e3)
+                  (match (unify (lambda (x) (type-compute/cedent sc x))
+                                e3)
+                    [('fail il)
+                     (list 'fail
+                           (cons `(check/arrow
+                                   fail on
+                                   (sc ,sc))
+                                 il))]
+                    [('success e4) ('success e4)])])])])]))
+    #+end_src
+
+* type-compute
+
+*** note data
+
+    #+begin_src scheme
+    (type data
+      ('var    (id level))
+      ('cons   (name (data ...)))
+      ('arrow  ((data ...) (data ...)))
+      ('lambda (arrow (arrow ...)))
+      ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
+    #+end_src
+
+*** type-compute/cedent
+
+    #+begin_src scheme
+    (define (type-compute/cedent c e)
+      (: (data ...) env -> report)
+      (match e
+        [() e]
+        [(d . r)
+         (match (type-compute d e)
+           [('fail il) ('fail il)]
+           [('success e1)
+            (type-compute/cedent r e1)])]))
+    #+end_src
+
+*** type-compute
+
+    #+begin_src scheme
+    (define (type-compute d e)
+      (: data env -> report)
+      (match d
+        [('var x) (type-compute/var x e)]
+        [('cons x) (type-compute/cons x e)]
+        [('arrow x) (type-compute/arrow x e)]
+        [('lambda x) (type-compute/lambda x e)]
+        [('trunk x) (type-compute/trunk x e)]))
+    #+end_src
+
+*** >< type-compute/var
+
+*** >< type-compute/cons
+
+*** >< type-compute/arrow
+
+*** >< type-compute/lambda
+
+*** >< type-compute/trunk
 
 * >< infer
