@@ -777,9 +777,21 @@
   (match e
     [(ds bs ns)
      (match d
-       [('var _) (list (cons (bs/deep bs d) ds) bs ns)]
+       [('var v) (compute/var v e)]
        [('trunk t) (compute/trunk t e)]
-       [_ (list (cons d ds) bs ns)])]))
+       [_
+        (list 'success
+              (list (cons d ds) bs ns))])]))
+
+(define (compute/var v e)
+  (: var env -> report)
+  (match e
+    [(ds bs ns)
+     (list 'success
+           (list (cons (bs/deep bs (list 'var v))
+                       ds)
+                 bs
+                 ns))]))
 
 (define (trunk->trunk* t e)
   (: trunk env -> trunk)
@@ -854,7 +866,7 @@
   (: index env -> data)
   (match e
     [(ds bs ns)
-     (list-ref ds (- (length ds) i))]))
+     (list-ref ds (- (length ds) (+ 1 i)))]))
 
 (type report
   ('fail (info ...))
@@ -1202,3 +1214,49 @@
     [('arrow x) (type-compute/arrow x e)]
     [('lambda x) (type-compute/lambda x e)]
     [('trunk x) (type-compute/trunk x e)]))
+
+(define (type-compute/var v e)
+  (: var env -> report)
+  (match v
+    [(id level)
+     (compute/var (list id (+ 1 level)) e)]))
+
+(define (type-compute/cons c e)
+  (: cons env -> report)
+  (match e
+    [(ds bs ns)
+     (match c
+       [(n dl)
+        (let ([found (assq n ns)])
+          (if (not found)
+            (orz ("type-compute/cons unknow name : ~a~%" n)
+                 ("cons : ~a~%" c))
+            (let ([meaning (cdr found)])
+              (match meaning
+                [(any-type (a . _))
+                 (match (compute/cedent dl e)
+                   [('fail il) ('fail il)]
+                   [('success e1) (compute/arrow a e1)])]))))])]))
+
+(define (type-compute/arrow a e)
+  (: arrow env -> report)
+  (orz ("type-compute/arrow is not handled for now~%")))
+
+(define (type-compute/lambda l e)
+  (: lambda env -> report)
+  (match e
+    [(ds bs ns)
+     (match l
+       [(a al)
+        (list 'success
+              (list (cons (list 'arrow a) ds)
+                    bs
+                    ns))])]))
+
+(define (type-compute/trunk t e)
+  (: trunk env -> report)
+  (match t
+    [(a _ dl i)
+     (match (compute (list-ref dl (- (length dl) (+ 1 i))) e)
+       [('fail il) ('fail il)]
+       [('success e1) (compute/arrow a e1)])]))
