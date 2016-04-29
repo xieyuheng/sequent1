@@ -870,28 +870,7 @@
       type-name r
       (eva/dt/data-constructor type-name na e))]))
 
-(define (eva/df df e)
-  ;; ((form1/name form1/arrow) (form1/arrow ...)), env -> env
-  (match e
-    [(ds bs ns)
-     (match df
-       [((n a) al)
-        (let* ([a0 (a)]
-               [ns1 (cons (cons n
-                                (list 'lambda
-                                      (list a
-                                            (formal-arrow->arity a e)
-                                            l)))
-                          ns)])
-          (match (check a l (list ds bs ns1))
-            ;; note that the bs of the env
-            ;; returned by check is not clean
-            ;; thus e1 is not used as return env
-            (:success e1) => (list ds bs ns1)
-            (:fail check-report) =>
-            (orz ()
-                 ("eva/df fail to define : ~a~%" function-definition)
-                 ("check-report : ~a" check-report))))])]))
+
 
 (define (eva/ap a e)
   ;; form1/arrow, env -> env
