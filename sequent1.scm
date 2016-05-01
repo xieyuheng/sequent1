@@ -1,16 +1,21 @@
-(define-syntax cat
+(define-syntax cating
   (syntax-rules ()
-    [(cat (str . args))
-     (format str . args)]
+    [(cating (str . args))
+     (format #f str . args)]
     [(cat (str . args) (str2 . args2) ...)
      (string-append
-      (cat (str . args))
-      (cat (str2 . args2) ...))]))
+      (cating (str . args))
+      (cating (str2 . args2) ...))]))
+
+(define-syntax cat
+  (syntax-rules ()
+    [(cat e ...)
+     (format (cating e ...))]))
 
 (define-syntax orz
   (syntax-rules ()
-    [(orz who . body)
-     (error who (quote body))]))
+    [(orz who c ...)
+     (error who (cating ("~%") c ...))]))
 
 (define-syntax type
   (syntax-rules ()
@@ -38,7 +43,7 @@
          (pretty-print (quote b2))
          (cat ("<expect-value> :\n"))
          (pretty-print b2)
-         (orz ("<test-fail-report-end>\n"))))]))
+         (orz 'test ("<test-fail-report-end>\n"))))]))
 
 (define (left-of s l)
   (: sexp list -> list)
@@ -149,7 +154,7 @@
                      (pass1/cedent 0 (right-of '@ v))
                      'not-leave))]
         [else
-         (orz pass1 ("pass1 can not handle sexp-form:~a" v))]))
+         (orz 'pass1 ("pass1 can not handle sexp-form:~a" v))]))
 
 (define (pass1/var default-level v)
   (: default-level symbol -> form2/var)
@@ -374,7 +379,7 @@
     [(ds bs ns)
      (let ([found (assq n ns)])
        (if (not found)
-         (orz ("pass3/name unknow name : ~a~%" n))
+         (orz 'pass3/name ("unknow name : ~a~%" n))
          (let ([meaning (cdr found)])
            (match meaning
              [('cons/type ((ac sc) n1 _))
@@ -634,14 +639,16 @@
           (let* ([n al]
                  [found (assq n ns)])
             (if (not found)
-              (orz ("trunk->trunk* fail~%" )
+              (orz 'trunk->trunk*
+                   ("fail~%")
                    ("unknow name : ~a~%" n))
               (let ([meaning (cdr found)])
                 (match meaning
                   [('lambda ((ac sc) al1))
                    (list a (map copy-arrow al1) dl i)]
                   [_
-                   (orz ("trunk->trunk* fail~%" )
+                   (orz 'trunk->trunk*
+                        ("trunk->trunk* fail~%" )
                         ("name is not lambda : ~a~%" n))])))))])]))
 
 (define (compute/trunk t e)
@@ -892,7 +899,7 @@
   (: dt-body -> ((form1/name form1/arrow) ...))
   (cond [(eq? '() body) '()]
         [(eq? '() (cdr body))
-         (orz ("parse/top/dt-body wrong body : ~a~%" body))]
+         (orz 'parse/top/dt-body ("wrong body : ~a~%" body))]
         [else
          (cons (list (car body) (cadr body))
                (parse/top/dt-body (cddr body)))]))
@@ -975,7 +982,7 @@
             [('fail il)
              (cat ("eva/df fail to define : ~a~%" df))
              (pretty-print il)
-             (orz ("end of report~%"))]))])]))
+             (orz 'eva/df ("end of report~%"))]))])]))
 
 (define (eva/ap a e)
   (: form1/arrow env -> env)
@@ -987,7 +994,7 @@
        (cat ("eva/ap fail~%"))
        (pretty-print il)
        (cat ("~%"))
-       (orz ("end of report~%"))])))
+       (orz 'eva/ap ("end of report~%"))])))
 
 (define (check t al e)
   (: arrow (arrow ...) env -> report)
@@ -1070,7 +1077,8 @@
        [(n dl)
         (let ([found (assq n ns)])
           (if (not found)
-            (orz ("type-compute/cons unknow name : ~a~%" n)
+            (orz 'type-compute/cons
+                 ("unknow name : ~a~%" n)
                  ("cons : ~a~%" c))
             (let ([meaning (cdr found)])
               (match meaning
@@ -1082,7 +1090,8 @@
 
 (define (type-compute/arrow a e)
   (: arrow env -> report)
-  (orz ("type-compute/arrow is not handled for now~%")))
+  (orz 'type-compute/arrow
+       ("arrow is not handled for now~%")))
 
 (define (type-compute/lambda l e)
   (: lambda env -> report)
