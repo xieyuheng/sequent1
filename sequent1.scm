@@ -577,7 +577,11 @@
                             ns))
           [('fail il)
            (list 'fail
-                 (cons `(compute/arrow fail (arrow: ,a)) il))]
+                 (cons `(compute/arrow
+                         fail
+                         (arrow: ,a)
+                         (ds: ,ds))
+                       il))]
           [('success e1)
            (match (compute/cedent sc e1)
              [('fail il) (list 'fail il)]
@@ -611,8 +615,9 @@
   (match e
     [(ds bs ns)
      (match d
-       [('var v) (compute/var v e)]
-       [('trunk t) (compute/trunk t e)]
+       [('var x) (compute/var x e)]
+       [('cons x) (compute/cons x e)]
+       [('trunk x) (compute/trunk x e)]
        [_
         (list 'success
               (list (cons d ds) bs ns))])]))
@@ -626,6 +631,27 @@
                        ds)
                  bs
                  ns))]))
+
+(define (compute/cons c e)
+  (: cons env -> report)
+  (match e
+    [(ds bs ns)
+     (match c
+       [(n dl)
+        (match (compute/cedent dl (list '() bs ns))
+          [('fail il)
+           (list 'fail
+                 (cons `(compute/cons
+                         fail
+                         (cons: ,c))
+                       il))]
+          [('success (ds1 bs1 ns1))
+           (list 'success
+                 (list (cons (list 'cons
+                                   (list n ds1))
+                             ds)
+                       bs
+                       ns))])])]))
 
 (define (trunk->trunk* t e)
   (: trunk env -> trunk)
@@ -834,8 +860,25 @@
 (define (unify/trunk t1 t2 e)
   (: trunk trunk env -> report)
   (match (list (trunk->trunk* t1 e) (trunk->trunk* t2 e))
-    [((a1 al1 dl1) (a2 al2 dl2))
-     (unify/data-list dl1 dl2 (unify/lambda (list a1 al1) (list a2 al2) e))]))
+    [((a1 al1 dl1 i1) (a2 al2 dl2 i2))
+     ;; (if (eq? i1 i2)
+     ;;   (unify/data-list dl1 dl2 (unify/lambda (list a1 al1) (list a2 al2) e))
+     ;;   (list 'fail
+     ;;         (list `(unify/trunk
+     ;;                 fail indexes are different
+     ;;                 (trunk1: ,t1)
+     ;;                 (trunk2: ,t2)))))
+     ;;;; the above will diverge
+     ;;;; while
+     ;;;; the following make it impossible
+     ;;;; to unify the arrow-list of trunk
+     (if (equal? (list a1 al1 i1) (list a2 al2 i2))
+       (unify/data-list dl1 dl2 (list 'success e))
+       (list 'fail
+             (list `(unify/trunk
+                     fail
+                     (trunk1: ,t1)
+                     (trunk2: ,t2)))))]))
 
 (define (unify/trunk/data t d e)
   (: trunk data env -> report)
@@ -986,9 +1029,8 @@
 
 (define (eva/ap a e)
   (: form1/arrow env -> env)
-  (let ([a0 (match (pass2/arrow (pass1/arrow 0 a) '())
-              [(a1 s) (pass3/get-arrow a1 e)])])
-    (match (compute/arrow a e)
+  (let ([a0 (form1/arrow->arrow a e)])
+    (match (compute/arrow a0 e)
       [('success e1) e1]
       [('fail il)
        (cat ("eva/ap fail~%"))
@@ -1106,11 +1148,17 @@
 
 (define (type-compute/trunk t e)
   (: trunk env -> report)
-  (match t
-    [(a _ dl i)
-     (match (compute dl e)
-       [('fail il) (list 'fail il)]
-       [('success e1)
-        ;; need to proj here
-        ;; but the interface of proj might be improved
-        (compute/arrow a e1)])]))
+  (match e
+    [(ds bs ns)
+     (match t
+       [(a _ dl i)
+        (match (type-compute/cedent dl e)
+          [('fail il) (list 'fail il)]
+          [('success e1)
+           (match (compute/arrow a e1)
+             [('fail il) (list 'fail il)]
+             [('success e2)
+              (list 'success
+                    (list (cons (proj i e2) ds)
+                          bs
+                          ns))])])])]))

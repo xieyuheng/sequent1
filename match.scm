@@ -10,7 +10,7 @@
     ((_ expr label ((k1 fk1 pat1 . body1) (k fk pat . body) ...))
      (let ((tmp expr))
        (letrec ((k (lambda () (match-one tmp pat (begin . body) (fk)))) ...
-                (label (lambda () (error "no matches" tmp))))
+                (label (lambda () (error 'match-gen-labels "no matches" tmp))))
          (match-one tmp pat1 (begin . body1) (fk1)))))
     ((_ expr label (labels ...) (pat (=> fk) . body) . rest)
      (match-gen-labels expr fk (labels ... (label fk pat . body)) . rest))

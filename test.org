@@ -80,28 +80,6 @@
 
      (df add (natural natural -> natural)
          (:m zero -> :m)
-         )
-     )
-
-    (eva
-
-     (dt natural (-> type)
-         zero (-> natural)
-         succ (natural -> natural))
-
-     (df add (natural natural -> natural)
-         (:m zero -> :m)
-         (:m :n succ -> :m :n add succ))
-     )
-
-    (eva
-
-     (dt natural (-> type)
-         zero (-> natural)
-         succ (natural -> natural))
-
-     (df add (natural natural -> natural)
-         (:m zero -> :m)
          (:m :n succ -> :m :n add succ))
 
      (df mul (natural natural -> natural)
@@ -116,9 +94,7 @@
      (ap (->
           zero succ succ
           zero succ succ
-          mul))
-
-     (ap (-> mul)))
+          mul)))
     #+end_src
 
 *** list
@@ -126,40 +102,40 @@
     #+begin_src scheme
     (eva
 
-      (dt natural (-> type)
-          zero (-> natural)
-          succ (natural -> natural))
+     (dt natural (-> type)
+         zero (-> natural)
+         succ (natural -> natural))
 
-      (df add (natural natural -> natural)
-          (:m zero -> :m)
-          (:m :n succ -> :m :n add succ))
+     (df add (natural natural -> natural)
+         (:m zero -> :m)
+         (:m :n succ -> :m :n add succ))
 
-      (df mul (natural natural -> natural)
-          (:m zero -> zero)
-          (:m :n succ -> :m :n mul :m add))
+     (df mul (natural natural -> natural)
+         (:m zero -> zero)
+         (:m :n succ -> :m :n mul :m add))
 
-      (dt list ((:t : type) :t -> type)
-          null (-> :t list)
-          cons (:t list :t -> :t list))
+     (dt list ((:t : type) :t -> type)
+         null (-> :t list)
+         cons (:t list :t -> :t list))
 
-      ;; (df map (:t1 list (:t1 -> :t2) -> :t2 list)
-      ;;     (null :f -> null)
-      ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
+     ;; (df map (:t1 list (:t1 -> :t2) -> :t2 list)
+     ;;     (null :f -> null)
+     ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
 
-      (df append (:t list :t list -> :t1 list)
-          (:l null -> :l)
-          (:l :r :e cons -> :l :r append :e cons))
+     (df append (:t list :t list -> :t1 list)
+         (:l null -> :l)
+         (:l :r :e cons -> :l :r append :e cons))
 
-      (ap (->
-           null
-           zero cons
-           zero cons
-           zero cons
-           null
-           zero cons
-           zero cons
-           zero cons
-           append)))
+     (ap (->
+          null
+          zero cons
+          zero cons
+          zero cons
+          null
+          zero cons
+          zero cons
+          zero cons
+          append)))
     #+end_src
 
 *** has-length
