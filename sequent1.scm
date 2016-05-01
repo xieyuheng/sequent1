@@ -1,13 +1,7 @@
-;; module system of guile
-;; using http://synthcode.com/scheme/match.scm
-(use-modules (ice-9 match))
-
 (define-syntax cat
   (syntax-rules ()
     [(cat (str . args))
-     ;; (format str . args)
-     ;; guile
-     (format #t str . args)]
+     (format str . args)]
     [(cat (str . args) (str2 . args2) ...)
      (string-append
       (cat (str . args))
@@ -15,12 +9,8 @@
 
 (define-syntax orz
   (syntax-rules ()
-    [(orz . body)
-     (error (cat . body))]))
-
-(define (void)
-  (let ([x '()])
-    (set! x '())))
+    [(orz who . body)
+     (error who (quote body))]))
 
 (define-syntax type
   (syntax-rules ()
@@ -31,8 +21,6 @@
   (syntax-rules ()
     [(: . body)
      (void)]))
-
-(use-modules (ice-9 pretty-print))
 
 (define-syntax test
   (syntax-rules ()
@@ -98,99 +86,6 @@
         curser
         (find-char/curser c s (+ 1 curser))))))
 
-(type form1
-  (type form1/var
-    (example
-      :var
-      :var^n))
-  (type form1/name
-    symbol)
-  (type form1/arrow
-    '(form1 ... -> form1 ...))
-  (type form1/lambda
-    '(lambda form1/arrow
-       form1/arrow
-       ...))
-  (type form1/im-bind
-    '(form1/var ... : form1 ...))
-  (type form1/ex-bind
-    '(form1/var ... @ form1 ...)))
-
-(type form2
-  ('form2/var    (symbol level))
-  ('form2/name   symbol)
-  ('form2/arrow  ((form2 ...) (form2 ...)))
-  ('form2/lambda (form2/arrow (form2/arrow ...)))
-  ('form2/bind   ((form2/var ...) (form2 ...) leave?)))
-(type level natural-number)
-(type leave?
-  'leave
-  'not-leave)
-
-(type form3
-  ('form3/var    (id level))
-  ('form3/name   symbol)
-  ('form3/arrow  ((form3 ...) (form3 ...)))
-  ('form3/lambda (form3/arrow (form3/arrow ...)))
-  ('form3/bind   ((form3/var ...) (form3 ...) leave?)))
-(type id #(symbol ls))
-
-(type data
-  ('var    (id level))
-  ('cons   (name (data ...)))
-  ('arrow  ((data ...) (data ...)))
-  ('lambda (arrow (arrow ...)))
-  ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
-
-(type env (ds bs ns))
-(type ds (data ...))
-(type bs ((id . ls) ...))
-(type ns ((name . meaning) ...))
-(type ls ((level . data) ...))
-(type meaning
-  ('cons/type (arrow name (name ...)))
-  ('cons/data (arrow name name))
-  ('lambda    (arrow (arrow ...))))
-
-(type report
-  ('fail (info ...))
-  ('success env))
-(type info <free>)
-
-(type top
-  ('dt ((form1/name form1/arrow) ((form1/name form1/arrow) ...)))
-  ('df ((form1/name form1/arrow) (form1/arrow ...)))
-  ('ap form1/arrow))
-
-(type form1
-  (type form1/var
-    (example
-      :var
-      :var^n))
-  (type form1/name
-    symbol)
-  (type form1/arrow
-    '(form1 ... -> form1 ...))
-  (type form1/lambda
-    '(lambda form1/arrow
-       form1/arrow
-       ...))
-  (type form1/im-bind
-    '(form1/var ... : form1 ...))
-  (type form1/ex-bind
-    '(form1/var ... @ form1 ...)))
-
-(type form2
-  ('form2/var    (symbol level))
-  ('form2/name   symbol)
-  ('form2/arrow  ((form2 ...) (form2 ...)))
-  ('form2/lambda (form2/arrow (form2/arrow ...)))
-  ('form2/bind   ((form2/var ...) (form2 ...) leave?)))
-(type level natural-number)
-(type leave?
-  'leave
-  'not-leave)
-
 (define (pass1/arrow default-level s)
   (: default-level form1/arrow -> form2/arrow)
   (list (pass1/cedent default-level (left-of '-> s))
@@ -254,7 +149,7 @@
                      (pass1/cedent 0 (right-of '@ v))
                      'not-leave))]
         [else
-         (orz ("pass1 can not handle sexp-form:~a" v))]))
+         (orz pass1 ("pass1 can not handle sexp-form:~a" v))]))
 
 (define (pass1/var default-level v)
   (: default-level symbol -> form2/var)
@@ -262,48 +157,29 @@
          [cursor (find-char "^" str)])
     (if cursor
       (list (string->symbol (substring str 0 cursor))
-            (string->number (substring str (+ 1 cursor))))
+            (string->number (substring str (+ 1 cursor) (string-length str))))
       (list v default-level))))
-
-(type form2
-  ('form2/var    (symbol level))
-  ('form2/name   symbol)
-  ('form2/arrow  ((form2 ...) (form2 ...)))
-  ('form2/lambda (form2/arrow (form2/arrow ...)))
-  ('form2/bind   ((form2/var ...) (form2 ...) leave?)))
-(type level natural-number)
-(type leave?
-  'leave
-  'not-leave)
-
-(type form3
-  ('form3/var    (id level))
-  ('form3/name   symbol)
-  ('form3/arrow  ((form3 ...) (form3 ...)))
-  ('form3/lambda (form3/arrow (form3/arrow ...)))
-  ('form3/bind   ((form3/var ...) (form3 ...) leave?)))
-(type id #(symbol ls))
 
 (define (pass2/arrow a s)
   (: form2/arrow scope -> (form3/arrow scope))
   (match a
     [(ac sc)
      (match (pass2/cedent ac s)
-       [(3ac s1)
+       [(ac1 s1)
         (match (pass2/cedent sc s1)
-          [(3sc s2)
-           (list (list 3ac 3sc) s2)])])]))
+          [(sc1 s2)
+           (list (list ac1 sc1) s2)])])]))
 
 (define (pass2/cedent c s)
   (: (form2 ...) scope -> ((form3 ...) scope))
   (match c
     [() (list '() s)]
-    [(h . r)
-     (match (pass2 h s)
-       [(3f s1)
+    [(f . r)
+     (match (pass2 f s)
+       [(f1 s1)
         (match (pass2/cedent r s1)
-          [(3c s2)
-           (list (cons 3f 3c) s2)])])]))
+          [(c1 s2)
+           (list (cons f1 c1) s2)])])]))
 
 (define (pass2/lambda l s)
   (: form2/lambda scope -> (form3/lambda scope))
@@ -354,36 +230,11 @@
   (match b
     [(vs c leave?)
      (match (pass2/cedent vs s)
-       [(3vs s1)
+       [(vs1 s1)
         (match (pass2/cedent c s1)
           ;; this means vars in vs can occur in c
-          [(3c s2)
-           (list (list 3vs 3c leave?) s2)])])]))
-
-(type form3
-  ('form3/var    (id level))
-  ('form3/name   symbol)
-  ('form3/arrow  ((form3 ...) (form3 ...)))
-  ('form3/lambda (form3/arrow (form3/arrow ...)))
-  ('form3/bind   ((form3/var ...) (form3 ...) leave?)))
-(type id #(symbol ls))
-
-(type data
-  ('var    (id level))
-  ('cons   (name (data ...)))
-  ('arrow  ((data ...) (data ...)))
-  ('lambda (arrow (arrow ...)))
-  ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
-
-(type env (ds bs ns))
-(type ds (data ...))
-(type bs ((id . ls) ...))
-(type ns ((name . meaning) ...))
-(type ls ((level . data) ...))
-(type meaning
-  ('cons/type (arrow name (name ...)))
-  ('cons/data (arrow name name))
-  ('lambda    (arrow (arrow ...))))
+          [(c1 s2)
+           (list (list vs1 c1 leave?) s2)])])]))
 
 (define (pass3/get-arrow a e)
   (: form3/arrow env -> arrow)
@@ -398,10 +249,10 @@
      (match a
        [(ac sc)
         (match (pass3/cedent ac e)
-          [((d1 . _) _ _)
+          [(ds1 _ _)
            (match (pass3/cedent sc e)
-             [((d2 . _) _ _)
-              (list (cons (list 'arrow (list d1 d2))
+             [(ds2 _ _)
+              (list (cons (list 'arrow (list ds1 ds2))
                           ds)
                     bs
                     ns)])])])]))
@@ -498,7 +349,8 @@
              (lambda (bs al)
                (map (lambda (a) (bs/deep-arrow bs a)) al))])
     (match (bs/walk bs d)
-      [('var v) ('var v)]
+      [('var v)
+       (list 'var v)]
       [('cons (name dl))
        (list 'cons
              (list name (bs/deep-list bs dl)))]
@@ -525,11 +377,11 @@
          (orz ("pass3/name unknow name : ~a~%" n))
          (let ([meaning (cdr found)])
            (match meaning
-             [('cons/type ((ac sc) name _))
-              (pass3/name/cons (length ac) name e)]
-             [('cons/data ((ac sc) name _))
-              (pass3/name/cons (length ac) name e)]
-             [('lambda ((ac sc) al))
+             [('cons/type ((ac sc) n1 _))
+              (pass3/name/cons (length ac) n1 e)]
+             [('cons/data ((ac sc) n1 _))
+              (pass3/name/cons (length ac) n1 e)]
+             [('lambda ((ac sc) _))
               (pass3/name/trunk (length ac) (length sc) (list ac sc) n e)]))))]))
 
 (define (pass3/name/cons len name e)
@@ -538,7 +390,7 @@
     [(ds bs ns)
      (list (cons (list 'cons
                        (list name (sublist ds 0 len)))
-                 (sublist ds len -1))
+                 (sublist ds len (length ds)))
            bs
            ns)]))
 
@@ -550,7 +402,7 @@
             [dl (sublist ds 0 len)]
             [make-trunk (lambda (i) (list 'trunk (list a n dl i)))])
        (list (append (map make-trunk (genlist slen))
-                     (sublist ds len -1))
+                     (sublist ds len (length ds)))
              bs
              ns))]))
 
@@ -583,13 +435,6 @@
     (vector-set! id 1 (append ls (vector-ref id 1)))
     id))
 
-(type data
-  ('var    (id level))
-  ('cons   (name (data ...)))
-  ('arrow  ((data ...) (data ...)))
-  ('lambda (arrow (arrow ...)))
-  ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
-
 (define (copy-arrow a)
   (: arrow -> arrow)
   (match (copy/arrow a '())
@@ -603,7 +448,7 @@
        [(ac1 s1)
         (match (copy/cedent sc s1)
           [(sc1 s2)
-           (list ac1 sc1 s2)])])]))
+           (list (list ac1 sc1) s2)])])]))
 
 (define (copy/cedent c s)
   (: (data ...) scope -> ((data ...) scope))
@@ -715,23 +560,6 @@
                [(dl1 s3)
                 (list (list a1 al1 dl1 i) s3)])])]))]))
 
-(type data
-  ('var    (id level))
-  ('cons   (name (data ...)))
-  ('arrow  ((data ...) (data ...)))
-  ('lambda (arrow (arrow ...)))
-  ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
-
-(type env (ds bs ns))
-(type ds (data ...))
-(type bs ((id . ls) ...))
-(type ns ((name . meaning) ...))
-(type ls ((level . data) ...))
-(type meaning
-  ('cons/type (arrow name (name ...)))
-  ('cons/data (arrow name name))
-  ('lambda    (arrow (arrow ...))))
-
 (define (compute/arrow a e)
   (: arrow env -> report)
   (match e
@@ -747,7 +575,8 @@
                  (cons `(compute/arrow fail (arrow: ,a)) il))]
           [('success e1)
            (match (compute/cedent sc e1)
-             [(ds2 bs2 ns2)
+             [('fail il) (list 'fail il)]
+             [('success (ds2 bs2 ns2))
               (list 'success
                     (list ds2 (bs/commit! bs2) ns2))])])])]))
 
@@ -769,7 +598,7 @@
     [() (list 'success e)]
     [(h . r)
      (match (compute h e)
-       [('fail il) ('fail il)]
+       [('fail il) (list 'fail il)]
        [('success e1) (compute/cedent r e1)])]))
 
 (define (compute d e)
@@ -800,7 +629,7 @@
      (match t
        [(a al dl i)
         (if (not (symbol? al))
-          al
+          (list a al dl i)
           ;; this is the only place (arrow ...) is copied
           (let* ([n al]
                  [found (assq n ns)])
@@ -810,7 +639,7 @@
               (let ([meaning (cdr found)])
                 (match meaning
                   [('lambda ((ac sc) al1))
-                   (map copy-arrow al1)]
+                   (list a (map copy-arrow al1) dl i)]
                   [_
                    (orz ("trunk->trunk* fail~%" )
                         ("name is not lambda : ~a~%" n))])))))])]))
@@ -823,6 +652,8 @@
        [(a al dl i)
         (let* ([dl1 (map (lambda (x) (bs/deep bs x)) dl)]
                [al1 (filter-arrow-list al dl1 e)])
+          (cat ("<here> ~a~%" dl1))
+          (cat ("<here> ~a~%" al1))
           (match al1
             [()
              (list 'fail
@@ -839,7 +670,7 @@
                       (list (cons (proj i e1) ds)
                             bs
                             ns))]
-               [('fail il) ('fail il)])]
+               [('fail il) (list 'fail il)])]
             [(a1 a2 . _)
              (list 'success
                    (list a al1 dl i))]))])]))
@@ -868,11 +699,6 @@
     [(ds bs ns)
      (list-ref ds (- (length ds) (+ 1 i)))]))
 
-(type report
-  ('fail (info ...))
-  ('success env))
-(type info <free>)
-
 (define (unify f e)
   (: (env -> report) env -> report)
   (match e
@@ -886,14 +712,14 @@
                [tmp (right-of 'unify-point ds1)]
                [len (length pl)]
                [dl (sublist tmp 0 len)]
-               [ds2 (sublist tmp len -1)])
+               [ds2 (sublist tmp len (length tmp))])
           (unify/data-list pl dl
                            (list 'success (list ds2 bs ns))))])]))
 
 (define (unify/data-list pl dl r)
   (: (pattern ...) (data ...) report -> report)
   (match r
-    [('fail il) ('fail il)]
+    [('fail il) (list 'fail il)]
     [('success e)
      (if (eq? pl '())
        r
@@ -934,7 +760,7 @@
          [(('lambda l1) ('lambda l2)) (unify/lambda l1 l2 e)]
          [(_ _)
           (list 'fail
-                (list '(unify/data
+                (list `(unify/data
                         fail to unify
                         (pattern: ,p) (data: ,d))))]))]))
 
@@ -990,7 +816,7 @@
 (define (unify/arrow-list al1 al2 r)
   (: (arrow ...) (arrow ...) report -> report)
   (match r
-    [('fail il) ('fail il)]
+    [('fail il) (list 'fail il)]
     [('success e)
      (if (eq? al1 '())
        r
@@ -1030,33 +856,46 @@
     [((d . r) bs ns)
      (list d (list r bs ns))]))
 
-(type top
-  ('dt ((form1/name form1/arrow) ((form1/name form1/arrow) ...)))
-  ('df ((form1/name form1/arrow) (form1/arrow ...)))
-  ('ap form1/arrow))
-
-(type env (ds bs ns))
-(type ds (data ...))
-(type bs ((id . ls) ...))
-(type ns ((name . meaning) ...))
-(type ls ((level . data) ...))
-(type meaning
-  ('cons/type (arrow name (name ...)))
-  ('cons/data (arrow name name))
-  ('lambda    (arrow (arrow ...))))
-
 (define-syntax eva
   (syntax-rules ()
     [(eva e ...)
      (eva/top-list
-      (quote (e ...))
-      '(() () ()))]))
+      (map parse/top (quote (e ...)))
+      '(()
+        ()
+        ((type . (cons/type ((()
+                              (cons (type ())))
+                             type
+                             type))))))]))
 
 (define (eva/top-list tl e)
   (: (top ...) env -> env)
   (match tl
     [() e]
     [(t . r) (eva/top-list r (eva/top t e))]))
+
+(define (parse/top s)
+  (: sexp-top -> top)
+  (match s
+    [('dt n a . body)
+     (list 'dt
+           (list (list n a)
+                 (parse/top/dt-body body)))]
+    [('df n a . al)
+     (list 'df
+           (list (list n a)
+                 al))]
+    [('ap a)
+     (list 'ap a)]))
+
+(define (parse/top/dt-body body)
+  (: dt-body -> ((form1/name form1/arrow) ...))
+  (cond [(eq? '() body) '()]
+        [(eq? '() (cdr body))
+         (orz ("parse/top/dt-body wrong body : ~a~%" body))]
+        [else
+         (cons (list (car body) (cadr body))
+               (parse/top/dt-body (cddr body)))]))
 
 (define (eva/top t e)
   (: top env -> env)
@@ -1078,8 +917,9 @@
        [((n a) nal)
         (let* ([nl (map car nal)]
                [a0 (form1/arrow->arrow a e)]
-               [ns1 (cons (list 'cons/type
-                                (list a0 n nl))
+               [ns1 (cons (cons n
+                                (list 'cons/type
+                                      (list a0 n nl)))
                           ns)])
           (eva/dt/data-constructor-list n nal (list ds bs ns1)))])]))
 
@@ -1113,7 +953,15 @@
      (match df
        [((n a) al)
         (let* ([a0 (form1/arrow->arrow a e)]
-               [al0 (map (lambda (x) (form1/arrow->arrow x e)) al)]
+               ;; need to put the type into ns first
+               ;; for recursive call in arrow-list
+               [ns0 (cons (cons n
+                                (list 'lambda
+                                      (list a0 'placeholder)))
+                          ns)]
+               [al0 (map (lambda (x)
+                           (form1/arrow->arrow x (list ds bs ns0)))
+                      al)]
                [ns1 (cons (cons n
                                 (list 'lambda
                                       (list a0 al0)))
@@ -1142,24 +990,24 @@
        (orz ("end of report~%"))])))
 
 (define (check t al e)
-  (: arrow (arrow ...) env -> env)
+  (: arrow (arrow ...) env -> report)
   (match al
     [() (list 'success e)]
     [(a . r)
      (match (check/arrow t a e)
-       [('success e) (check t r e)]
-       [('fail il) ('fail il)])]))
+       [('success e1) (check t r e1)]
+       [('fail il) (list 'fail il)])]))
 
 (define (check/arrow t a e)
   (: arrow arrow env -> report)
   (match (list t a)
     [((tac tsc) (ac sc))
-     (match (compute/arrow tac e)
+     (match (compute/cedent tac e)
        [('fail il)
         (list 'fail
               (cons `(check/arrow
                       fail on
-                      (tac ,tac))
+                      (type-antecedent: ,tac))
                     il))]
        [('success e1)
         (match (unify (lambda (x) (type-compute/cedent ac x))
@@ -1168,15 +1016,15 @@
            (list 'fail
                  (cons `(check/arrow
                          fail on
-                         (ac ,ac))
+                         (antecedent: ,ac))
                        il))]
           [('success e2)
-           (match (compute/arrow tsc e2)
+           (match (compute/cedent tsc e2)
              [('fail il)
               (list 'fail
                     (cons `(check/arrow
                             fail on
-                            (tsc ,tsc))
+                            (type-succedent: ,tsc))
                           il))]
              [('success e3)
               (match (unify (lambda (x) (type-compute/cedent sc x))
@@ -1185,24 +1033,17 @@
                  (list 'fail
                        (cons `(check/arrow
                                fail on
-                               (sc ,sc))
+                               (succedent: ,sc))
                              il))]
-                [('success e4) ('success e4)])])])])]))
-
-(type data
-  ('var    (id level))
-  ('cons   (name (data ...)))
-  ('arrow  ((data ...) (data ...)))
-  ('lambda (arrow (arrow ...)))
-  ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
+                [('success e4) (list 'success e4)])])])])]))
 
 (define (type-compute/cedent c e)
   (: (data ...) env -> report)
-  (match e
-    [() e]
+  (match c
+    [() (list 'success e)]
     [(d . r)
      (match (type-compute d e)
-       [('fail il) ('fail il)]
+       [('fail il) (list 'fail il)]
        [('success e1)
         (type-compute/cedent r e1)])]))
 
@@ -1233,10 +1074,11 @@
                  ("cons : ~a~%" c))
             (let ([meaning (cdr found)])
               (match meaning
-                [(any-type (a . _))
-                 (match (compute/cedent dl e)
-                   [('fail il) ('fail il)]
-                   [('success e1) (compute/arrow a e1)])]))))])]))
+                [(any-type (t . _))
+                 (match (type-compute/cedent dl e)
+                   [('fail il) (list 'fail il)]
+                   [('success e1)
+                    (compute/arrow t e1)])]))))])]))
 
 (define (type-compute/arrow a e)
   (: arrow env -> report)
@@ -1257,6 +1099,9 @@
   (: trunk env -> report)
   (match t
     [(a _ dl i)
-     (match (compute (list-ref dl (- (length dl) (+ 1 i))) e)
-       [('fail il) ('fail il)]
-       [('success e1) (compute/arrow a e1)])]))
+     (match (compute dl e)
+       [('fail il) (list 'fail il)]
+       [('success e1)
+        ;; need to proj here
+        ;; but the interface of proj might be improved
+        (compute/arrow a e1)])]))

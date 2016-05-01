@@ -72,41 +72,59 @@
 *** natural
 
     #+begin_src scheme
-    (sequent
+    (eva
 
-      (dt type (-> type))
+     (dt natural (-> type)
+         zero (-> natural)
+         succ (natural -> natural))
 
-      (dt natural (-> type)
-          zero (-> natural)
-          succ (natural -> natural))
+     (df add (natural natural -> natural)
+         (:m zero -> :m)
+         )
+     )
 
-      (df add (natural natural -> natural)
-          (:m zero -> :m)
-          (:m :n succ -> :m :n add succ))
+    (eva
 
-      (df mul (natural natural -> natural)
-          (:m zero -> zero)
-          (:m :n succ -> :m :n mul :m add))
+     (dt natural (-> type)
+         zero (-> natural)
+         succ (natural -> natural))
 
-      (ap (->
-           zero succ
-           zero succ succ
-           add))
+     (df add (natural natural -> natural)
+         (:m zero -> :m)
+         (:m :n succ -> :m :n add succ))
+     )
 
-      (ap (->
-           zero succ succ
-           zero succ succ
-           mul))
+    (eva
 
-      (ap (-> mul)))
+     (dt natural (-> type)
+         zero (-> natural)
+         succ (natural -> natural))
+
+     (df add (natural natural -> natural)
+         (:m zero -> :m)
+         (:m :n succ -> :m :n add succ))
+
+     (df mul (natural natural -> natural)
+         (:m zero -> zero)
+         (:m :n succ -> :m :n mul :m add))
+
+     (ap (->
+          zero succ
+          zero succ succ
+          add))
+
+     (ap (->
+          zero succ succ
+          zero succ succ
+          mul))
+
+     (ap (-> mul)))
     #+end_src
 
 *** list
 
     #+begin_src scheme
-    (sequent
-
-      (dt type (-> type))
+    (eva
 
       (dt natural (-> type)
           zero (-> natural)
@@ -159,9 +177,7 @@
 *** vector
 
     #+begin_src scheme
-    (sequent
-
-      (dt type (-> type))
+    (eva
 
       (dt natural (-> type)
           zero (-> natural)
