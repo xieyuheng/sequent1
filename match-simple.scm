@@ -1,21 +1,32 @@
 ;; synthcode.com/scheme/match-simple.scm
+;; with little change for error report
 
 (define-syntax match
   (syntax-rules ()
     ((match expr (pat . body) ...)
-     (match-gen-labels expr start () (pat . body) ...))))
+     (match-gen-labels (quote (match expr (pat . body) ...))
+                       expr start () (pat . body) ...))))
 
 (define-syntax match-gen-labels
   (syntax-rules (=>)
-    ((_ expr label ((k1 fk1 pat1 . body1) (k fk pat . body) ...))
+    ((match-gen-labels info expr label ((k1 fk1 pat1 . body1) (k fk pat . body) ...))
      (let ((tmp expr))
        (letrec ((k (lambda () (match-one tmp pat (begin . body) (fk)))) ...
-                (label (lambda () (error 'match-gen-labels "no matches" tmp))))
+                (label (lambda ()
+                         (format #t "~%")
+                         (format #t "<match-fail!!!> >_<~%")
+                         (format #t "<match-report-begin>~%")
+                         (format #t ":matching-expression:~%")
+                         (pretty-print tmp)
+                         (format #t ":matching-body:~%")
+                         (pretty-print info)
+                         (format #t "<match-report-end>~%")
+                         (error 'match "fali"))))
          (match-one tmp pat1 (begin . body1) (fk1)))))
-    ((_ expr label (labels ...) (pat (=> fk) . body) . rest)
-     (match-gen-labels expr fk (labels ... (label fk pat . body)) . rest))
-    ((_ expr label (labels ...) (pat . body) . rest)
-     (match-gen-labels expr fail (labels ... (label fail pat . body)) . rest))))
+    ((match-gen-labels info expr label (labels ...) (pat (=> fk) . body) . rest)
+     (match-gen-labels info expr fk (labels ... (label fk pat . body)) . rest))
+    ((match-gen-labels info expr label (labels ...) (pat . body) . rest)
+     (match-gen-labels info expr fail (labels ... (label fail pat . body)) . rest))))
 
 (define-syntax match-one
   (syntax-rules (__ ___ quote ? and or not)
