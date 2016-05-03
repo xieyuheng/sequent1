@@ -10,7 +10,7 @@
 
 + as a prototype implementation its unsatisfactory features are
   1. call-by-name
-  2. can not define mutually recursive functions
+  2. using copy to handle scope
 
 + source code is here https://github.com/xieyuheng/sequent1
 
@@ -515,13 +515,23 @@
 
     - how should I express such in type ?
 
+*** env/pop
+
+    #+begin_src scheme
+    (define (env/pop e)
+      (: env -> (data env))
+      (match e
+        [((d . r) bs ns)
+         (list d (list r bs ns))]))
+    #+end_src
+
 *** pass3/get-arrow
 
     #+begin_src scheme
     (define (pass3/get-arrow a e)
       (: form3/arrow env -> arrow)
-      (match (pass3/arrow a e)
-        [((('arrow arrow) . __) __ __)
+      (match (env/pop (pass3/arrow a e))
+        [(('arrow arrow) __)
          arrow]))
     #+end_src
 
@@ -1450,16 +1460,6 @@
             (unify/data d1 d e2)])]))
     #+end_src
 
-*** env/pop
-
-    #+begin_src scheme
-    (define (env/pop e)
-      (: env -> (data env))
-      (match e
-        [((d . r) bs ns)
-         (list d (list r bs ns))]))
-    #+end_src
-
 * eva
 
 *** note
@@ -1851,3 +1851,96 @@
     #+end_src
 
 * >< infer
+
+* with with-syntax
+
+  #+begin_src scheme
+  (define-syntax flower-barcket/list
+    ;; (: list -> parsed-list)
+    (lambda (x)
+      (syntax-case x (|{|)
+        [(_ ())
+         (syntax ())]
+        [(_ ((a ...) . rest))
+         (syntax ((flower-barcket/list (a ...)) . (flower-barcket/list rest)))]
+        [(_ (|{| . rest))
+         (with-syntax ([(dl . rl) (flower-barcket/read (syntax rest))])
+           (syntax ((list . dl) . (flower-barcket/list rl))))]
+        [(_ (e . rest))
+         (syntax (e . (flower-barcket/list rest)))])))
+
+  (define-syntax flower-barcket/read
+    ;; (: list -> (readed-list . not-parsed-rest-list))
+    (lambda (x)
+      (syntax-case x (|{| |}|)
+        [(_ ()) (error "flower-barcket/read")]
+        [(_ (|}| . rest))
+         (syntax (() . rest))]
+        [(_ (|{| . rest))
+         (with-syntax ([(dl . rl) (flower-barcket/read (syntax rest))])
+           (with-syntax ([(dl1 . rl1) (flower-barcket/read (syntax rl))])
+             (syntax (((list . dl) . dl1) . rl1))))]
+        [(_ ((a ...) . rest))
+         (with-syntax ([(dl . rl) (flower-barcket/read (syntax rest))])
+           (with-syntax ([l (flower-barcket/list (syntax (a ...)))])
+             (syntax ((l . dl) . rl))))]
+        [(_ (e . rest))
+         (with-syntax ([(dl . rl) (flower-barcket/read (syntax rest))])
+           (syntax ((e . dl) . rl)))])))
+
+
+  (define-macro (syntax/flower-barcket/list e)
+    (flower-barcket/list e))
+
+  ;; (syntax/flower-barcket/list
+  ;;  '({a {a b c} b {a b c} c}))
+  #+end_src
+
+* with nested syntax-case
+
+  #+begin_src scheme
+  (define-syntax flower-barcket/list
+    ;; (: list -> parsed-list)
+    (lambda (x)
+      (syntax-case x (|{|)
+        [(_ ())
+         (syntax ())]
+        [(_ ((a ...) . rest))
+         (syntax ((flower-barcket/list (a ...)) . (flower-barcket/list rest)))]
+        [(_ (|{| . rest))
+         (syntax-case (flower-barcket/read (syntax rest)) ()
+           [(dl . rl)
+            (syntax ((list . dl) . (flower-barcket/list rl)))])]
+        [(_ (e . rest))
+         (syntax (e . (flower-barcket/list rest)))])))
+
+  (define-syntax flower-barcket/read
+    ;; (: list -> (readed-list . not-parsed-rest-list))
+    (lambda (x)
+      (syntax-case x (|{| |}|)
+        [(_ ()) (error "flower-barcket/read")]
+        [(_ (|}| . rest))
+         (syntax (() . rest))]
+        [(_ (|{| . rest))
+         (syntax-case (flower-barcket/read (syntax rest)) ()
+           [(dl . rl)
+            (syntax-case (flower-barcket/read (syntax rl)) ()
+              [(dl1 . rl1)
+               (syntax (((list . dl) . dl1) . rl1))])])]
+        [(_ ((a ...) . rest))
+         (syntax-case (flower-barcket/read (syntax rest)) ()
+           [(dl . rl)
+            (syntax-case (flower-barcket/list (syntax (a ...))) ()
+              [l
+               (syntax ((l . dl) . rl))])])]
+        [(_ (e . rest))
+         (syntax-case (flower-barcket/read (syntax rest)) ()
+           [(dl . rl)
+            (syntax ((e . dl) . rl))])])))
+
+  (define-macro (syntax/flower-barcket/list e)
+    (flower-barcket/list e))
+
+  ;; (syntax/flower-barcket/list
+  ;;  '({a {a b c} b {a b c} c}))
+  #+end_src

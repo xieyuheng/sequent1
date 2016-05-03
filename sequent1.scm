@@ -251,10 +251,16 @@
           [(c1 s2)
            (list (list vs1 c1 leave?) s2)])])]))
 
+(define (env/pop e)
+  (: env -> (data env))
+  (match e
+    [((d . r) bs ns)
+     (list d (list r bs ns))]))
+
 (define (pass3/get-arrow a e)
   (: form3/arrow env -> arrow)
-  (match (pass3/arrow a e)
-    [((('arrow arrow) . __) __ __)
+  (match (env/pop (pass3/arrow a e))
+    [(('arrow arrow) __)
      arrow]))
 
 (define (pass3/arrow a e)
@@ -951,12 +957,6 @@
                       (trunk: ,t1))))]
        [(d1 e2)
         (unify/data d1 d e2)])]))
-
-(define (env/pop e)
-  (: env -> (data env))
-  (match e
-    [((d . r) bs ns)
-     (list d (list r bs ns))]))
 
 (define check? #t)
 (define (check+) (set! check? #t) #t)

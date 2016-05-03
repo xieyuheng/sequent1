@@ -145,18 +145,6 @@
           append)))
     #+end_src
 
-*** has-length
-
-    #+begin_src scheme
-    (dt has-length ((:t : type) :t list natural -> type)
-        null/has-length (-> null zero has-length)
-        cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
-
-    (df map/has-length (:l :n has-length -> :l :f map :n has-length)
-        (null/has-length -> null/has-length)
-        (:h cons/has-length -> :h map/has-length cons/has-length))
-    #+end_src
-
 *** vector
 
     #+begin_src scheme
@@ -196,4 +184,16 @@
           zero cons
           zero cons
           append)))
+    #+end_src
+
+*** has-length
+
+    #+begin_src scheme
+    (dt has-length ((:t : type) :t list natural -> type)
+        null/has-length (-> null zero has-length)
+        cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+
+    (df map/has-length (:l :n has-length -> :l :f map :n has-length)
+        (null/has-length -> null/has-length)
+        (:h cons/has-length -> :h map/has-length cons/has-length))
     #+end_src
