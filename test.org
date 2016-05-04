@@ -1,3 +1,5 @@
+#+PROPERTY: tangle test.scm
+
 * pass1
 
   #+begin_src scheme
@@ -186,14 +188,16 @@
           append)))
     #+end_src
 
-*** has-length
+*** >< has-length
 
-    #+begin_src scheme
-    (dt has-length ((:t : type) :t list natural -> type)
-        null/has-length (-> null zero has-length)
-        cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+    #+begin_src scheme :tangle no
+    (eva
 
-    (df map/has-length (:l :n has-length -> :l :f map :n has-length)
-        (null/has-length -> null/has-length)
-        (:h cons/has-length -> :h map/has-length cons/has-length))
+     (dt has-length ((:t : type) :t list natural -> type)
+         null/has-length (-> null zero has-length)
+         cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+
+     (df map/has-length (:l :n has-length -> :l :f map :n has-length)
+         (null/has-length -> null/has-length)
+         (:h cons/has-length -> :h map/has-length cons/has-length)))
     #+end_src
