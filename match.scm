@@ -2,29 +2,37 @@
 ;; http://okmij.org/ftp/Scheme/macros.html#match-case-simple
 
 (define-macro (match . body)
-  `(match1 . ,(flower-barcket/list body)))
+  `(match1 (quote (match . ,body)) . ,(flower-barcket/list body)))
 
-(define-macro (match1 e . cl)
-  (let ([v (gensym)])
+(define-macro (match1 info e . cl)
+  (let ([v (gensym "match1/call-by-value/var")])
     `(let ([,v ,e]) ;; to call by value
-       (match2 ,v . ,cl))))
+       (match2 ,info ,v . ,cl))))
 
-(define-macro (match2 v . cl)
+(define-macro (match2 info v . cl)
   (cond [(null? cl)
-         `(error 'match "failed match" ,v)]
+         `(let ()
+            (format #t "\n")
+            (format #t "<begin-match-report>\n")
+            (format #t ":value:\n")
+            (display ,v) (newline)
+            (format #t ":body:\n")
+            (display ,info) (newline)
+            (format #t "<end-match-report>\n")
+            (error 'match ">_<"))]
         [else
          (let* ([v v] [c (car cl)]
                 [p (car c)]
                 [el (cdr c)]
-                [false-body (gensym)])
-           `(let ([,false-body (lambda () (match2 ,v . ,(cdr cl)))])
+                [false-body (gensym "match2/false-body/var")])
+           `(let ([,false-body (lambda () (match2 ,info ,v . ,(cdr cl)))])
               ;; note that
               ;; match3 may do binding here
               ;; other clauses are outside of these binding
-              (match3 ,v ,p (let () . ,el) (,false-body))))]))
+              (match3 ,info ,v ,p (let () . ,el) (,false-body))))]))
 
-(define-macro (match3 v p t f)
-  ;; (: value pattern true-body false-body -> body)
+(define-macro (match3 info v p t f)
+  ;; (: info value pattern true-body false-body -> body)
   (cond [(eq? p '__)
          t]
         [(eq? p '())
@@ -33,7 +41,7 @@
               (eq? (car p) 'list))
          ;; this is for (list ...)
          ;; return by {...}
-         `(match3 ,v ,(cdr p) ,t ,f)]
+         `(match3 ,info ,v ,(cdr p) ,t ,f)]
         [(and (pair? p)
               (eq? (car p) 'quote))
          `(if (equal? ,v ,p) ,t ,f)]
@@ -41,8 +49,8 @@
          (let ([x (car p)]
                [y (cdr p)])
            `(if (pair? ,v)
-              (match3 (car ,v) ,x
-                      (match3 (cdr ,v) ,y ,t ,f)
+              (match3 ,info (car ,v) ,x
+                      (match3 ,info (cdr ,v) ,y ,t ,f)
                       ,f)
               ,f))]
         [(symbol? p)
@@ -71,13 +79,19 @@
 
 ;; (match 3
 ;;   [a a])
+;; ;; => 3
 
-;; => ((1 2 3) 1 (1 2 3) 2 (1 2 3) 3 (1 2 3))
-
-;; (match {'a 2 3}
+;; (match {'b 2 3}
 ;;   [{'a b c}
 ;;    (let ([a 1])
 ;;      {{a b c} a {a b c} b {a b c} c {a b c}})])
+;; ;; error report
+
+;; (match {'a 2 3}
+;;     [{'a b c}
+;;      (let ([a 1])
+;;        {{a b c} a {a b c} b {a b c} c {a b c}})])
+;; ;; => ((1 2 3) 1 (1 2 3) 2 (1 2 3) 3 (1 2 3))
 
 ;; (let ([s (list 'a 2 3)])
 ;;   (match s

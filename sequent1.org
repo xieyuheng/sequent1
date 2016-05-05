@@ -18,8 +18,6 @@
 
 * todo
 
-  - better error report for match
-
   - data/print
     different var should be print differently
 
