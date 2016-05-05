@@ -18,19 +18,25 @@
 
 * todo
 
-  - refactoring
+  - better error report for match
 
-  - use combinator for env passing
+  - data/print
+    different var should be print differently
 
-  - specify the reduction strategy
+  - eva/repl
 
   - the design must be separately testable
     first without check
     then add check
-  - data/print and other printing function should be used to help such test
+    - data/print and other printing function should be used to help such test
 
-  - data/print
-    different var should be print differently
+  - specify the reduction strategy
+    note that reverse data-list is cedent
+    - step eva can be used to learn
+
+  - use combinator for env passing
+
+  - refactoring
 
   - commit should be preformed arrow by arrow
     one arrow can only commit on its own var
@@ -228,11 +234,11 @@
 
     #+begin_src scheme :tangle no
     (type form2
-      ('form2/var    (symbol level))
-      ('form2/name   symbol)
-      ('form2/arrow  ((form2 ...) (form2 ...)))
-      ('form2/lambda (form2/arrow (form2/arrow ...)))
-      ('form2/bind   ((form2/var ...) (form2 ...) leave?)))
+      {'form2/var    {symbol level}}
+      {'form2/name   symbol}
+      {'form2/arrow  {{form2 ...} {form2 ...}}}
+      {'form2/lambda {form2/arrow {form2/arrow ...}}}
+      {'form2/bind   {{form2/var ...} {form2 ...} leave?}})
     (type level natural-number)
     (type leave? bool)
     #+end_src
@@ -241,11 +247,11 @@
 
     #+begin_src scheme :tangle no
     (type form3
-      ('form3/var    (id level))
-      ('form3/name   symbol)
-      ('form3/arrow  ((form3 ...) (form3 ...)))
-      ('form3/lambda (form3/arrow (form3/arrow ...)))
-      ('form3/bind   ((form3/var ...) (form3 ...) leave?)))
+      {'form3/var    {id level}}
+      {'form3/name   symbol}
+      {'form3/arrow  {{form3 ...} {form3 ...}}}
+      {'form3/lambda {form3/arrow {form3/arrow ...}}}
+      {'form3/bind   {{form3/var ...} {form3 ...} leave?}})
     (type id #(symbol ls))
     #+end_src
 
@@ -253,33 +259,33 @@
 
     #+begin_src scheme :tangle no
     (type data
-      ('var    (id level))
-      ('cons   (name (data ...)))
-      ('arrow  ((data ...) (data ...)))
-      ('lambda (arrow (arrow ...)))
-      ('trunk  (arrow (or name (arrow ...)) (data ...) index)))
+      {'var    {id level}}
+      {'cons   {name {data ...}}}
+      {'arrow  {{data ...} {data ...}}}
+      {'lambda {arrow {arrow ...}}}
+      {'trunk  {arrow (or name {arrow ...}) {data ...} index}})
     #+end_src
 
 *** env
 
     #+begin_src scheme :tangle no
-    (type env (ds bs ns))
-    (type ds (data ...))
-    (type bs ((id . ls) ...))
-    (type ns ((name . meaning) ...))
-    (type ls ((level . data) ...))
+    (type env {ds bs ns})
+    (type ds {data ...})
+    (type bs {(id . ls) ...})
+    (type ns {(name . meaning) ...})
+    (type ls {(level . data) ...})
     (type meaning
-      ('cons/type (arrow name (name ...)))
-      ('cons/data (arrow name name))
-      ('lambda    (arrow (arrow ...))))
+      {'cons/type {arrow name {name ...}}}
+      {'cons/data {arrow name name}}
+      {'lambda    {arrow {arrow ...}}})
     #+end_src
 
 *** report
 
     #+begin_src scheme :tangle no
     (type report
-      ('fail (info ...))
-      ('success env))
+      {'fail {info ...}}
+      {'success env})
     (type info <free>)
     #+end_src
 
@@ -287,9 +293,9 @@
 
     #+begin_src scheme :tangle no
     (type top
-      ('dt ((form1/name form1/arrow) ((form1/name form1/arrow) ...)))
-      ('df ((form1/name form1/arrow) (form1/arrow ...)))
-      ('ap form1/arrow))
+      {'dt {{form1/name form1/arrow} {{form1/name form1/arrow} ...}}}
+      {'df {{form1/name form1/arrow} {form1/arrow ...}}}
+      {'ap form1/arrow})
     #+end_src
 
 * pass1
