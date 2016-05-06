@@ -18,17 +18,10 @@
 
 * todo
 
-  - commit should be preformed arrow by arrow
-    one arrow can only commit on its own var
-    - note that
-      commit is only meant to handle non-determinate var
-      of which the level n is bound
-      where n > 0
-    - add a field to the id of var
-      to record which arrow the var is belong to
-
   - cedent and data-list should be viewed as different type
     reverse a cedent get data-list
+
+  - export apply to sequent1
 
   - specify the use of copy-arrow
 
@@ -1014,6 +1007,15 @@
 * compute
 
 *** compute/arrow
+
+    - commit should be preformed arrow by arrow
+      one arrow can only commit on its own var
+      this is achieve by the natural of the structure of bs
+
+    - note that
+      commit is only meant to handle non-determinate var
+      of which the level n is bound
+      where n > 0
 
     #+begin_src scheme
     (define (compute/arrow a e)
