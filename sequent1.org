@@ -20,6 +20,12 @@
 
   - commit should be preformed arrow by arrow
     one arrow can only commit on its own var
+    - note that
+      commit is only meant to handle non-determinate var
+      of which the level n is bound
+      where n > 0
+    - add a field to the id of var
+      to record which arrow the var is belong to
 
   - cedent and data-list should be viewed as different type
     reverse a cedent get data-list
@@ -31,6 +37,8 @@
     - step eva can be used to learn
 
   - make the sequent/repl more useful then macro in scheme
+    - when the program writing in sequent1 is wrong
+      sequent1 should handle it instead of crashing
 
   - use the module system for real
 
@@ -46,21 +54,6 @@
   - check-end
 
   - pretty-print in orz
-
-* note
-
-  - commit should be preformed arrow by arrow
-    one arrow can only commit on its own var
-  - note that
-    commit is only meant to handle non-determinate var
-    of which the level n is bound
-    where n > 0
-
-  - when the program writing in sequent1 is wrong
-    sequent1 should handle it instead of crashing
-
-  - cedent and data-list should be viewed as different type
-    reverse a cedent get data-list
 
 * helper
 
@@ -1031,9 +1024,7 @@
            [{ac sc}
             (let ([alen (length ac)]
                   [slen (length sc)])
-              (match (compute/cedent ac {ds
-                                         (cons '(commit-point) bs)
-                                         ns})
+              (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
                 [{'fail il} {'fail il}]
                 [{'success {ds1 bs1 ns1}}
                  (match (unify/data-list
