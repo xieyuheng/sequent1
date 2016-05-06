@@ -18,11 +18,12 @@
 
 * todo
 
-  - specify the use of copy-arrow
-
   - specify the reduction strategy
     note that reverse data-list is cedent
     - step eva can be used to learn
+
+  - infer
+    type-compute/arrow
 
   - export apply to sequent1
 
@@ -31,9 +32,6 @@
       sequent1 should handle it instead of crashing
 
   - refactoring
-
-  - infer
-    type-compute/arrow
 
   - check-cover
 
@@ -652,6 +650,8 @@
       only name should be recorded not the body
       this is to handle recursive definitions
 
+    - type arrow needs to be copied
+
     #+begin_src scheme
     (define (pass3/name/trunk len slen a n e)
       (: length length arrow name env -> env)
@@ -805,6 +805,11 @@
 
     - the name in trunk will be changed to (arrow ...)
       (arrow ...) is fetched from ns and copied
+
+    - copy-arrow is called when
+      | trunk intro in pass3          | copy type arrow                    |
+      | trunk->trunk*                 | copy body arrow-list               |
+      | compute/arrow in type-compute | copy arrow to maintain undo-ablity |
 
     - copy is arrow by arrow
       every var in new arrow is different from old arrow
@@ -1714,8 +1719,7 @@
                               ns)])
               (if (not check?)
                 {ds bs ns1}
-                (match (check (copy-arrow a0) (map copy-arrow al0)
-                              {ds bs ns1})
+                (match (check a0 al0 {ds bs ns1})
                   ;; note that the bs of the env
                   ;; returned by check is not clean
                   ;; thus e1 is not used as return env

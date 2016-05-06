@@ -1119,8 +1119,7 @@
                           ns)])
           (if (not check?)
             {ds bs ns1}
-            (match (check (copy-arrow a0) (map copy-arrow al0)
-                          {ds bs ns1})
+            (match (check a0 al0 {ds bs ns1})
               ;; note that the bs of the env
               ;; returned by check is not clean
               ;; thus e1 is not used as return env
