@@ -18,10 +18,6 @@
 
 * todo
 
-  - specify the reduction strategy
-    note that reverse data-list is cedent
-    - step eva can be used to learn
-
   - infer
     type-compute/arrow
 
@@ -166,6 +162,8 @@
 * note data type summary
 
 *** form1
+
+    - reduction strategy is revealed by the postfix notation
 
     #+begin_src scheme :tangle no
     (type form1
