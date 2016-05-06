@@ -33,17 +33,18 @@
      (if (equal? b1 b2)
        #t
        (let ()
-         (cat ("\n"))
-         (cat ("<test-fail-report-begin>\n"))
-         (cat ("<actual-form> :\n"))
+         (cat ("~%")
+              ("<begin-test-fail-report>~%")
+              (":actual-form:~%"))
          (pretty-print (quote b1))
-         (cat ("<actual-value> :\n"))
+         (cat (":actual-value:~%"))
          (pretty-print b1)
-         (cat ("<expect-form> :\n"))
+         (cat (":expect-form:~%"))
          (pretty-print (quote b2))
-         (cat ("<expect-value> :\n"))
+         (cat (":expect-value:~%"))
          (pretty-print b2)
-         (orz 'test ("<test-fail-report-end>\n"))))]))
+         (cat ("<test-fail-report-end>~%"))
+         (orz 'test (">_<"))))]))
 
 (define (take lis k)
   (let recur ((lis lis) (k k))
@@ -227,14 +228,16 @@
      (match (pass2/arrow a s)
        [{a1 s1}
         {{'form3/arrow a1} s1}])]
-    [('form2/lambda l)
+    [{'form2/lambda l}
      (match (pass2/lambda l s)
        [{l1 s1}
         {{'form3/lambda l1} s1}])]
-    [('form2/bind b)
+    [{'form2/bind b}
      (match (pass2/bind b s)
        [{b1 s1}
         {{'form3/bind b1} s1}])]))
+
+(define id/counter 0)
 
 (define (pass2/var v s)
   (: form2/var scope -> (form3/var scope))
@@ -244,7 +247,8 @@
        (if found
          (let ([old (cdr found)])
            {{old level} s})
-         (let ([new (vector symbol '())])
+         (let ([new (vector (cons symbol id/counter) '())])
+           (set! id/counter (+ 1 id/counter))
            {{new level}
             (cons (cons symbol new) s)})))]))
 
@@ -328,8 +332,11 @@
       bs
       ns}]))
 
-(define (id->symbol id)
-  (vector-ref id 0))
+(define (id->name id)
+  (car (vector-ref id 0)))
+
+(define (id->counter id)
+  (cdr (vector-ref id 0)))
 
 (define (id->ls id)
   (vector-ref id 1))
@@ -553,8 +560,9 @@
        (if found
          {{(cdr found) level} s}
          (let* ([ls (id->ls id)]
-                [id1 (vector (id->symbol id) '())]
+                [id1 (vector (cons (id->name id) id/counter) '())]
                 [s1 (cons (cons id id1) s)])
+           (set! id/counter (+ 1 id/counter))
            (match (copy/ls ls s1)
              [{ls1 s2}
               (id/commit! id1 ls1)
@@ -698,6 +706,7 @@
         (if (not (symbol? al))
           {a al dl i}
           ;; this is the only place (arrow ...) is copied
+          ;; ><><>< many place are copying now
           (let* ([n al]
                  [found (assq n ns)])
             (if (not found)
@@ -786,6 +795,69 @@
     [(ds bs ns)
      (list-ref ds (- (length ds) (+ 1 i)))]))
 
+(define (print/cedent c e)
+  (: cedent env -> [effect on terminal])
+  (match c
+    [{} (void)]
+    [{d} (print/data d e)]
+    [(d . r)
+     (print/data d e)
+     (format #t " ")
+     (print/cedent r e)]))
+
+(define (print/data-list dl e)
+  (: (data ...) env -> [effect on terminal])
+  (print/cedent (reverse dl) e))
+
+(define (print/data d e)
+  (: data env -> [effect on terminal])
+  (match d
+    [{'var x} (print/var x e)]
+    [{'cons x} (print/cons x e)]
+    [{'arrow x} (print/arrow x e)]
+    [{'lambda x} (print/lambda x e)]
+    [{'trunk x} (print/trunk x e)]))
+
+(define (print/var v e)
+  (: var env -> [effect on terminal])
+  (match v
+    [{id level}
+     (let ([name (id->name id)]
+           [counter (id->counter id)])
+       (format #t ":~a:~a^~a" counter name level))]))
+
+(define (print/cons c e)
+  (: cons env -> [effect on terminal])
+  (match c
+    [{n dl}
+     (format #t "[")
+     (print/data-list dl e)
+     (if (null? dl)
+       (format #t "~a]" n)
+       (format #t " ~a]" n))]))
+
+(define (print/arrow a e)
+  (: arrow env -> [effect on terminal])
+  (match a
+    [{ac sc}
+     (format #t "(")
+     (print/cedent ac e)
+     (format #t " -> ")
+     (print/cedent sc e)
+     (format #t ")")]))
+
+(define (print/lambda l e)
+  (: lambda env -> [effect on terminal])
+  (match l
+    [{a al}
+     (format #t "<lambda>")]))
+
+(define (print/trunk t e)
+  (: trunk env -> [effect on terminal])
+  (match t
+    [{a al dl i}
+     (format #t "<trunk>")]))
+
 (define (unify/data-list pl dl r)
   (: (pattern ...) (data ...) report -> report)
   (match r
@@ -808,7 +880,7 @@
 
 (define (var/eq? v1 v2)
   (match (list v1 v2)
-    [((id1 level1) (id2 level2))
+    [{{id1 level1} {id2 level2}}
      (and (eq? id1 id2)
           (eq? level1 level2))]))
 
@@ -902,26 +974,29 @@
 
 (define (unify/trunk t1 t2 e)
   (: trunk trunk env -> report)
-  (match {(trunk->trunk* t1 e) (trunk->trunk* t2 e)}
+  (match {t1 t2}
     [{{a1 al1 dl1 i1} {a2 al2 dl2 i2}}
-
-     ;; (if (eq? i1 i2)
-     ;;   (unify/data-list dl1 dl2 (unify/lambda {a1 al1} {a2 al2} e))
-     ;;   {'fail {`(unify/trunk
-     ;;             fail indexes are different
-     ;;             (trunk1: ,t1)
-     ;;             (trunk2: ,t2))}})
-     ;; ;; the above will diverge
-     ;; ;; while
-     ;; ;; the following make it impossible
-     ;; ;; to unify the arrow-list of trunk
-
-     (if (equal? {a1 al1 i1} {a2 al2 i2})
-       (unify/data-list dl1 dl2 {'success e})
-       {'fail {`(unify/trunk
-                 fail
-                 (trunk1: ,t1)
-                 (trunk2: ,t2))}})]))
+     (cond [(not (eq? i1 i2))
+            {'fail {`(unify/trunk
+                      fail indexes are different
+                      (trunk1: ,t1)
+                      (trunk2: ,t2))}}]
+           [(and (symbol? al1)
+                 (symbol? al2)
+                 (eq? al1 al2))
+            (unify/data-list
+             dl1 dl2
+             (unify/arrow a1 a2 e))]
+           [(and (symbol? al1)
+                 (not (symbol? al2)))
+            (unify/trunk (trunk->trunk* t1 e) t2 e)]
+           [(and (not (symbol? al1))
+                 (symbol? al2))
+            (unify/trunk  t1 (trunk->trunk* t2 e) e)]
+           [else ;; al1 al2 are both not symbol
+            (unify/data-list
+             dl1 dl2
+             (unify/lambda {a1 al1} {a2 al2} e))])]))
 
 (define (unify/trunk/data t d e)
   (: trunk data env -> report)
@@ -945,17 +1020,18 @@
 (define (check+) (set! check? #t) #t)
 (define (check-) (set! check? #f) #f)
 
+(define init-env
+  '(()
+    ()
+    ((type . (cons/type ((()
+                          (cons (type ())))
+                         type
+                         type))))))
+
 (define-syntax eva
   (syntax-rules ()
     [(eva e ...)
-     (eva/top-list
-      (map parse/top (quote (e ...)))
-      '(()
-        ()
-        ((type . (cons/type ((()
-                              (cons (type ())))
-                             type
-                             type))))))]))
+     (eva/top-list (map parse/top (quote (e ...))) init-env)]))
 
 (define (eva/top-list tl e)
   (: (top ...) env -> env)
@@ -1072,6 +1148,21 @@
        (pretty-print il)
        (cat ("~%"))
        (orz 'eva/ap ("end of report~%"))])))
+
+(define (sequent)
+  (: -> [loop])
+  (cat ("welcome to sequent ^-^/~%"))
+  (sequent/repl init-env))
+
+(define (sequent/repl e)
+  (: env -> [loop])
+  (let* ([top (read)]
+         [e1 (eva/top (parse/top top) e)])
+    (match e1
+      [{ds1 bs1 ns1}
+       (print/data-list ds1 e1)
+       (newline)
+       (sequent/repl e1)])))
 
 (define (check t al e)
   (: arrow (arrow ...) env -> report)

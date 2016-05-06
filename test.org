@@ -2,7 +2,7 @@
 
 * pass1
 
-  #+begin_src scheme
+  #+begin_src scheme :tangle no
   (test
    (map (lambda (x) (pass1/arrow 0 x))
      '((natural natural -> natural)
@@ -41,7 +41,7 @@
 
 * pass2
 
-  #+begin_src scheme
+  #+begin_src scheme :tangle no
   (test
    (map (lambda (x) (pass2/arrow x '()))
      (map (lambda (x) (pass1/arrow 0 x))

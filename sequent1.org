@@ -2,45 +2,41 @@
 #+PROPERTY: tangle sequent1.scm
 #+title: sequent1
 
-+ a prototype interpreter for a lovely functional language
+- a prototype interpreter for a lovely functional language
   which uses sequent calculus as dependent type system
 
-+ sequent is called arrow here
+- sequent is called arrow here
   which is the core data type of the language
 
-+ as a prototype implementation its unsatisfactory features are
+- as a prototype implementation its unsatisfactory features are
   1. call-by-name
   2. using copy to handle scope
 
-+ source code is here https://github.com/xieyuheng/sequent1
+- source code is here https://github.com/xieyuheng/sequent1
 
-+ XIE Yuheng created
+- XIE Yuheng created
 
 * todo
-
-  - data/print
-    different var should be print differently
-
-  - eva/repl
-
-  - the design must be separately testable
-    first without check
-    then add check
-    - data/print and other printing function should be used to help such test
-
-  - specify the reduction strategy
-    note that reverse data-list is cedent
-    - step eva can be used to learn
-
-  - use combinator for env passing
-
-  - refactoring
 
   - commit should be preformed arrow by arrow
     one arrow can only commit on its own var
 
   - cedent and data-list should be viewed as different type
     reverse a cedent get data-list
+
+  - specify the use of copy-arrow
+
+  - specify the reduction strategy
+    note that reverse data-list is cedent
+    - step eva can be used to learn
+
+  - make the sequent/repl more useful then macro in scheme
+
+  - use the module system for real
+
+  - use combinator for env passing
+
+  - refactoring
 
   - infer
     type-compute/arrow
@@ -114,17 +110,18 @@
          (if (equal? b1 b2)
            #t
            (let ()
-             (cat ("\n"))
-             (cat ("<test-fail-report-begin>\n"))
-             (cat ("<actual-form> :\n"))
+             (cat ("~%")
+                  ("<begin-test-fail-report>~%")
+                  (":actual-form:~%"))
              (pretty-print (quote b1))
-             (cat ("<actual-value> :\n"))
+             (cat (":actual-value:~%"))
              (pretty-print b1)
-             (cat ("<expect-form> :\n"))
+             (cat (":expect-form:~%"))
              (pretty-print (quote b2))
-             (cat ("<expect-value> :\n"))
+             (cat (":expect-value:~%"))
              (pretty-print b2)
-             (orz 'test ("<test-fail-report-end>\n"))))]))
+             (cat ("<test-fail-report-end>~%"))
+             (orz 'test (">_<"))))]))
     #+end_src
 
 *** list
@@ -250,7 +247,7 @@
       {'form3/arrow  {{form3 ...} {form3 ...}}}
       {'form3/lambda {form3/arrow {form3/arrow ...}}}
       {'form3/bind   {{form3/var ...} {form3 ...} leave?}})
-    (type id #(symbol ls))
+    (type id #((name . counter) ls))
     #+end_src
 
 *** data
@@ -462,11 +459,11 @@
          (match (pass2/arrow a s)
            [{a1 s1}
             {{'form3/arrow a1} s1}])]
-        [('form2/lambda l)
+        [{'form2/lambda l}
          (match (pass2/lambda l s)
            [{l1 s1}
             {{'form3/lambda l1} s1}])]
-        [('form2/bind b)
+        [{'form2/bind b}
          (match (pass2/bind b s)
            [{b1 s1}
             {{'form3/bind b1} s1}])]))
@@ -475,6 +472,8 @@
 *** pass2/var
 
     #+begin_src scheme
+    (define id/counter 0)
+
     (define (pass2/var v s)
       (: form2/var scope -> (form3/var scope))
       (match v
@@ -483,7 +482,8 @@
            (if found
              (let ([old (cdr found)])
                {{old level} s})
-             (let ([new (vector symbol '())])
+             (let ([new (vector (cons symbol id/counter) '())])
+               (set! id/counter (+ 1 id/counter))
                {{new level}
                 (cons (cons symbol new) s)})))]))
     #+end_src
@@ -628,11 +628,14 @@
           ns}]))
     #+end_src
 
-*** id->[symbol|ls]
+*** id->name & id->counter & id->ls
 
     #+begin_src scheme
-    (define (id->symbol id)
-      (vector-ref id 0))
+    (define (id->name id)
+      (car (vector-ref id 0)))
+
+    (define (id->counter id)
+      (cdr (vector-ref id 0)))
 
     (define (id->ls id)
       (vector-ref id 1))
@@ -955,8 +958,9 @@
            (if found
              {{(cdr found) level} s}
              (let* ([ls (id->ls id)]
-                    [id1 (vector (id->symbol id) '())]
+                    [id1 (vector (cons (id->name id) id/counter) '())]
                     [s1 (cons (cons id id1) s)])
+               (set! id/counter (+ 1 id/counter))
                (match (copy/ls ls s1)
                  [{ls1 s2}
                   (id/commit! id1 ls1)
@@ -1132,6 +1136,11 @@
 
 *** trunk->trunk*
 
+    - replace the name in trunk by arrow-list
+
+    - the ns of env is needed
+      to find the arrow-list under the name
+
     #+begin_src scheme
     (define (trunk->trunk* t e)
       (: trunk env -> trunk)
@@ -1142,6 +1151,7 @@
             (if (not (symbol? al))
               {a al dl i}
               ;; this is the only place (arrow ...) is copied
+              ;; ><><>< many place are copying now
               (let* ([n al]
                      [found (assq n ns)])
                 (if (not found)
@@ -1245,6 +1255,108 @@
          (list-ref ds (- (length ds) (+ 1 i)))]))
     #+end_src
 
+* print
+
+*** print/cedent
+
+    #+begin_src scheme
+    (define (print/cedent c e)
+      (: cedent env -> [effect on terminal])
+      (match c
+        [{} (void)]
+        [{d} (print/data d e)]
+        [(d . r)
+         (print/data d e)
+         (format #t " ")
+         (print/cedent r e)]))
+    #+end_src
+
+*** print/data-list
+
+    #+begin_src scheme
+    (define (print/data-list dl e)
+      (: (data ...) env -> [effect on terminal])
+      (print/cedent (reverse dl) e))
+    #+end_src
+
+*** print/data
+
+    #+begin_src scheme
+    (define (print/data d e)
+      (: data env -> [effect on terminal])
+      (match d
+        [{'var x} (print/var x e)]
+        [{'cons x} (print/cons x e)]
+        [{'arrow x} (print/arrow x e)]
+        [{'lambda x} (print/lambda x e)]
+        [{'trunk x} (print/trunk x e)]))
+    #+end_src
+
+*** print/var
+
+    - different var should be print differently
+
+    - note that
+      the env is not used by even print/var
+
+    #+begin_src scheme
+    (define (print/var v e)
+      (: var env -> [effect on terminal])
+      (match v
+        [{id level}
+         (let ([name (id->name id)]
+               [counter (id->counter id)])
+           (format #t ":~a:~a^~a" counter name level))]))
+    #+end_src
+
+*** print/cons
+
+    #+begin_src scheme
+    (define (print/cons c e)
+      (: cons env -> [effect on terminal])
+      (match c
+        [{n dl}
+         (format #t "[")
+         (print/data-list dl e)
+         (if (null? dl)
+           (format #t "~a]" n)
+           (format #t " ~a]" n))]))
+    #+end_src
+
+*** print/arrow
+
+    #+begin_src scheme
+    (define (print/arrow a e)
+      (: arrow env -> [effect on terminal])
+      (match a
+        [{ac sc}
+         (format #t "(")
+         (print/cedent ac e)
+         (format #t " -> ")
+         (print/cedent sc e)
+         (format #t ")")]))
+    #+end_src
+
+*** >< print/lambda
+
+    #+begin_src scheme
+    (define (print/lambda l e)
+      (: lambda env -> [effect on terminal])
+      (match l
+        [{a al}
+         (format #t "<lambda>")]))
+    #+end_src
+
+*** >< print/trunk
+
+    #+begin_src scheme
+    (define (print/trunk t e)
+      (: trunk env -> [effect on terminal])
+      (match t
+        [{a al dl i}
+         (format #t "<trunk>")]))
+    #+end_src
+
 * unify
 
 *** unify/data-list
@@ -1276,7 +1388,7 @@
     #+begin_src scheme
     (define (var/eq? v1 v2)
       (match (list v1 v2)
-        [((id1 level1) (id2 level2))
+        [{{id1 level1} {id2 level2}}
          (and (eq? id1 id2)
               (eq? level1 level2))]))
     #+end_src
@@ -1400,31 +1512,44 @@
             (unify/arrow (car al1) (car al2) e)))]))
     #+end_src
 
-*** ><><>< unify/trunk
+*** unify/trunk
+
+    - it will not diverge on recursive call here
+      because the trunk of recursive call
+      only have name in it
+      but not have the arrow-list
+
+    - thus
+      we can unify on function
+      ><><><
+      I do not know the natural of this feature
 
     #+begin_src scheme
     (define (unify/trunk t1 t2 e)
       (: trunk trunk env -> report)
-      (match {(trunk->trunk* t1 e) (trunk->trunk* t2 e)}
+      (match {t1 t2}
         [{{a1 al1 dl1 i1} {a2 al2 dl2 i2}}
-
-         ;; (if (eq? i1 i2)
-         ;;   (unify/data-list dl1 dl2 (unify/lambda {a1 al1} {a2 al2} e))
-         ;;   {'fail {`(unify/trunk
-         ;;             fail indexes are different
-         ;;             (trunk1: ,t1)
-         ;;             (trunk2: ,t2))}})
-         ;; ;; the above will diverge
-         ;; ;; while
-         ;; ;; the following make it impossible
-         ;; ;; to unify the arrow-list of trunk
-
-         (if (equal? {a1 al1 i1} {a2 al2 i2})
-           (unify/data-list dl1 dl2 {'success e})
-           {'fail {`(unify/trunk
-                     fail
-                     (trunk1: ,t1)
-                     (trunk2: ,t2))}})]))
+         (cond [(not (eq? i1 i2))
+                {'fail {`(unify/trunk
+                          fail indexes are different
+                          (trunk1: ,t1)
+                          (trunk2: ,t2))}}]
+               [(and (symbol? al1)
+                     (symbol? al2)
+                     (eq? al1 al2))
+                (unify/data-list
+                 dl1 dl2
+                 (unify/arrow a1 a2 e))]
+               [(and (symbol? al1)
+                     (not (symbol? al2)))
+                (unify/trunk (trunk->trunk* t1 e) t2 e)]
+               [(and (not (symbol? al1))
+                     (symbol? al2))
+                (unify/trunk  t1 (trunk->trunk* t2 e) e)]
+               [else ;; al1 al2 are both not symbol
+                (unify/data-list
+                 dl1 dl2
+                 (unify/lambda {a1 al1} {a2 al2} e))])]))
     #+end_src
 
 *** unify/trunk/data
@@ -1467,20 +1592,25 @@
     (define (check-) (set! check? #f) #f)
     #+end_src
 
+*** init-env
+
+    #+begin_src scheme
+    (define init-env
+      '(()
+        ()
+        ((type . (cons/type ((()
+                              (cons (type ())))
+                             type
+                             type))))))
+    #+end_src
+
 *** eva
 
     #+begin_src scheme
     (define-syntax eva
       (syntax-rules ()
         [(eva e ...)
-         (eva/top-list
-          (map parse/top (quote (e ...)))
-          '(()
-            ()
-            ((type . (cons/type ((()
-                                  (cons (type ())))
-                                 type
-                                 type))))))]))
+         (eva/top-list (map parse/top (quote (e ...))) init-env)]))
     #+end_src
 
 *** eva/top-list
@@ -1629,6 +1759,31 @@
            (pretty-print il)
            (cat ("~%"))
            (orz 'eva/ap ("end of report~%"))])))
+    #+end_src
+
+* sequent
+
+*** sequent
+
+    #+begin_src scheme
+    (define (sequent)
+      (: -> [loop])
+      (cat ("welcome to sequent ^-^/~%"))
+      (sequent/repl init-env))
+    #+end_src
+
+*** >< sequent/repl
+
+    #+begin_src scheme
+    (define (sequent/repl e)
+      (: env -> [loop])
+      (let* ([top (read)]
+             [e1 (eva/top (parse/top top) e)])
+        (match e1
+          [{ds1 bs1 ns1}
+           (print/data-list ds1 e1)
+           (newline)
+           (sequent/repl e1)])))
     #+end_src
 
 * check
