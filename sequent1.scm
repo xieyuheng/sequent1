@@ -102,15 +102,6 @@
         curser
         (find-char/curser c s (+ 1 curser))))))
 
-(define-syntax ->
-  (syntax-rules ()
-    [(_ a)
-     a]
-    [(_ a (f1 a1 ...))
-     (f1 a a1 ...)]
-    [(_ a (f1 a1 ...) b ...)
-     (-> (f1 a a1 ...) b ...)]))
-
 (define (pass1/arrow default-level s)
   (: default-level form1/arrow -> form2/arrow)
   (list (pass1/cedent default-level (left-of '-> s))
@@ -304,8 +295,7 @@
     [{ds bs ns}
      (match l
        [{a al}
-        {(cons {'lambda
-                   (pass3/get-arrow a e)
+        {(cons {'lambda (pass3/get-arrow a e)
                  (map (lambda (x)
                         (pass3/get-arrow x e))
                    al)}
@@ -328,7 +318,7 @@
     [{ds bs ns}
      ;; actually there is no need to search bs
      ;; but anyway
-     {(cons (bs/deep bs (list 'var v)) ds)
+     {(cons (bs/deep bs {'var v}) ds)
       bs
       ns}]))
 
@@ -496,8 +486,12 @@
           [{sc1 s2}
            {{ac1 sc1} s2}])])]))
 
-(define (copy/cedent c s)
+(define (copy/data-list dl s)
   (: (data ...) scope -> ((data ...) scope))
+  (copy/cedent dl s))
+
+(define (copy/cedent c s)
+  (: cedent scope -> (cedent scope))
   (match c
     [{} {{} s}]
     [(h . r)
@@ -585,7 +579,7 @@
   (: cons scope -> (cons scope))
   (match c
     [{n dl}
-     (match (copy/cedent dl s)
+     (match (copy/data-list dl s)
        [{dl1 s1}
         {{n dl1} s1}])]))
 
@@ -596,14 +590,14 @@
      (if (symbol? al)
        (match (copy/arrow a s)
          [{a1 s1}
-          (match (copy/cedent dl s1)
+          (match (copy/data-list dl s1)
             [{dl1 s2}
              {{a1 al dl1 i} s2}])])
        (match (copy/arrow a s)
          [{a1 s1}
           (match (copy/arrow-list al s1)
             [{al1 s2}
-             (match (copy/cedent dl s2)
+             (match (copy/data-list dl s2)
                [{dl1 s3}
                 {{a1 al1 dl1 i} s3}])])]))]))
 
@@ -615,9 +609,7 @@
        [{ac sc}
         (let ([alen (length ac)]
               [slen (length sc)])
-          (match (compute/cedent ac {ds
-                                     (cons '(commit-point) bs)
-                                     ns})
+          (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
             [{'fail il} {'fail il}]
             [{'success {ds1 bs1 ns1}}
              (match (unify/data-list
@@ -1237,7 +1229,7 @@
                                         ns5}})])])])])])])]))]))
 
 (define (type-compute/cedent c e)
-  (: (data ...) env -> report)
+  (: cedent env -> report)
   (match c
     [{} {'success e}]
     [(d . r)
