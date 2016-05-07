@@ -2,6 +2,8 @@
 #+PROPERTY: tangle sequent1.scm
 #+title: sequent1
 
+----------
+
 - a prototype interpreter for a lovely functional language
   which uses sequent calculus as dependent type system
 
@@ -16,6 +18,8 @@
 
 - XIE Yuheng created
 
+----------
+
 * todo
 
   - infer
@@ -23,15 +27,15 @@
 
   - export apply to sequent1
 
-  - make the sequent/repl more useful then macro in scheme
-    - when the program writing in sequent1 is wrong
-      sequent1 should handle it instead of crashing
-
   - refactoring
 
   - check-cover
 
   - check-end
+
+  - make the sequent/repl more useful then macro in scheme
+    - when the program writing in sequent1 is wrong
+      sequent1 should handle it instead of crashing
 
 * helper
 
@@ -1959,4 +1963,10 @@
                                 ns1}}])])])])]))
     #+end_src
 
-* >< infer
+* infer
+
+*** >< infer
+
+    #+begin_src scheme :tangle no
+    (define (infer))
+    #+end_src
