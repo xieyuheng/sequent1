@@ -1967,6 +1967,6 @@
 
 *** >< infer
 
-    #+begin_src scheme :tangle no
+    #+begin_src scheme
     (define (infer))
     #+end_src
