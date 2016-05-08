@@ -71,133 +71,210 @@
      ((((form3/bind (((form3/var (#(:t ()) 2))) ((form3/name type)) #t)) (form3/var (#(:t ()) 0))) ((form3/name type))) ((:t . #(:t ()))))))
   #+end_src
 
-* sequent
+* natural
 
-*** natural
+  #+begin_src scheme
+  (eva
 
-    #+begin_src scheme
-    (eva
+   (deftype natural (-> type)
+     zero (-> natural)
+     succ (natural -> natural))
 
-     (dt natural (-> type)
-         zero (-> natural)
-         succ (natural -> natural))
+   (defn add (natural natural -> natural)
+     (:m zero -> :m)
+     (:m :n succ -> :m :n add succ))
 
-     (df add (natural natural -> natural)
-         (:m zero -> :m)
-         (:m :n succ -> :m :n add succ))
+   (defn mul (natural natural -> natural)
+     (:m zero -> zero)
+     (:m :n succ -> :m :n mul :m add))
 
-     (df mul (natural natural -> natural)
-         (:m zero -> zero)
-         (:m :n succ -> :m :n mul :m add))
+   (app (->
+         zero succ
+         zero succ succ
+         add))
 
-     (ap (->
-          zero succ
-          zero succ succ
-          add))
+   (app (->
+         zero succ succ
+         zero succ succ
+         mul)))
+  #+end_src
 
-     (ap (->
-          zero succ succ
-          zero succ succ
-          mul)))
-    #+end_src
+* list
 
-*** list
+  #+begin_src scheme
+  (eva
 
-    #+begin_src scheme
-    (eva
+   (deftype natural (-> type)
+     zero (-> natural)
+     succ (natural -> natural))
 
-     (dt natural (-> type)
-         zero (-> natural)
-         succ (natural -> natural))
+   (defn add (natural natural -> natural)
+     (:m zero -> :m)
+     (:m :n succ -> :m :n add succ))
 
-     (df add (natural natural -> natural)
-         (:m zero -> :m)
-         (:m :n succ -> :m :n add succ))
+   (defn mul (natural natural -> natural)
+     (:m zero -> zero)
+     (:m :n succ -> :m :n mul :m add))
 
-     (df mul (natural natural -> natural)
-         (:m zero -> zero)
-         (:m :n succ -> :m :n mul :m add))
+   (deftype list ((:t : type) :t -> type)
+     null (-> :t list)
+     cons (:t list :t -> :t list))
 
-     (dt list ((:t : type) :t -> type)
-         null (-> :t list)
-         cons (:t list :t -> :t list))
+   (defn append (:t list :t list -> :t list)
+     (:l null -> :l)
+     (:l :r :e cons -> :l :r append :e cons))
 
-     ;; (df map (:t1 list (:t1 -> :t2) -> :t2 list)
-     ;;     (null :f -> null)
-     ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
+   (app (->
+         null
+         zero cons
+         null
+         zero cons
+         append))
 
-     (df append (:t list :t list -> :t list)
-         (:l null -> :l)
-         (:l :r :e cons -> :l :r append :e cons))
+   (app (->
+         null
+         zero cons
+         zero cons
+         null
+         zero cons
+         zero cons
+         append)))
+  #+end_src
 
-     (ap (->
-          null
-          zero cons
-          null
-          zero cons
-          append))
+* vector
 
-     (ap (->
-          null
-          zero cons
-          zero cons
-          null
-          zero cons
-          zero cons
-          append)))
-    #+end_src
+  #+begin_src scheme
+  (eva
 
-*** vector
+   (deftype natural (-> type)
+     zero (-> natural)
+     succ (natural -> natural))
 
-    #+begin_src scheme
-    (eva
+   (defn add (natural natural -> natural)
+     (:m zero -> :m)
+     (:m :n succ -> :m :n add succ))
 
-     (dt natural (-> type)
-         zero (-> natural)
-         succ (natural -> natural))
+   (defn mul (natural natural -> natural)
+     (:m zero -> zero)
+     (:m :n succ -> :m :n mul :m add))
 
-     (df add (natural natural -> natural)
-         (:m zero -> :m)
-         (:m :n succ -> :m :n add succ))
+   (deftype vector ((:t : type) natural :t -> type)
+     null (-> zero :t vector)
+     cons (:n :t vector :t -> :n succ :t vector))
 
-     (df mul (natural natural -> natural)
-         (:m zero -> zero)
-         (:m :n succ -> :m :n mul :m add))
+   (defn append (:m :t vector :n :t vector -> :m :n add :t vector)
+     (:l null -> :l)
+     (:l :r :e cons -> :l :r append :e cons))
 
-     (dt vector ((:t : type) natural :t -> type)
-         null (-> zero :t vector)
-         cons (:n :t vector :t -> :n succ :t vector))
+   (app (->
+         null
+         zero cons
+         zero cons
+         zero cons
+         null
+         zero cons
+         zero cons
+         zero cons
+         append)))
+  #+end_src
 
-     ;; (df map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
-     ;;     (null :f -> null)
-     ;;     (:l :e cons :f -> :e :f apply :l :f map cons))
+* >< list map
 
-     (df append (:m :t vector :n :t vector -> :m :n add :t vector)
-         (:l null -> :l)
-         (:l :r :e cons -> :l :r append :e cons))
+  #+begin_src scheme :tangle no
+  (eva
 
-     (ap (->
-          null
-          zero cons
-          zero cons
-          zero cons
-          null
-          zero cons
-          zero cons
-          zero cons
-          append)))
-    #+end_src
+   (deftype natural (-> type)
+     zero (-> natural)
+     succ (natural -> natural))
 
-*** >< has-length
+   (defn add (natural natural -> natural)
+     (:m zero -> :m)
+     (:m :n succ -> :m :n add succ))
 
-    #+begin_src scheme :tangle no
-    (eva
+   (defn mul (natural natural -> natural)
+     (:m zero -> zero)
+     (:m :n succ -> :m :n mul :m add))
 
-     (dt has-length ((:t : type) :t list natural -> type)
-         null/has-length (-> null zero has-length)
-         cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+   (deftype list ((:t : type) :t -> type)
+     null (-> :t list)
+     cons (:t list :t -> :t list))
 
-     (df map/has-length (:l :n has-length -> :l :f map :n has-length)
-         (null/has-length -> null/has-length)
-         (:h cons/has-length -> :h map/has-length cons/has-length)))
-    #+end_src
+   (defn append (:t list :t list -> :t list)
+     (:l null -> :l)
+     (:l :r :e cons -> :l :r append :e cons))
+
+   (defn map (:t1 list (:t1 -> :t2) -> :t2 list)
+     (null :f -> null)
+     (:l :e cons :f -> :e :f apply :l :f map cons))
+
+   (app (->
+         null
+         zero cons
+         null
+         zero cons
+         append))
+
+   (app (->
+         null
+         zero cons
+         zero cons
+         null
+         zero cons
+         zero cons
+         append)))
+  #+end_src
+
+* >< vector map
+
+  #+begin_src scheme
+  (eva
+
+   (deftype natural (-> type)
+     zero (-> natural)
+     succ (natural -> natural))
+
+   (defn add (natural natural -> natural)
+     (:m zero -> :m)
+     (:m :n succ -> :m :n add succ))
+
+   (defn mul (natural natural -> natural)
+     (:m zero -> zero)
+     (:m :n succ -> :m :n mul :m add))
+
+   (deftype vector ((:t : type) natural :t -> type)
+     null (-> zero :t vector)
+     cons (:n :t vector :t -> :n succ :t vector))
+
+   (defn append (:m :t vector :n :t vector -> :m :n add :t vector)
+     (:l null -> :l)
+     (:l :r :e cons -> :l :r append :e cons))
+
+   (defn map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
+     (null :f -> null)
+     (:l :e cons :f -> :e :f apply :l :f map cons))
+
+   (app (->
+         null
+         zero cons
+         zero cons
+         zero cons
+         null
+         zero cons
+         zero cons
+         zero cons
+         append)))
+  #+end_src
+
+* >< list has-length
+
+  #+begin_src scheme :tangle no
+  (eva
+
+   (deftype has-length ((:t : type) :t list natural -> type)
+     null/has-length (-> null zero has-length)
+     cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+
+   (defn map/has-length (:l :n has-length -> :l :f map :n has-length)
+     (null/has-length -> null/has-length)
+     (:h cons/has-length -> :h map/has-length cons/has-length)))
+  #+end_src

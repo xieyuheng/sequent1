@@ -307,6 +307,7 @@
   (: form3 env -> env)
   (match f
     [{'form3/var x} (pass3/var x e)]
+    [{'form3/name 'apply} (pass3/apply e)]
     [{'form3/name x} (pass3/name x e)]
     [{'form3/arrow x} (pass3/arrow x e)]
     [{'form3/lambda x} (pass3/lambda x e)]
@@ -321,6 +322,51 @@
      {(cons (bs/deep bs {'var v}) ds)
       bs
       ns}]))
+
+(define (pass3/apply e)
+  (: env -> env)
+  (match e
+    [{(d . r) bs ns}
+     (match d
+       [{'arrow a}
+        (pass3/apply/arrow d {r bs ns})]
+       [{'lambda l}
+        (pass3/apply/lambda l {r bs ns})]
+       [__
+        (orz 'pass3/apply
+          ("can only apply arrow or lambda~%")
+          ("but the data at the top of data-stack is : ~a~%" d))])]))
+
+(define (pass3/apply/arrow a e)
+  (: arrow env -> env)
+  (match e
+    [{ds bs ns}
+     (let* ([t (infer/arrow a e)])
+       (match t
+         [{ac sc}
+          (let* ([alen (length ac)]
+                 [slen (length sc)]
+                 [dl (sublist ds 0 alen)]
+                 [make-trunk (lambda (i) {'trunk {t {a} dl i}})])
+            {(append (map make-trunk (genlist slen))
+                     (sublist ds alen (length ds)))
+             bs
+             ns})]))]))
+
+(define (pass3/apply/lambda l e)
+  (: lambda env -> env)
+  (match e
+    [{ds bs ns}
+     (match l
+       [{{ac sc} al}
+        (let* ([alen (length ac)]
+               [slen (length sc)]
+               [dl (sublist ds 0 alen)]
+               [make-trunk (lambda (i) {'trunk {{ac sc} al dl i}})])
+          {(append (map make-trunk (genlist slen))
+                   (sublist ds alen (length ds)))
+           bs
+           ns})])]))
 
 (define (id->name id)
   (car (vector-ref id 0)))
@@ -359,17 +405,17 @@
       bs
       ns}]))
 
-(define (pass3/name/trunk len slen a n e)
+(define (pass3/name/trunk alen slen a n e)
   (: length length arrow name env -> env)
   (match e
     [{ds bs ns}
      (let* ([a (copy-arrow a)]
-            [dl (sublist ds 0 len)]
-            ;; dl in trunk is as the order of dl in start
+            [dl (sublist ds 0 alen)]
+            ;; dl in trunk is as the order of dl in stack
             ;; thus no reverse is needed
-            [make-trunk (lambda (i) (list 'trunk (list a n dl i)))])
+            [make-trunk (lambda (i) {'trunk {a n dl i}})])
        {(append (map make-trunk (genlist slen))
-                (sublist ds len (length ds)))
+                (sublist ds alen (length ds)))
         bs
         ns})]))
 
@@ -1083,48 +1129,48 @@
 (define (parse/top s)
   (: sexp-top -> top)
   (match s
-    [('dt n a . body)
-     {'dt {{n a} (parse/top/dt-body body)}}]
-    [('df n a . al)
-     {'df {{n a} al}}]
-    [{'ap a}
-     {'ap a}]))
+    [('deftype n a . body)
+     {'deftype {{n a} (parse/top/deftype-body body)}}]
+    [('defn n a . al)
+     {'defn {{n a} al}}]
+    [{'app a}
+     {'app a}]))
 
-(define (parse/top/dt-body body)
-  (: dt-body -> ((form1/name form1/arrow) ...))
+(define (parse/top/deftype-body body)
+  (: deftype-body -> ((form1/name form1/arrow) ...))
   (cond [(eq? '() body) '()]
         [(eq? '() (cdr body))
-         (orz 'parse/top/dt-body ("wrong body : ~a~%" body))]
+         (orz 'parse/top/deftype-body ("wrong body : ~a~%" body))]
         [else
          (cons (list (car body) (cadr body))
-               (parse/top/dt-body (cddr body)))]))
+               (parse/top/deftype-body (cddr body)))]))
 
 (define (eva/top t e)
   (: top env -> env)
   (match t
-    [{'dt dt} (eva/dt dt e)]
-    [{'df df} (eva/df df e)]
-    [{'ap a} (eva/ap a e)]))
+    [{'deftype deftype} (eva/deftype deftype e)]
+    [{'defn defn} (eva/defn defn e)]
+    [{'app a} (eva/app a e)]))
 
 (define (form1/arrow->arrow a e)
   (: form1/arrow env -> arrow)
   (match (pass2/arrow (pass1/arrow 0 a) {})
     [{a1 s} (pass3/get-arrow a1 e)]))
 
-(define (eva/dt dt e)
+(define (eva/deftype deftype e)
   (: ((form1/name form1/arrow) ((form1/name form1/arrow) ...)) env -> env)
   (match e
     [{ds bs ns}
-     (match dt
+     (match deftype
        [{{n a} nal}
         (let* ([nl (map car nal)]
                [a0 (form1/arrow->arrow a e)]
                [ns1 (cons (cons n
                                 {'cons/type {a0 n nl}})
                           ns)])
-          (eva/dt/data-constructor-list n nal {ds bs ns1}))])]))
+          (eva/deftype/data-constructor-list n nal {ds bs ns1}))])]))
 
-(define (eva/dt/data-constructor type-name na e)
+(define (eva/deftype/data-constructor type-name na e)
   (: name (form1/name form1/arrow) env -> env)
   (match e
     [{ds bs ns}
@@ -1136,20 +1182,20 @@
            (cons (cons n {'cons/data {a0 n type-name}})
                  ns)})])]))
 
-(define (eva/dt/data-constructor-list type-name nal e)
+(define (eva/deftype/data-constructor-list type-name nal e)
   (: name ((form1/name form1/arrow) ...) env -> env)
   (match nal
     [{} e]
     [(na . r)
-     (eva/dt/data-constructor-list
+     (eva/deftype/data-constructor-list
       type-name r
-      (eva/dt/data-constructor type-name na e))]))
+      (eva/deftype/data-constructor type-name na e))]))
 
-(define (eva/df df e)
+(define (eva/defn defn e)
   (: ((form1/name form1/arrow) (form1/arrow ...)) env -> env)
   (match e
     [{ds bs ns}
-     (match df
+     (match defn
        [{{n a} al}
         (let* ([a0 (form1/arrow->arrow a e)]
                ;; need to put the type into ns first
@@ -1174,11 +1220,11 @@
               ;; thus e1 is not used as return env
               [{'success e1} {ds bs ns1}]
               [{'fail il}
-               (cat ("eva/df fail to define : ~a~%" df))
+               (cat ("eva/defn fail to define : ~a~%" defn))
                (pretty-print il)
-               (orz 'eva/df ("end of report~%"))])))])]))
+               (orz 'eva/defn ("end of report~%"))])))])]))
 
-(define (eva/ap a e)
+(define (eva/app a e)
   (: form1/arrow env -> env)
   (let ([a0 (form1/arrow->arrow a e)])
     (match (compute/arrow a0 e)
