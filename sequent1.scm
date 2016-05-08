@@ -437,7 +437,7 @@
        (if found
          (bs/walk bs found)
          d))]
-    [(__ e) d]))
+    [{__ e} d]))
 
 (define (bs/deep bs d)
   (: bs data -> data)
@@ -703,16 +703,16 @@
                  [found (assq n ns)])
             (if (not found)
               (orz 'trunk->trunk*
-                   ("fail~%")
-                   ("unknow name : ~a~%" n))
+                ("fail~%")
+                ("unknow name : ~a~%" n))
               (let ([meaning (cdr found)])
                 (match meaning
                   [{'lambda {{ac sc} al1}}
                    {a (map copy-arrow al1) dl i}]
                   [__
                    (orz 'trunk->trunk*
-                        ("trunk->trunk* fail~%" )
-                        ("name is not lambda : ~a~%" n))])))))])]))
+                     ("trunk->trunk* fail~%" )
+                     ("name is not lambda : ~a~%" n))])))))])]))
 
 (define (compute/trunk t e)
   (: trunk env -> report)
@@ -968,27 +968,76 @@
   (: trunk trunk env -> report)
   (match {t1 t2}
     [{{a1 al1 dl1 i1} {a2 al2 dl2 i2}}
-     (cond [(not (eq? i1 i2))
+     (if (not (eq? i1 i2))
+       ;; syntactic unification fail
+       ;; recur to unify/data
+       ;; only when at least one of the trunk is reducible
+       ;; and if the arguments of this recur are both trunk
+       ;; they must be non-reducible
+       ;; thus will not get in to this branch again
+       (match {(filter-arrow-list al1 dl1 e)
+               (filter-arrow-list al2 dl2 e)}
+         [{l1 l2}
+          (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
             {'fail {`(unify/trunk
                       fail indexes are different
                       (trunk1: ,t1)
-                      (trunk2: ,t2))}}]
-           [(and (symbol? al1)
-                 (symbol? al2)
-                 (eq? al1 al2))
-            (unify/data-list
-             dl1 dl2
-             (unify/arrow a1 a2 e))]
-           [(and (symbol? al1)
-                 (not (symbol? al2)))
-            (unify/trunk (trunk->trunk* t1 e) t2 e)]
-           [(and (not (symbol? al1))
-                 (symbol? al2))
-            (unify/trunk  t1 (trunk->trunk* t2 e) e)]
-           [else ;; al1 al2 are both not symbol
-            (unify/data-list
-             dl1 dl2
-             (unify/lambda {a1 al1} {a2 al2} e))])]))
+                      (trunk2: ,t2)
+                      and both trunks are non-reducible)}}
+            (match {(compute/trunk t1 e)
+                    (compute/trunk t2 e)}
+              [{{'success {(d1 . __) __ __}}
+                {'success {(d2 . __) __ __}}}
+               (unify/data d1 d2 e)]
+              [{__ __}
+               {'fail {`(unify/trunk
+                         fail indexes are different
+                         (trunk1: ,t1)
+                         (trunk2: ,t2)
+                         and fail to compute/trunk one of them)}}]))])
+       (cond [(and (symbol? al1)
+                   (symbol? al2)
+                   (eq? al1 al2))
+              (unify/data-list
+               dl1 dl2
+               (unify/arrow a1 a2 e))]
+             [(and (symbol? al1)
+                   (not (symbol? al2)))
+              (unify/trunk (trunk->trunk* t1 e) t2 e)]
+             [(and (not (symbol? al1))
+                   (symbol? al2))
+              (unify/trunk  t1 (trunk->trunk* t2 e) e)]
+             [else ;; al1 al2 are both not symbol
+              (match (unify/data-list
+                      dl1 dl2
+                      (unify/lambda {a1 al1} {a2 al2} e))
+                [{'success e1} {'success e1}]
+                [{'fail il}
+                 ;; recur to unify/data
+                 ;; only when at least one of the trunk is reducible
+                 ;; and if the arguments of this recur are both trunk
+                 ;; they must be non-reducible
+                 ;; thus will not get in to this branch again
+                 (match {(filter-arrow-list al1 dl1 e)
+                         (filter-arrow-list al2 dl2 e)}
+                   [{l1 l2}
+                    (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
+                      {'fail {`(unify/trunk
+                                syntacticly different trunks
+                                (trunk1: ,t1)
+                                (trunk2: ,t2)
+                                and both trunks are non-reducible)}}
+                      (match {(compute/trunk t1 e)
+                              (compute/trunk t2 e)}
+                        [{{'success {(d1 . __) __ __}}
+                          {'success {(d2 . __) __ __}}}
+                         (unify/data d1 d2 e)]
+                        [{__ __}
+                         {'fail {`(unify/trunk
+                                   fail indexes are different
+                                   (trunk1: ,t1)
+                                   (trunk2: ,t2)
+                                   and fail to compute/trunk one of them)}}]))])])]))]))
 
 (define (unify/trunk/data t d e)
   (: trunk data env -> report)
@@ -1261,8 +1310,8 @@
         (let ([found (assq n ns)])
           (if (not found)
             (orz 'type-compute/cons
-                 ("unknow name : ~a~%" n)
-                 ("cons : ~a~%" c))
+              ("unknow name : ~a~%" n)
+              ("cons : ~a~%" c))
             (let ([meaning (cdr found)])
               (match meaning
                 [{any-type (t . __)}
@@ -1273,8 +1322,22 @@
 
 (define (type-compute/arrow a e)
   (: arrow env -> report)
-  (orz 'type-compute/arrow
-       ("arrow is not handled for now~%")))
+  (match e
+    [{ds bs ns}
+     (match (copy-arrow a)
+       ;; need to copy the arrow first
+       ;; because the return arrow might be applied somewhere else
+       [{ac sc}
+        (match (type-compute/cedent ac {{} (cons '(commit-point) bs) ns})
+          [{'fail il} {'fail il}]
+          [{'success {ds1 bs1 ns1}}
+           (match (type-compute/cedent sc {{} bs1 ns1})
+             [{'fail il} {'fail il}]
+             [{'success {ds2 bs2 ns2}}
+              {'success {(cons {'arrow {(reverse ds1) (reverse ds2)}}
+                               ds)
+                         (bs/commit! bs2)
+                         ns2}}])])])]))
 
 (define (type-compute/lambda l e)
   (: lambda env -> report)
@@ -1303,3 +1366,59 @@
                  {'success {(cons (proj i e2) ds)
                             bs1
                             ns1}}])])])])]))
+
+(define (infer/arrow a e)
+  (: arrow env -> arrow)
+  (match (type-compute/arrow a e)
+    [{'fail il}
+     (orz 'infer/arrow
+       ("fail to type-compute/arrow : ~a~%" a)
+       ("reported info-list : ~a~%" il))]
+    [{'success {(a1 . __) __ __}}
+     a1]))
+
+(define (infer/arrow-list al e)
+  (: (arrow ...) env -> arrow)
+  (unite/arrow-list
+   (map (lambda (x) (infer/arrow x e)) al)
+   e))
+
+(define (unite/arrow-list al e)
+  (: (arrow ...) env -> arrow)
+  (letrec ([recur
+            (lambda (a l)
+              (: arrow (arrow ...) -> arrow)
+              (match l
+                [{} a]
+                [(h . r)
+                 (recur (unite/two a h e) r)]))])
+    (recur (car al) (cdr al))))
+
+(define (unite/two a1 a2 e)
+  (: arrow arrow env -> arrow)
+  (match e
+    [{ds bs ns}
+     (match {a1 a2}
+       [{{ac1 sc1} {ac2 sc2}}
+        (let ([ac1 (copy-arrow ac1)]
+              [sc1 (copy-arrow sc1)]
+              [ac2 (copy-arrow ac2)]
+              [sc2 (copy-arrow sc2)])
+          (match (unify/data-list
+                  ac1 ac2
+                  {'success {{} (cons '(commit-point) bs) ns}})
+            [{'fail il} (orz 'unite/two
+                          ("fail to unify antecedent~%")
+                          ("ac1 : ~a~%" ac1)
+                          ("ac2 : ~a~%" ac2))]
+            [{'success {__ bs1 ns1}}
+             (match (unify/data-list
+                     sc1 sc2
+                     {'success {{} bs1 ns1}})
+               [{'fail il} (orz 'unite/two
+                             ("fail to unify succedent~%")
+                             ("sc1 : ~a~%" sc1)
+                             ("sc2 : ~a~%" sc2))]
+               [{'success {ds2 bs2 ns2}}
+                (bs/commit! bs2)
+                {ac1 sc1}])]))])]))
