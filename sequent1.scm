@@ -1,107 +1,3 @@
-(define-syntax cating
-  (syntax-rules ()
-    [(cating (str . args))
-     (format #f str . args)]
-    [(cat (str . args) (str2 . args2) ...)
-     (string-append
-      (cating (str . args))
-      (cating (str2 . args2) ...))]))
-
-(define-syntax cat
-  (syntax-rules ()
-    [(cat e ...)
-     (format #t (cating e ...))]))
-
-(define-syntax orz
-  (syntax-rules ()
-    [(orz who c ...)
-     (error who (cating ("~%") c ...))]))
-
-(define-syntax type
-  (syntax-rules ()
-    [(type . body)
-     (void)]))
-
-(define-syntax :
-  (syntax-rules ()
-    [(: . body)
-     (void)]))
-
-(define-syntax test
-  (syntax-rules ()
-    [(test b1 b2)
-     (if (equal? b1 b2)
-       #t
-       (let ()
-         (cat ("~%")
-              ("<begin-test-fail-report>~%")
-              (":actual-form:~%"))
-         (pretty-print (quote b1))
-         (cat (":actual-value:~%"))
-         (pretty-print b1)
-         (cat (":expect-form:~%"))
-         (pretty-print (quote b2))
-         (cat (":expect-value:~%"))
-         (pretty-print b2)
-         (cat ("<test-fail-report-end>~%"))
-         (orz 'test (">_<"))))]))
-
-(define (take lis k)
-  (let recur ((lis lis) (k k))
-    (if (zero? k) '()
-        (cons (car lis)
-              (recur (cdr lis) (- k 1))))))
-
-(define (drop lis k)
-  (let iter ((lis lis) (k k))
-    (if (zero? k) lis (iter (cdr lis) (- k 1)))))
-
-(define (left-of s l)
-  (: sexp list -> list)
-  (cond [(equal? s (car l)) '()]
-        [else (cons (car l) (left-of s (cdr l)))]))
-
-(define (right-of s l)
-  (: sexp list -> list)
-  (cond [(equal? s (car l)) (cdr l)]
-        [else (right-of s (cdr l))]))
-
-(define (sublist l start end)
-  (: list index index -> list)
-  (cond [(and (eq? 0 start) (<= end 0)) '()]
-        [(and (not (eq? 0 start)))
-         (sublist (cdr l) (- start 1) (- end 1))]
-        [(and (eq? 0 start) (not (eq? 0 end)))
-         (cons (car l) (sublist (cdr l) 0 (- end 1)))]))
-
-(define (genlist len)
-  (: length -> list)
-  (letrec ([recur
-            (lambda (len counter)
-              (cond [(eq? len counter) '()]
-                    [else (cons counter
-                                (recur len (+ 1 counter)))]))])
-    (recur len 0)))
-
-(define (substitute e p? l)
-  (: element (element -> bool) (element ...) -> (element ...))
-  (cond [(eq? '() l) '()]
-        [(p? (car l)) (cons e (cdr l))]
-        [else (cons (car l) (substitute e p? (cdr l)))]))
-
-(define (find-char c s)
-  (: char string -> (or curser #f))
-  (find-char/curser c s 0))
-
-(define (find-char/curser c s curser)
-  (: char string curser -> (or curser #f))
-  (if (>= curser (string-length s))
-    #f
-    (let ([c0 (substring s curser (+ 1 curser))])
-      (if (equal? c c0)
-        curser
-        (find-char/curser c s (+ 1 curser))))))
-
 (define (pass1/arrow default-level s)
   (: default-level form1/arrow -> form2/arrow)
   (list (pass1/cedent default-level (left-of '-> s))
@@ -933,9 +829,7 @@
          [{{'var v1} {'var v2}}
           (if (var/eq? v1 v2)
             {'success e}
-            {'success {ds
-                       (bs/extend bs v1 d)
-                       ns}})]
+            (unify/var/data v1 d e))]
          [{{'var v} __} (unify/var/data v d e)]
          [{__ {'var v}} (unify/var/data v p e)]
 
@@ -965,10 +859,114 @@
                bs)))]))
 
 (define (unify/var/data v d e)
-  (: var data env -> report)
+  (: fresh-var data env -> report)
   (match e
     [{ds bs ns}
-     {'success {ds (bs/extend bs v d) ns}}]))
+     ;; {'success {ds (bs/extend bs v d) ns}}
+     (match (consistent-check v d e)
+       [{'fail il} {'fail il}]
+       [{'success __}
+        {'success {ds (bs/extend bs v d) ns}}])]))
+
+(define (consistent-check v d e)
+  (: fresh-var data env -> report)
+  (match {v e}
+    [{{id level} {ds bs ns}}
+     (match {(var/highest? v e) (var/lowest? v e)}
+       [{#t #t} {'success e}]
+       [{#t #f}
+        (match (var/below v e)
+          [{{__ low-level} low-d}
+           (consistent-check/level-diff (- level low-level) low-d d e)])]
+       [{#f #t}
+        (match (var/above v e)
+          [{{__ high-level} high-d}
+           (consistent-check/level-diff (- high-level level) d high-d e)])]
+       [{#f #f}
+        (match (var/below v e)
+          [{{__ low-level} low-d}
+           (match (consistent-check/level-diff (- level low-level) low-d d e)
+             [{'fail il} {'fail il}]
+             [{'success __}
+              (match (var/above v e)
+                [{{__ high-level} high-d}
+                 (consistent-check/level-diff (- high-level level) d high-d e)])])])])]))
+
+(define (consistent-check/level-diff level-diff d1 d2 e)
+  (: level-diff data data env -> report)
+  (match e
+    [{ds bs ns}
+     (match (type-compute/repeat level-diff d1 e)
+       [{'fail il} {'fail il}]
+       [{'success {(d0 . __) bs1 ns1}}
+        (unify/data d0 d2 {ds bs1 ns1})])]))
+
+(define (type-compute/repeat c d e)
+  (: counter data env -> report)
+  (match e
+    [{ds bs ns}
+     (match (eq? 0 c)
+       [#t {'success {(cons d ds) bs ns}}]
+       [#f (match (type-compute d e)
+             [{'fail il} {'fail il}]
+             [{'success {(d1 . r) bs1 ns1}}
+              (type-compute/repeat (- c 1) d1 {r bs1 ns1})])])]))
+
+(define (var/highest? v e)
+  (: fresh-var env -> bool)
+  (match e
+    [{ds bs ns}
+     (match v
+       [{id level}
+        (let* ([found (assq id bs)]
+               [ls (append (id->ls id)
+                           (if found (cdr found) '()))])
+          (list-every?
+           (lambda (x) (> level (car x)))
+           ls))])]))
+
+(define (var/lowest? v e)
+  (: fresh-var env -> bool)
+  (match e
+    [{ds bs ns}
+     (match v
+       [{id level}
+        (let* ([found (assq id bs)]
+               [ls (append (id->ls id)
+                           (if found (cdr found) '()))])
+          (list-every?
+           (lambda (x) (< level (car x)))
+           ls))])]))
+
+(define (var/above v e)
+  (: fresh-var env -> (var data))
+  (match e
+    [{ds bs ns}
+     (match v
+       [{id level}
+        (let* ([found (assq id bs)]
+               [ls (append (id->ls id)
+                           (if found (cdr found) '()))])
+          (let ([pair
+                 (car (filter (lambda (x) (> (car x) level))
+                              (sort (lambda (x y) (< (car x) (car y)))
+                                    ls)))])
+            {{id (car pair)} (cdr pair)}))])]))
+
+(define (var/below v e)
+  (: fresh-var env -> (var data))
+  (match e
+    [{ds bs ns}
+     (match v
+       [{id level}
+        (let* ([found (assq id bs)]
+               [ls (append (id->ls id)
+                           (if found (cdr found) '()))])
+          (let ([pair
+                 (car (filter (lambda (x) (< (car x) level))
+                              (sort (lambda (x y) (> (car x) (car y)))
+                                    ls)))])
+            {{id (car pair)} (cdr pair)}))])]))
 
 (define (unify/cons c1 c2 e)
   (: cons cons env -> report)
