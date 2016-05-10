@@ -631,38 +631,51 @@
             ns})]))
     #+end_src
 
-*** ><><>< pass3/bind
+*** pass3/bind
 
     #+begin_src scheme
     (define (pass3/bind b e)
       (: form3/bind env -> env)
-      (match b
-        [{vl c leave?}
-         (match (pass3/cedent c e)
-           ;; ><><><
-           ;; here I assume the c returns only one data
-           ;; actual error handling is needed
-           [{(d1 . __) __ __}
-            (letrec ([recur
-                      ;; (: (form3/var ...) env -> env)
-                      (lambda (vl e)
-                        (match e
-                          [{ds bs ns}
-                           (match vl
-                             [{} e]
-                             [({'form3/var {id level}} . r)
-                              ;; ><><><
-                              ;; no error handling here
-                              ;; ><><><
-                              ;; need to check if the bind already exist
-                              ;; and to check type
-                              (id/commit! id {(cons level d1)})
-                              (recur r {(if leave?
-                                          (cons d1 ds)
-                                          ds)
-                                        bs
-                                        ns})])]))])
-              (recur vl e))])]))
+      (match e
+        [{ds bs ns}
+         (match b
+           [{vl c leave?}
+            (match (pass3/cedent c {{} bs ns})
+              [{ds1 __ __}
+               (if (not (eq? 1 (length ds1)))
+                 (orz 'pass3/bind
+                   ("the cedent in bind should only return one data~%")
+                   ("bind : ~a~%" b))
+                 (let ([d1 (car ds1)])
+                   (letrec ([recur
+                             (lambda (vl e)
+                               (: (form3/var ...) env -> env)
+                               (match e
+                                 [{ds bs ns}
+                                  (match vl
+                                    [{} e]
+                                    [({'form3/var {id level}} . r)
+                                     (if (not (var/fresh? {id level} e))
+                                       (orz 'pass3/bind
+                                         ("var is not fresh : ~a~%" {id level})
+                                         ("env : ~a~%" e))
+                                       (if (not
+                                            (match (consistent-check
+                                                    {id level} d1 e)
+                                              [{'fail __} #f]
+                                              [{'success __} #t]))
+                                         (orz 'pass3/bind
+                                           ("var data is not consistent~%")
+                                           ("var : ~a~%" {id level})
+                                           ("data : ~a~%" d1))
+                                         (let ()
+                                           (id/commit! id {(cons level d1)})
+                                           (recur r {(if leave?
+                                                       (cons d1 ds)
+                                                       ds)
+                                                     bs
+                                                     ns}))))])]))])
+                     (recur vl e))))])])]))
     #+end_src
 
 *** id/commit!
@@ -744,6 +757,7 @@
                  (lambda (bs al)
                    (map (lambda (a) (bs/deep-arrow bs a)) al))])
         (match (bs/walk bs d)
+          ;; a var is fresh after bs/walk
           [{'var v}
            {'var v}]
           [{'cons (name dl)}
@@ -760,6 +774,17 @@
                 (bs/deep-arrow-list bs al))
               (bs/deep-list bs dl)
               i}}])))
+    #+end_src
+
+*** var/fresh?
+
+    #+begin_src scheme
+    (define (var/fresh? v e)
+      (: var env -> bool)
+      (match e
+        [{ds bs ns}
+         (equal? (bs/walk bs {'var v})
+                 {'var v})]))
     #+end_src
 
 * copy-arrow
@@ -1423,7 +1448,6 @@
       (: fresh-var data env -> report)
       (match e
         [{ds bs ns}
-         ;; {'success {ds (bs/extend bs v d) ns}}
          (match (consistent-check v d e)
            [{'fail il} {'fail il}]
            [{'success __}
