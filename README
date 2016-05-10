@@ -1,5 +1,4 @@
-a prototype interpreter for a lovely functional language
-which uses sequent calculus as dependent type system
+a prototype interpreter of a lovely functional language
 
 prepared for scheme and functional programming workshop 2016 ::
 http://scheme2016.snow-fort.org

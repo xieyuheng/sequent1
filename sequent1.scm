@@ -1202,14 +1202,9 @@
                ;; in ns
                ;; type global-bindings and arrow-list global-bindings
                ;; must be separately interfaced
-               [ns0 (cons (cons n {'lambda {a0 'placeholder}})
-                          ns)]
-               [al0 (map (lambda (x)
-                           (form1/arrow->arrow x {ds bs ns0}))
-                      al)]
-               [ns1 (cons (cons n
-                                {'lambda {a0 al0}})
-                          ns)])
+               [ns0 (cons (cons n {'lambda {a0 'placeholder}}) ns)]
+               [al0 (map (lambda (x) (form1/arrow->arrow x {ds bs ns0})) al)]
+               [ns1 (cons (cons n {'lambda {a0 al0}}) ns)])
           (if (not check?)
             {ds bs ns1}
             (match (check a0 al0 {ds bs ns1})
@@ -1249,76 +1244,65 @@
        (sequent/repl e1)])))
 
 (define (check t al e)
-  (: arrow (arrow ...) env -> report)
+  (: arrow (arrow ...) env -> report
+     [with effect on (arrow ...)])
   (match al
     [{} {'success e}]
     [(a . r)
-     (match (check/arrow t a e)
+     (match (check/arrow (copy-arrow t) a e)
        [{'success e1}
         ;; note that the above return env is droped
         ;; this is viewed as undo
         (check t r e)]
        [{'fail il} {'fail il}])]))
 
+(define (bind f1 f2)
+  (: (:t1 env -> report)
+     (:t2 env -> report)
+     ->
+     (:t1 :t2 env -> report))
+  (lambda (x1 x2 e)
+    (match (f1 x1 e)
+      [{'fail il} {'fail il}]
+      [{'success e1} (f2 x2 e1)])))
+
 (define (check/arrow t a e)
   (: arrow arrow env -> report)
-  (match (list t a)
-    [{{tac tsc} {ac sc}}
-     (let ([alen (length ac)]
-           [talen (length tac)]
-           [slen (length sc)]
-           [tslen (length tsc)])
-       (match (compute/cedent tac e)
-         [{'fail il}
-          {'fail (cons `(check/arrow
-                         fail on compute/cedent
-                         (type-antecedent: ,tac))
-                       il)}]
-         [{'success e1}
-          (match (type-compute/cedent ac e1)
-            [{'fail il}
-             {'fail (cons `(check/arrow
-                            fail on compute/cedent
-                            (antecedent: ,ac))
-                          il)}]
-            [{'success e2}
-             (match e2
-               [{ds2 bs2 ns2}
-                (match (unify/data-list
-                        (take ds2 talen)
-                        (take (drop ds2 talen) alen)
-                        {'success {(drop (drop ds2 talen) alen)
-                                   bs2
-                                   ns2}})
-                  [{'fail il}
-                   {'fail (cons `(check/arrow
-                                  fail on unify/data-list
-                                  (type-antecedent: ,tac)
-                                  (antecedent: ,ac))
-                                il)}]
-                  [{'success e3}
-                   (match (compute/cedent tsc e3)
-                     [{'fail il}
-                      {'fail (cons `(check/arrow
-                                     fail on compute/cedent
-                                     (type-succedent: ,tsc))
-                                   il)}]
-                     [{'success e4}
-                      (match (type-compute/cedent sc e4)
-                        [{'fail il}
-                         {'fail (cons `(check/arrow
-                                        fail on
-                                        (succedent: ,sc))
-                                      il)}]
-                        [{'success e5}
-                         (match e5
-                           [(ds5 bs5 ns5)
-                            (unify/data-list
-                             (take ds5 tslen)
-                             (take (drop ds5 tslen) slen)
-                             {'success {(drop (drop ds5 tslen) slen)
-                                        bs5
-                                        ns5}})])])])])])])]))]))
+  (match e
+    [{ds bs ns}
+     (let ([e {ds (cons '(commit-point) bs) ns}])
+      (match (list t a)
+        [{{tac tsc} {ac sc}}
+         (let ([alen  (length ac)]
+               [talen (length tac)]
+               [slen  (length sc)]
+               [tslen (length tsc)])
+           (match ((bind compute/cedent type-compute/cedent)
+                   tac ac e)
+             [{'fail il} {'fail il}]
+             [{'success e2}
+              (match e2
+                [{ds2 bs2 ns2}
+                 (match (unify/data-list
+                         (take ds2 talen)
+                         (take (drop ds2 talen) alen)
+                         {'success {(drop (drop ds2 talen) alen)
+                                    bs2
+                                    ns2}})
+                   [{'fail il} {'fail il}]
+                   [{'success e3}
+                    (match ((bind compute/cedent type-compute/cedent)
+                            tsc sc e3)
+                      [{'fail il} {'fail il}]
+                      [{'success e5}
+                       (match e5
+                         [(ds5 bs5 ns5)
+                          (unify/data-list
+                           (take ds5 tslen)
+                           (take (drop ds5 tslen) slen)
+                           {'success {(drop (drop ds5 tslen) slen)
+                                      (bs/commit! bs5)
+                                      ns5}})])])])])]))]))]))
 
 (define (type-compute/cedent c e)
   (: cedent env -> report)

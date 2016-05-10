@@ -4,28 +4,16 @@
 
 ---------
 
-- a prototype interpreter for a lovely functional language
-  which uses sequent calculus as dependent type system
-
-- sequent is called arrow here
-  which is the core data type of the language
-
-- as a prototype implementation its unsatisfactory features are
-  1. call-by-name
-  2. using copy to handle scope
-
-- source code is here https://github.com/xieyuheng/sequent1
+- a prototype interpreter ([[https://github.com/xieyuheng/sequent1][source code]]) of a lovely functional language
+  which uses sequent calculus as its dependent type system
+  when functions compose
+  their types cut
 
 - XIE Yuheng created
 
 ---------
 
 * todo
-
-  - add type of var at runtime
-    - when apply a var
-      need to get the type of it
-      to form a trunk
 
   - the structure of trunk need to be redesigned
     to make it possible to substitute lambda into it by var
@@ -46,6 +34,17 @@
       sequent1 should handle it instead of crashing
 
 * note
+
+*** unsatisfactory features
+
+    - as a prototype implementation its unsatisfactory features are
+      1. call-by-name
+      2. using copy to handle scope
+
+*** sequent
+
+    - sequent is called arrow here
+      which is the core data type of the language
 
 *** form1
 
@@ -143,9 +142,15 @@
 
 *** no dependent type in scheme
 
-    - because I am not documenting these scheme code by dependent type
+    - because I am not documenting these scheme functions by dependent type
       the type document already fail to express
       most of the natural of env passing functions
+
+    - not to mention the invariants of functions which is described by english
+      neither they can be expressed by the week type notation
+
+    - it is such a cognitive burden
+      it is what makes programming a hard work where mistake is too easy
 
 * pass1
 
@@ -363,6 +368,8 @@
 
     - form3 -pass3-> data
       cons & trunk are created here
+      - ns is searched
+        but no effect on ns
 
     - note that
       we are building new function body
@@ -371,25 +378,22 @@
       whenever a list of data in data-stack are used to form a function body
       the list should be reversed
 
-    - pass3 will use env passing
-      note that
-      when env passing is used
-      those functions would not be separately testable
-
-    - no unification here
+    - bind is handled here
+      no unification here
       bs is not used here
       bind just effect on the id of var
 
-    - ns is searched
-      but no effect on ns
-
-    - how should I express such in type and prove them ?
-
-    - when meet 'apply' form a trunk from arrow or lambda
+    - apply is handled here
+      when meet 'apply' form a trunk from arrow or lambda
       if it is arrow
       use infer/arrow to get the type of it
       if it is lambda
       use infer/arrow-list to get the type of it
+
+    - pass3 will use env passing
+      note that
+      when env passing is used
+      those functions would not be separately testable
 
     - note that
       nested arrow or lambda will not block scope
@@ -1865,14 +1869,9 @@
                    ;; in ns
                    ;; type global-bindings and arrow-list global-bindings
                    ;; must be separately interfaced
-                   [ns0 (cons (cons n {'lambda {a0 'placeholder}})
-                              ns)]
-                   [al0 (map (lambda (x)
-                               (form1/arrow->arrow x {ds bs ns0}))
-                          al)]
-                   [ns1 (cons (cons n
-                                    {'lambda {a0 al0}})
-                              ns)])
+                   [ns0 (cons (cons n {'lambda {a0 'placeholder}}) ns)]
+                   [al0 (map (lambda (x) (form1/arrow->arrow x {ds bs ns0})) al)]
+                   [ns1 (cons (cons n {'lambda {a0 al0}}) ns)])
               (if (not check?)
                 {ds bs ns1}
                 (match (check a0 al0 {ds bs ns1})
@@ -1932,11 +1931,12 @@
 
     #+begin_src scheme
     (define (check t al e)
-      (: arrow (arrow ...) env -> report)
+      (: arrow (arrow ...) env -> report
+         [with effect on (arrow ...)])
       (match al
         [{} {'success e}]
         [(a . r)
-         (match (check/arrow t a e)
+         (match (check/arrow (copy-arrow t) a e)
            [{'success e1}
             ;; note that the above return env is droped
             ;; this is viewed as undo
@@ -1946,16 +1946,81 @@
 
 *** check/arrow
 
-    - ><><>< how to refactor this
+    - note that the efforts of unifications here are commited
+      so before call check/arrow you'd better copy your type arrow
+
+    - I need to do commit here
+      because when apply a var
+      I need to get the type of it
+      to form a trunk
 
     #+begin_src scheme
+    (define (bind f1 f2)
+      (: (:t1 env -> report)
+         (:t2 env -> report)
+         ->
+         (:t1 :t2 env -> report))
+      (lambda (x1 x2 e)
+        (match (f1 x1 e)
+          [{'fail il} {'fail il}]
+          [{'success e1} (f2 x2 e1)])))
+
+    (define (check/arrow t a e)
+      (: arrow arrow env -> report)
+      (match e
+        [{ds bs ns}
+         (let ([e {ds (cons '(commit-point) bs) ns}])
+          (match (list t a)
+            [{{tac tsc} {ac sc}}
+             (let ([alen  (length ac)]
+                   [talen (length tac)]
+                   [slen  (length sc)]
+                   [tslen (length tsc)])
+               (match ((bind compute/cedent type-compute/cedent)
+                       tac ac e)
+                 [{'fail il} {'fail il}]
+                 [{'success e2}
+                  (match e2
+                    [{ds2 bs2 ns2}
+                     (match (unify/data-list
+                             (take ds2 talen)
+                             (take (drop ds2 talen) alen)
+                             {'success {(drop (drop ds2 talen) alen)
+                                        bs2
+                                        ns2}})
+                       [{'fail il} {'fail il}]
+                       [{'success e3}
+                        (match ((bind compute/cedent type-compute/cedent)
+                                tsc sc e3)
+                          [{'fail il} {'fail il}]
+                          [{'success e5}
+                           (match e5
+                             [(ds5 bs5 ns5)
+                              (unify/data-list
+                               (take ds5 tslen)
+                               (take (drop ds5 tslen) slen)
+                               {'success {(drop (drop ds5 tslen) slen)
+                                          (bs/commit! bs5)
+                                          ns5}})])])])])]))]))]))
+    #+end_src
+
+*** check/arrow without monad combinator :no:
+
+    - check/arrow without monad combinator
+      but with better report info
+
+    - and no commit here
+      because at the time I wirte this version
+      I do not know I need to do commit here
+
+    #+begin_src scheme :tangle no
     (define (check/arrow t a e)
       (: arrow arrow env -> report)
       (match (list t a)
         [{{tac tsc} {ac sc}}
-         (let ([alen (length ac)]
+         (let ([alen  (length ac)]
                [talen (length tac)]
-               [slen (length sc)]
+               [slen  (length sc)]
                [tslen (length tsc)])
            (match (compute/cedent tac e)
              [{'fail il}
