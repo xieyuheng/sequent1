@@ -223,15 +223,21 @@
   (: env -> env)
   (match e
     [{(d . r) bs ns}
-     (match d
-       [{'arrow a}
-        (pass3/apply/arrow d {r bs ns})]
-       [{'lambda l}
-        (pass3/apply/lambda l {r bs ns})]
-       [__
-        (orz 'pass3/apply
-          ("can only apply arrow or lambda~%")
-          ("but the data at the top of data-stack is : ~a~%" d))])]))
+     (pass3/apply/data d {r bs ns})]))
+
+(define (pass3/apply/data d e)
+  (: data env -> env)
+  (match d
+    [{'arrow x}
+     (pass3/apply/arrow x e)]
+    [{'lambda x}
+     (pass3/apply/lambda x e)]
+    [{'var x}
+     (pass3/apply/var x e)]
+    [__
+     (orz 'pass3/apply/data
+       ("can only apply arrow or lambda or var~%")
+       ("but the data at the top of data-stack is : ~a~%" d))]))
 
 (define (pass3/apply/arrow a e)
   (: arrow env -> env)
@@ -243,7 +249,10 @@
           (let* ([alen (length ac)]
                  [slen (length sc)]
                  [dl (sublist ds 0 alen)]
-                 [make-trunk (lambda (i) {'trunk {t {a} dl i}})])
+                 [make-trunk
+                  (lambda (i)
+                    {'trunk
+                      {t {'tody/arrow-list {a}} dl i}})])
             {(append (map make-trunk (genlist slen))
                      (sublist ds alen (length ds)))
              bs
@@ -258,11 +267,46 @@
         (let* ([alen (length ac)]
                [slen (length sc)]
                [dl (sublist ds 0 alen)]
-               [make-trunk (lambda (i) {'trunk {{ac sc} al dl i}})])
+               [make-trunk
+                (lambda (i)
+                  {'trunk
+                    {{ac sc} {'tody/arrow-list al} dl i}})])
           {(append (map make-trunk (genlist slen))
                    (sublist ds alen (length ds)))
            bs
            ns})])]))
+
+(define (pass3/apply/var v e)
+  (: var env -> env)
+  (match e
+    [{ds bs ns}
+     (if (not (var/fresh? v e))
+       (pass3/apply/data (bs/deep bs {'var v}) e)
+       (match (type-compute/var v e)
+         [{'fail il}
+          (orz 'pass3/apply/var
+            ("fail to compute the type of var : ~a~%" v)
+            ("report info :~%~a~%" il))]
+         [{'success {(d . __) __ __}}
+          (match d
+            [{'arrow {ac sc}}
+             (let* ([alen (length ac)]
+                    [slen (length sc)]
+                    [dl (sublist ds 0 alen)]
+                    [make-trunk
+                     (lambda (i)
+                       {'trunk
+                         {{ac sc} {'tody/var v} dl i}})])
+               {(append (map make-trunk (genlist slen))
+                        (sublist ds alen (length ds)))
+                bs
+                ns})]
+            [__
+             (orz 'pass3/apply/var
+               ("to form trunk from var~%")
+               ("the type of var must be a arrow~%")
+               ("var : ~a~%" v)
+               ("type of var : ~a~%" d))])]))]))
 
 (define (id->name id)
   (car (vector-ref id 0)))
@@ -309,7 +353,7 @@
             [dl (sublist ds 0 alen)]
             ;; dl in trunk is as the order of dl in stack
             ;; thus no reverse is needed
-            [make-trunk (lambda (i) {'trunk {a n dl i}})])
+            [make-trunk (lambda (i) {'trunk {a {'tody/name n} dl i}})])
        {(append (map make-trunk (genlist slen))
                 (sublist ds alen (length ds)))
         bs
@@ -412,18 +456,29 @@
       ;; a var is fresh after bs/walk
       [{'var v}
        {'var v}]
-      [{'cons (name dl)}
+      [{'cons {name dl}}
        {'cons {name (bs/deep-list bs dl)}}]
       [{'arrow a} {'arrow (bs/deep-arrow bs a)}]
-      [{'lambda (a al)}
+      [{'lambda {a al}}
        {'lambda {(bs/deep-arrow bs a)
                  (bs/deep-arrow-list bs al)}}]
-      [{'trunk (a al dl i)}
+      [{'trunk {a tody dl i}}
        {'trunk
          {(bs/deep-arrow bs a)
-          (if (symbol? al)
-            al
-            (bs/deep-arrow-list bs al))
+          (match tody
+            [{'tody/var v}
+             (match (bs/deep bs {'var v})
+               [{'var v1} {'tody/var v1}]
+               [{'arrow a1} {'tody/arrow-list {a1}}]
+               [{'lambda {a al}} {'tody/arrow-list al}]
+               [d
+                (orz 'bs/deep
+                  ("find something wrong from the var in the tody of trunk~%")
+                  ("data : ~a~%" d))])]
+            [{'tody/name n}
+             {'tody/name n}]
+            [{'tody/arrow-list al}
+             {'tody/arrow-list (bs/deep-arrow-list bs al)}])
           (bs/deep-list bs dl)
           i}}])))
 
@@ -549,20 +604,30 @@
 (define (copy/trunk p s)
   (: trunk scope -> (trunk scope))
   (match p
-    [{a al dl i}
-     (if (symbol? al)
-       (match (copy/arrow a s)
-         [{a1 s1}
-          (match (copy/data-list dl s1)
-            [{dl1 s2}
-             {{a1 al dl1 i} s2}])])
-       (match (copy/arrow a s)
-         [{a1 s1}
-          (match (copy/arrow-list al s1)
-            [{al1 s2}
-             (match (copy/data-list dl s2)
-               [{dl1 s3}
-                {{a1 al1 dl1 i} s3}])])]))]))
+    [{a tody dl i}
+     (match tody
+       [{'tody/var v}
+        (match (copy/arrow a s)
+          [{a1 s1}
+           (match (copy/data-list dl s1)
+             [{dl1 s2}
+              (match (copy/var v s2)
+                [{v1 s3}
+                 {{a1 {'tody/var v1} dl1 i} s3}])])])]
+       [{'tody/name n}
+        (match (copy/arrow a s)
+          [{a1 s1}
+           (match (copy/data-list dl s1)
+             [{dl1 s2}
+              {{a1 {'tody/name n} dl1 i} s2}])])]
+       [{'tody/arrow-list al}
+        (match (copy/arrow a s)
+          [{a1 s1}
+           (match (copy/arrow-list al s1)
+             [{al1 s2}
+              (match (copy/data-list dl s2)
+                [{dl1 s3}
+                 {{a1 {'tody/arrow-list al1} dl1 i} s3}])])])])]))
 
 (define (compute/arrow a e)
   (: arrow env -> report)
@@ -652,37 +717,54 @@
                       bs
                       ns}}])])]))
 
-(define (trunk->trunk* t e)
-  (: trunk env -> trunk)
-  (match e
-    [{ds bs ns}
-     (match t
-       [{a al dl i}
-        (if (not (symbol? al))
-          {a al dl i}
-          ;; this is the only place (arrow ...) is copied
-          ;; ><><>< many place are copying now
-          (let* ([n al]
-                 [found (assq n ns)])
-            (if (not found)
-              (orz 'trunk->trunk*
-                ("fail~%")
-                ("unknow name : ~a~%" n))
-              (let ([meaning (cdr found)])
-                (match meaning
-                  [{'lambda {{ac sc} al1}}
-                   {a (map copy-arrow al1) dl i}]
-                  [__
-                   (orz 'trunk->trunk*
-                     ("trunk->trunk* fail~%" )
-                     ("name is not lambda : ~a~%" n))])))))])]))
-
 (define (compute/trunk t e)
+  (: trunk env -> report)
+  (match t
+    [{a tody dl i}
+     (match tody
+       [{'tody/var __} (compute/trunk/tody/var v e)]
+       [{'tody/name __} (compute/trunk/tody/name t e)]
+       [{'tody/arrow-list __} (compute/trunk/tody/arrow-list t e)])]))
+
+(define (compute/trunk/tody/var t e)
   (: trunk env -> report)
   (match e
     [{ds bs ns}
-     (match (trunk->trunk* t e)
-       [{a al dl i}
+     (match t
+       [{a {'tody/var v} dl i}
+        (match (bs/deep bs {'var v})
+          [{'var v1}
+           {'success
+            {(cons {'trunk {a {'tody/var v1} dl i}} ds)
+             bs
+             ns}}]
+          [{'arrow a1}
+           (compute/trunk/tody/arrow-list
+            {a {'tody/arrow-list {a1}} dl i} e)]
+          [{'lambda {a1 al}}
+           (compute/trunk/tody/arrow-list
+            ;; I can use a1 or a
+            ;; I use a here
+            {a {'tody/arrow-list al} dl i} e)]
+          [d
+           (orz 'compute/trunk/tody/var
+             ("find something wrong from the var in the tody of trunk~%")
+             ("data : ~a~%" d))])])]))
+
+(define (compute/trunk/tody/name t e)
+  (: trunk env -> report)
+  (match e
+    [{ds bs ns}
+     (match t
+       [{a {'tody/name n} dl i}
+        (compute/trunk/tody/arrow-list (trunk->trunk* t e) e)])]))
+
+(define (compute/trunk/tody/arrow-list t e)
+  (: trunk env -> report)
+  (match e
+    [{ds bs ns}
+     (match t
+       [{a {'tody/arrow-list al} dl i}
         ;; the following reverse
         ;; dl in stack -> dl in function body
         (match (compute/cedent (reverse dl) {{} bs ns})
@@ -715,10 +797,31 @@
                      [{'fail il} {'fail il}])]
                   [(a1 a2 . __)
                    {'success
-                    {(cons {'trunk {a al1 dl1 i}}
+                    {(cons {'trunk {a {'tody/arrow-list al1} dl1 i}}
                            ds)
                      bs1
                      ns1}}]))])])])]))
+
+(define (trunk->trunk* t e)
+  (: trunk env -> trunk)
+  (match e
+    [{ds bs ns}
+     (match t
+       [{a {'tody/name n} dl i}
+        (let ([found (assq n ns)])
+          (if (not found)
+            (orz 'trunk->trunk*
+              ("fail~%")
+              ("unknow name : ~a~%" n))
+            (let ([meaning (cdr found)])
+              (match meaning
+                [{'lambda {{ac sc} al1}}
+                 {a {'tody/arrow-list (map copy-arrow al1)} dl i}]
+                [__
+                 (orz 'trunk->trunk*
+                   ("trunk->trunk* fail~%" )
+                   ("name is not lambda : ~a~%" n))]))))]
+       [{a tody dl i} {a tody dl i}])]))
 
 (define (filter-arrow-list al dl e)
   (: (arrow ...) (data ...) env -> (arrow ...))
@@ -810,7 +913,7 @@
 (define (print/trunk t e)
   (: trunk env -> [effect on terminal])
   (match t
-    [{a al dl i}
+    [{a tody dl i}
      (format #t "<trunk>")]))
 
 (define (unify/data-list pl dl r)
@@ -1030,78 +1133,128 @@
 
 (define (unify/trunk t1 t2 e)
   (: trunk trunk env -> report)
+  (match (unify/trunk/syntactic t1 t2 e)
+    [{'success e1} {'success e1}]
+    [{'fail il1}
+     (match (unify/trunk/semantic t1 t2 e)
+       [{'success e2} {'success e2}]
+       [{'fail il2}
+        {'fail (append il2 il1)}])]))
+
+(define (unify/trunk/syntactic t1 t2 e)
+  (: trunk trunk env -> report)
   (match {t1 t2}
-    [{{a1 al1 dl1 i1} {a2 al2 dl2 i2}}
+    [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
      (if (not (eq? i1 i2))
-       ;; syntactic unification fail
-       ;; recur to unify/data
-       ;; only when at least one of the trunk is reducible
-       ;; and if the arguments of this recur are both trunk
-       ;; they must be non-reducible
-       ;; thus will not get in to this branch again
-       (match {(filter-arrow-list al1 dl1 e)
-               (filter-arrow-list al2 dl2 e)}
-         [{l1 l2}
-          (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
-            {'fail {`(unify/trunk
-                      fail indexes are different
+       {'fail {`(unify/trunk/syntactic
+                 fail indexes are different
+                 (trunk1: ,t1)
+                 (trunk2: ,t2))}}
+       (match {tody1 tody2}
+         ;; about name
+         [{{'tody/name n1} {'tody/name n2}}
+          (if (eq? n1 n2)
+            (unify/data-list dl1 dl2 (unify/arrow a1 a2 e))
+            {'fail {`(unify/trunk/syntactic
+                      fail names are different
                       (trunk1: ,t1)
-                      (trunk2: ,t2)
-                      and both trunks are non-reducible)}}
-            (match {(compute/trunk t1 e)
-                    (compute/trunk t2 e)}
-              [{{'success {(d1 . __) __ __}}
-                {'success {(d2 . __) __ __}}}
-               (unify/data d1 d2 e)]
-              [{__ __}
-               {'fail {`(unify/trunk
-                         fail indexes are different
-                         (trunk1: ,t1)
-                         (trunk2: ,t2)
-                         and fail to compute/trunk one of them)}}]))])
-       (cond [(and (symbol? al1)
-                   (symbol? al2)
-                   (eq? al1 al2))
-              (unify/data-list
-               dl1 dl2
-               (unify/arrow a1 a2 e))]
-             [(and (symbol? al1)
-                   (not (symbol? al2)))
-              (unify/trunk (trunk->trunk* t1 e) t2 e)]
-             [(and (not (symbol? al1))
-                   (symbol? al2))
-              (unify/trunk  t1 (trunk->trunk* t2 e) e)]
-             [else ;; al1 al2 are both not symbol
-              (match (unify/data-list
-                      dl1 dl2
-                      (unify/lambda {a1 al1} {a2 al2} e))
-                [{'success e1} {'success e1}]
-                [{'fail il}
-                 ;; recur to unify/data
-                 ;; only when at least one of the trunk is reducible
-                 ;; and if the arguments of this recur are both trunk
-                 ;; they must be non-reducible
-                 ;; thus will not get in to this branch again
-                 (match {(filter-arrow-list al1 dl1 e)
-                         (filter-arrow-list al2 dl2 e)}
-                   [{l1 l2}
-                    (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
-                      {'fail {`(unify/trunk
-                                syntacticly different trunks
-                                (trunk1: ,t1)
-                                (trunk2: ,t2)
-                                and both trunks are non-reducible)}}
-                      (match {(compute/trunk t1 e)
-                              (compute/trunk t2 e)}
-                        [{{'success {(d1 . __) __ __}}
-                          {'success {(d2 . __) __ __}}}
-                         (unify/data d1 d2 e)]
-                        [{__ __}
-                         {'fail {`(unify/trunk
-                                   fail indexes are different
-                                   (trunk1: ,t1)
-                                   (trunk2: ,t2)
-                                   and fail to compute/trunk one of them)}}]))])])]))]))
+                      (trunk2: ,t2))}})]
+         [{{'tody/name n} {'tody/var v}}
+          (unify/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
+         [{{'tody/var v} {'tody/name n}}
+          (unify/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
+         [{{'tody/name n} {'tody/arrow-list al}}
+          (unify/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
+         [{{'tody/arrow-list al} {'tody/name n}}
+          (unify/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
+         ;; about var
+         [{{'tody/var v1} {'tody/var v2}}
+          (match (unify/data {'var v1} {'var v2} e)
+            [{'fail il} {'fail il}]
+            [{'success e1}
+             (unify/data-list dl1 dl2 (unify/arrow a1 a2 e1))])]
+         [{{'tody/var v} {'tody/arrow-list al}}
+          (match (unify/data {'var v} {'lambda {a2 al}} e)
+            [{'fail il} {'fail il}]
+            [{'success e1}
+             (unify/data-list dl1 dl2 (unify/arrow a1 a2 e1))])]
+         [{{'tody/arrow-list al} {'tody/var v}}
+          (match (unify/data {'lambda {a1 al}} {'var v} e)
+            [{'fail il} {'fail il}]
+            [{'success e1}
+             (unify/data-list dl1 dl2 (unify/arrow a1 a2 e1))])]
+         ;; about arrow-list
+         [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
+          (unify/data-list
+           dl1 dl2
+           (unify/lambda {a1 al1} {a2 al2} e))]))]))
+
+(define (unify/trunk/semantic t1 t2 e)
+  (: trunk trunk env -> report)
+  (match {t1 t2}
+    [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
+     (match {tody1 tody2}
+       ;; about name
+       [{{'tody/name n} __}
+        (unify/trunk/semantic (trunk->trunk* t1 e) t2 e)]
+       [{__ {'tody/name n}}
+        (unify/trunk/semantic t1 (trunk->trunk* t2 e) e)]
+       ;; about var
+       [{{'tody/var v} __}
+        (match (compute/var v e)
+          [{'fail il} {'fail il}]
+          [{'success {(d . __) __ __}}
+           (match d
+             [{'arrow a}
+              (unify/trunk/semantic
+               {a1 {'tody/arrow-list {a}} dl1 i1} t2 e)]
+             [{'lambda {a al}}
+              (unify/trunk/semantic
+               {a1 {'tody/arrow-list al} dl1 i1} t2 e)]
+             [__
+              {'fail {`(unify/trunk/semantic
+                        a var computes to neither arrow nor lambda
+                        (var: ,v))}}])])]
+       [{__ {'tody/var v}}
+        (match (compute/var v e)
+          [{'fail il} {'fail il}]
+          [{'success {(d . __) __ __}}
+           (match d
+             [{'arrow a}
+              (unify/trunk/semantic
+               t1 {a2 {'tody/arrow-list {a}} dl2 i2} e)]
+             [{'lambda {a al}}
+              (unify/trunk/semantic
+               t1 {a2 {'tody/arrow-list al} dl2 i2} e)]
+             [__
+              {'fail {`(unify/trunk/semantic
+                        a var computes to neither arrow nor lambda
+                        (var: ,v))}}])])]
+       ;; about arrow-list
+       [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
+        ;; recur to unify/data
+        ;; only when at least one of the trunk is reducible
+        ;; and if the arguments of this recur are both trunk
+        ;; one of them may still be reducible
+        ;; thus will get in to this branch again
+        (match {(filter-arrow-list al1 dl1 e)
+                (filter-arrow-list al2 dl2 e)}
+          [{l1 l2}
+           (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
+             {'fail {`(unify/trunk/semantic
+                       fail both trunks are non-reducible
+                       (trunk1: ,t1)
+                       (trunk2: ,t2))}}
+             (match {(compute/trunk t1 e)
+                     (compute/trunk t2 e)}
+               [{{'success {(d1 . __) __ __}}
+                 {'success {(d2 . __) __ __}}}
+                (unify/data d1 d2 e)]
+               [{__ __}
+                {'fail {`(unify/trunk/semantic
+                          fail to compute/trunk one of the trunks
+                          (trunk1: ,t1)
+                          (trunk2: ,t2))}}]))])])]))
 
 (define (unify/trunk/data t d e)
   (: trunk data env -> report)
