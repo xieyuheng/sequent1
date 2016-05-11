@@ -5,8 +5,7 @@
 
 - a prototype interpreter of a lovely functional language
   which uses sequent calculus as its dependent type system
-
-- the main idea is that
+  the main idea is that
   functions compose and types cut
 
 - [[./sequent1.html][the implementation]]
@@ -16,7 +15,7 @@
 - [[./example.html][example code]]
   examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
 
-- (todo) paper for scheme workshop 2016
+- (todo) paper for [[http://scheme2016.snow-fort.org/][scheme workshop 2016]]
   (todo) demo for the talk
 
 - [[https://github.com/xieyuheng/sequent1][source code]] on github
