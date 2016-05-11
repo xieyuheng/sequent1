@@ -4,37 +4,40 @@
 
   #+begin_src scheme :tangle no
   (map (lambda (x) (pass1/arrow 0 x))
-     '((natural natural -> natural)
-       (natural natural -> (natural natural -> natural) natural)
-       (:m zero -> :m)
-       (:m :n succ -> :m :n recur succ)
-       (:m :n succ -> :m :n (lambda (natural natural -> natural)
-                              (:m :n succ -> :m :n recur succ)
-                              (:m :n succ -> :m :n recur succ)))
-       ((:t : type) :t -> type)
-       ((:t @ type) :t -> type)
-       ((:t^2 : type) :t -> type)
-       ((:t1 :t2^2 :t3^0 : j k) :t -> type)
-       ((:t^2 @ type) :t -> type)))
+    '((natural natural -> natural)
+      (natural natural -> (natural natural -> natural) natural)
+      (:m zero -> :m)
+      (:m :n succ -> :m :n recur succ)
+      (:m :n succ -> :m :n (lambda (natural -> natural)
+                             (zero -> zero succ)))
+      ((:t : type) :t -> type)
+      ((:t @ type) :t -> type)
+      ((:t^2 : type) :t -> type)
+      ((:t1 :t2^2 :t3^0 : j k) :t -> type)
+      ((:t^2 @ type) :t -> type)))
+
+  (map (lambda (x) (pass1/arrow 0 x))
+    '((:m :n succ -> :m :n (lambda (natural -> natural)
+                             (zero -> zero succ)))))
   #+end_src
 
 * pass2
 
   #+begin_src scheme :tangle no
   (map (lambda (x) (pass2/arrow x '()))
-     (map (lambda (x) (pass1/arrow 0 x))
-       '((natural natural -> natural)
-         (natural natural -> (natural natural -> natural) natural)
-         (:m zero -> :m)
-         (:m :n succ -> :m :n recur succ)
-         (:m :n succ -> :m :n (lambda (natural natural -> natural)
-                                (:m :n succ -> :m :n recur succ)
-                                (:m :n succ -> :m :n recur succ)))
-         ((:t : type) :t -> type)
-         ((:t @ type) :t -> type)
-         ((:t^2 : type) :t -> type)
-         ((:t1 :t2^2 :t3^0 : j k) :t -> type)
-         ((:t^2 @ type) :t -> type))))
+    (map (lambda (x) (pass1/arrow 0 x))
+      '((natural natural -> natural)
+        (natural natural -> (natural natural -> natural) natural)
+        (:m zero -> :m)
+        (:m :n succ -> :m :n recur succ)
+        (:m :n succ -> :m :n (lambda (natural natural -> natural)
+                               (:m :n succ -> :m :n recur succ)
+                               (:m :n succ -> :m :n recur succ)))
+        ((:t : type) :t -> type)
+        ((:t @ type) :t -> type)
+        ((:t^2 : type) :t -> type)
+        ((:t1 :t2^2 :t3^0 : j k) :t -> type)
+        ((:t^2 @ type) :t -> type))))
   #+end_src
 
 * natural
@@ -144,53 +147,7 @@
          append)))
   #+end_src
 
-* >< list map
-
-  #+begin_src scheme :tangle no
-  (eva
-
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
-
-   (defn add (natural natural -> natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n add succ))
-
-   (defn mul (natural natural -> natural)
-     (:m zero -> zero)
-     (:m :n succ -> :m :n mul :m add))
-
-   (deftype list ((:t : type) :t -> type)
-     null (-> :t list)
-     cons (:t list :t -> :t list))
-
-   (defn append (:t list :t list -> :t list)
-     (:l null -> :l)
-     (:l :r :e cons -> :l :r append :e cons))
-
-   (defn map (:t1 list (:t1 -> :t2) -> :t2 list)
-     (null :f -> null)
-     (:l :e cons :f -> :e :f apply :l :f map cons))
-
-   (app (->
-         null
-         zero cons
-         null
-         zero cons
-         append))
-
-   (app (->
-         null
-         zero cons
-         zero cons
-         null
-         zero cons
-         zero cons
-         append)))
-  #+end_src
-
-* >< vector map
+* vector map
 
   #+begin_src scheme
   (eva
@@ -228,7 +185,17 @@
          zero cons
          zero cons
          zero cons
-         append)))
+         append
+         (zero -> zero succ)
+         map))
+
+   (app (->
+         null
+         zero cons
+         zero cons
+         (lambda (natural -> natural)
+           (zero -> zero succ))
+         map)))
   #+end_src
 
 * >< list has-length

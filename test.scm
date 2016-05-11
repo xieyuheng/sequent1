@@ -128,4 +128,14 @@
        zero cons
        zero cons
        zero cons
-       append)))
+       append
+       (zero -> zero succ)
+       map))
+
+ (app (->
+       null
+       zero cons
+       zero cons
+       (lambda (natural -> natural)
+         (zero -> zero succ))
+       map)))
