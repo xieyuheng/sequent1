@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2016-05-11 Wed 17:47 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>example code of sequent1</title>
+<meta name="generator" content="Org-mode" />
+<meta name="author" content="XIE Yuheng" />
+<link rel="stylesheet" href="asset/css/page.css" type="text/css" media="screen" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+喪以不執 所執者喪 執喪相比 方死方生
+</div>
+<div id="content">
+<h1 class="title">example code of sequent1</h1>
+<div id="table-of-contents">
+<h2>overview</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org285b807">natural</a></li>
+<li><a href="#org8a74a53">list</a></li>
+<li><a href="#org9c16f">list map</a></li>
+<li><a href="#org124faee">vector</a></li>
+<li><a href="#org7a73812">vector map</a></li>
+</ul>
+</div>
+</div>
+<hr  />
+
+<ul class="org-ul">
+<li><p>simple example code (<a href="https://github.com/xieyuheng/sequent1">source</a>)</p></li></ul>
+
+<hr  />
+
+<div id="outline-container-org285b807" class="outline-2">
+<h2 id="org285b807">natural</h2>
+<div class="outline-text-2" id="text-org285b807">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> add <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> mul <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       zero succ
+       zero succ succ
+       add<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       zero succ succ
+       zero succ succ
+       mul<span style="color: #696969;">)))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8a74a53" class="outline-2">
+<h2 id="org8a74a53">list</h2>
+<div class="outline-text-2" id="text-org8a74a53">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> add <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> mul <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> list <span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #696969;">)</span> <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   null <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list<span style="color: #696969;">)</span>
+   cons <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> append <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> list <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       null
+       zero cons
+       append<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       append<span style="color: #696969;">)))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9c16f" class="outline-2">
+<h2 id="org9c16f">list map</h2>
+<div class="outline-text-2" id="text-org9c16f">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> add <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> mul <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> list <span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #696969;">)</span> <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   null <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list<span style="color: #696969;">)</span>
+   cons <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> append <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t</span> list <span style="color: #a6e22e;">:t</span> list <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t</span> list<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> map <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t1</span> list <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t1</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t2</span><span style="color: #696969;">)</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t2</span> list<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span>null <span style="color: #a6e22e;">:f</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> null<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #a6e22e;">:f</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:f</span> map <span style="color: #a6e22e;">:e</span> <span style="color: #a6e22e;">:f</span> apply cons<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       zero cons
+       append
+       <span style="color: #696969;">(</span>zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ<span style="color: #696969;">)</span>
+       map<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">lambda</span> <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+         <span style="color: #696969;">(</span>zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ<span style="color: #696969;">))</span>
+       map<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> has-length <span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #696969;">)</span> <span style="color: #a6e22e;">:t</span> list natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   null/has-length <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> null zero has-length<span style="color: #696969;">)</span>
+   cons/has-length <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:n</span> has-length <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:a</span> cons <span style="color: #a6e22e;">:n</span> succ has-length<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> map/has-length <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:n</span> has-length <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:f</span> map <span style="color: #a6e22e;">:n</span> has-length<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span>null/has-length <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> null/has-length<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:h</span> cons/has-length <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:h</span> map/has-length cons/has-length<span style="color: #696969;">)))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org124faee" class="outline-2">
+<h2 id="org124faee">vector</h2>
+<div class="outline-text-2" id="text-org124faee">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> add <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> mul <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> vector <span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #696969;">)</span> natural <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   null <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero <span style="color: #a6e22e;">:t</span> vector<span style="color: #696969;">)</span>
+   cons <span style="color: #696969;">(</span><span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #a6e22e;">:t</span> vector<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> append <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add <span style="color: #a6e22e;">:t</span> vector<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       zero cons
+       append<span style="color: #696969;">)))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7a73812" class="outline-2">
+<h2 id="org7a73812">vector map</h2>
+<div class="outline-text-2" id="text-org7a73812">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> add <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> mul <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> vector <span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #696969;">)</span> natural <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   null <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero <span style="color: #a6e22e;">:t</span> vector<span style="color: #696969;">)</span>
+   cons <span style="color: #696969;">(</span><span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #a6e22e;">:t</span> vector<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> append <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t</span> vector <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add <span style="color: #a6e22e;">:t</span> vector<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> map <span style="color: #696969;">(</span><span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t1</span> vector <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t1</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t2</span><span style="color: #696969;">)</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:n</span> <span style="color: #a6e22e;">:t2</span> vector<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span>null <span style="color: #a6e22e;">:f</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> null<span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #a6e22e;">:f</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:f</span> map <span style="color: #a6e22e;">:e</span> <span style="color: #a6e22e;">:f</span> apply cons<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       zero cons
+       append
+       <span style="color: #696969;">(</span>zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ<span style="color: #696969;">)</span>
+       map<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+       null
+       zero cons
+       zero cons
+       <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">lambda</span> <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+         <span style="color: #696969;">(</span>zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ<span style="color: #696969;">))</span>
+       map<span style="color: #696969;">)))</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+喪以不執 所執者喪 執喪相比 方死方生
+</div>
+</body>
+</html>

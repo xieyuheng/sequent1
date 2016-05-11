@@ -74,6 +74,61 @@
    (:m zero -> zero)
    (:m :n succ -> :m :n mul :m add))
 
+ (deftype list ((:t : type) :t -> type)
+   null (-> :t list)
+   cons (:t list :t -> :t list))
+
+ (defn append (:t list :t list -> :t list)
+   (:l null -> :l)
+   (:l :r :e cons -> :l :r append :e cons))
+
+ (defn map (:t1 list (:t1 -> :t2) -> :t2 list)
+   (null :f -> null)
+   (:l :e cons :f -> :l :f map :e :f apply cons))
+
+ (app (->
+       null
+       zero cons
+       zero cons
+       zero cons
+       null
+       zero cons
+       zero cons
+       zero cons
+       append
+       (zero -> zero succ)
+       map))
+
+ (app (->
+       null
+       zero cons
+       zero cons
+       (lambda (natural -> natural)
+         (zero -> zero succ))
+       map))
+
+ (deftype has-length ((:t : type) :t list natural -> type)
+   null/has-length (-> null zero has-length)
+   cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+
+ (defn map/has-length (:l :n has-length -> :l :f map :n has-length)
+   (null/has-length -> null/has-length)
+   (:h cons/has-length -> :h map/has-length cons/has-length)))
+
+(eva
+
+ (deftype natural (-> type)
+   zero (-> natural)
+   succ (natural -> natural))
+
+ (defn add (natural natural -> natural)
+   (:m zero -> :m)
+   (:m :n succ -> :m :n add succ))
+
+ (defn mul (natural natural -> natural)
+   (:m zero -> zero)
+   (:m :n succ -> :m :n mul :m add))
+
  (deftype vector ((:t : type) natural :t -> type)
    null (-> zero :t vector)
    cons (:n :t vector :t -> :n succ :t vector))

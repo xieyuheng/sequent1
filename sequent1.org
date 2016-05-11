@@ -4,24 +4,17 @@
 
 ---------
 
-- a prototype interpreter ([[https://github.com/xieyuheng/sequent1][source code]]) of a lovely functional language
-  which uses sequent calculus as its dependent type system
-  when functions compose
-  their types cut
-
-- XIE Yuheng created
+- the implementation of the interpreter ([[https://github.com/xieyuheng/sequent1][source]])
 
 ---------
 
 * todo
 
-  - test about has-length
-
   - check-cover
 
   - check-recur
 
-  - make the sequent/repl more useful then macro in scheme
+  - make the sequent/repl more useful then the macro in scheme
     - when the program writing in sequent1 is wrong
       sequent1 should handle it instead of crashing
 
