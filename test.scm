@@ -117,7 +117,7 @@
 
  (defn map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
    (null :f -> null)
-   (:l :e cons :f -> :e :f apply :l :f map cons))
+   (:l :e cons :f -> :l :f map :e :f apply cons))
 
  (app (->
        null

@@ -865,7 +865,10 @@
                              no antecedent match
                              (data-list: ,ds1)
                              (arrow-list: ,al)
-                             (trunk: ,t))}}]
+                             (trunk: ,t))
+                           `(list-unify/antecedent
+                             report
+                             ,(list-unify/antecedent al dl1 e1))}}]
                   [{a1}
                    (match (compute/arrow a1 e1)
                      ;; after this compute/arrow
@@ -902,6 +905,24 @@
                    ("trunk->trunk* fail~%" )
                    ("name is not lambda : ~a~%" n))]))))]
        [{a tody dl i} {a tody dl i}])]))
+
+(define (list-unify/antecedent al dl e)
+  (: (arrow ...) (data ...) env -> ((report arrow) ...))
+  (map (lambda (a)
+         (match e
+           [{ds bs ns}
+            (match a
+              [{ac __}
+               {a (match (compute/cedent ac {{} bs ns})
+                    [{'fail il} {'fail (cons `(list-unify/antecedent
+                                               fail to compute/cedent
+                                               (ac: ,ac))
+                                             il)}]
+                    [{'success {ds1 bs1 ns1}}
+                     (unify/data-list
+                      dl ds1
+                      {'success {ds bs1 ns1}})])}])]))
+    al))
 
 (define (filter-arrow-list al dl e)
   (: (arrow ...) (data ...) env -> (arrow ...))
@@ -1062,25 +1083,19 @@
          (cons (cons id (list (cons level d)))
                bs)))]))
 
-;; (define (unify/var/data v d e)
-;;   (: fresh-var data env -> report)
-;;   (match e
-;;     [{ds bs ns}
-;;      (match (consistent-check v d e)
-;;        [{'fail il}
-;;         {'fail (cons `(unify/var/data
-;;                        consistent-check fail
-;;                        (v: ,v)
-;;                        (d: ,d))
-;;                      il)}]
-;;        [{'success __}
-;;         {'success {ds (bs/extend bs v d) ns}}])]))
-
 (define (unify/var/data v d e)
   (: fresh-var data env -> report)
   (match e
     [{ds bs ns}
-     {'success {ds (bs/extend bs v d) ns}}]))
+     (match (consistent-check v d e)
+       [{'fail il}
+        {'fail (cons `(unify/var/data
+                       consistent-check fail
+                       (v: ,v)
+                       (d: ,d))
+                     il)}]
+       [{'success __}
+        {'success {ds (bs/extend bs v d) ns}}])]))
 
 (define (consistent-check v d e)
   (: fresh-var data env -> report)
