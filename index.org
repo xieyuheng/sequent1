@@ -8,9 +8,7 @@
   the main idea is that
   functions compose and types cut
 
-- [[./sequent1.html][the implementation]]
-  the interpreter is written in scheme
-  scheme makes it easier to handle the syntax of the prototype language
+- [[./sequent1.html][the implementation]] written in scheme
 
 - [[./example.html][example code]]
   examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]

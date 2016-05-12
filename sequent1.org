@@ -10,10 +10,6 @@
 
 * todo
 
-  - check-cover
-
-  - check-recur
-
   - make the sequent/repl more useful then the macro in scheme
     - when the program writing in sequent1 is wrong
       sequent1 should handle it instead of crashing
@@ -975,7 +971,16 @@
     (define (copy-arrow a)
       (: arrow -> arrow)
       (match (copy/arrow a '())
-        [{a s} a]))
+        [{a1 __} a1]))
+    #+end_src
+
+*** copy-cedent
+
+    #+begin_src scheme
+    (define (copy-cedent c)
+      (: cedent -> cedent)
+      (match (copy/cedent c '())
+        [{c1 __} c1]))
     #+end_src
 
 *** copy/arrow
@@ -2469,4 +2474,57 @@
                    [{'success {ds2 bs2 ns2}}
                     (bs/commit! bs2)
                     {ac1 sc1}])]))])]))
+    #+end_src
+
+* cover-check
+
+*** note
+
+    #+begin_src scheme :tangle no
+    (type antecedent-sample (data-sample ...))
+    (type data-sample (data ...))
+    #+end_src
+
+*** >< cover-check
+
+    #+begin_src scheme
+    (define (cover-check )
+      (: -> )
+      )
+    #+end_src
+
+*** ac-generate
+
+    - this can be viewed as the reverse of infer
+
+    #+begin_src scheme
+    (define (ac-generate ac e)
+      (: antecedent env -> antecedent-sample)
+      (ac-gen (copy-cedent ac) e))
+
+    (define (ac-gen ac e)
+      (: antecedent env -> antecedent-sample)
+      (match ac
+        [{} {}]
+        [(h . r)
+         (cons (ac-gen/data h e)
+               (ac-gen r e))]))
+    #+end_src
+
+*** ac-gen/data
+
+    #+begin_src scheme
+    (define (ac-gen/data d )
+      (: data env -> data-sample)
+      (match d
+        [{'var } ]
+        [{'cons } ]))
+    #+end_src
+
+* recur-check
+
+*** recur-check
+
+    #+begin_src scheme
+
     #+end_src

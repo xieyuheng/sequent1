@@ -173,7 +173,7 @@
          zero cons
          append)))
   #+end_src
-
+I have a little dependent type language now :: 
 * vector map
 
   #+begin_src scheme
