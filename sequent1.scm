@@ -571,7 +571,12 @@
 (define (copy-arrow a)
   (: arrow -> arrow)
   (match (copy/arrow a '())
-    [{a s} a]))
+    [{a1 __} a1]))
+
+(define (copy-cedent c)
+  (: cedent -> cedent)
+  (match (copy/cedent c '())
+    [{c1 __} c1]))
 
 (define (copy/arrow a s)
   (: arrow scope -> (arrow scope))
@@ -1380,10 +1385,6 @@
        [{d1 e2}
         (unify/data d1 d e2)])]))
 
-(define check? #t)
-(define (check+) (set! check? #t) #t)
-(define (check-) (set! check? #f) #f)
-
 (define init-env
   '(()
     ()
@@ -1497,16 +1498,23 @@
                ;; in ns
                ;; type global-bindings and arrow-list global-bindings
                ;; must be separately interfaced
-               [ns0 (cons (cons n {'lambda {a0 'placeholder}}) ns)])
-          {ds
-           bs
-           (cons (cons n {'lambda
-                             {a0
-                              (map (lambda (x)
-                                     (form1/arrow->arrow-check
-                                      a0 x {ds bs ns0}))
-                                al)}})
-                 ns)})])]))
+               [ns0 (cons (cons n {'lambda {a0 'placeholder}}) ns)]
+               [l1 {a0 (map (lambda (x)
+                              (form1/arrow->arrow-check
+                               a0 x {ds bs ns0}))
+                         al)}]
+               [ns1 (cons (cons n {'lambda l1}) ns)]
+               [e1 {ds bs ns1}])
+          (match (cover-check l1 e1)
+            [{'fail il}
+             (orz 'eva/defn
+               ("info-list :~%~a~%" il))]
+            [{'success __}
+             (match (recur-check n l1 e1)
+               [{'fail il}
+                (orz 'eva/defn
+                  ("info-list :~%~a~%" il))]
+               [{'success __} e1])]))])]))
 
 (define (sequent)
   (: -> [loop])
@@ -1669,3 +1677,88 @@
                [{'success {ds2 bs2 ns2}}
                 (bs/commit! bs2)
                 {ac1 sc1}])]))])]))
+
+(define (cover-check l e)
+  (: lambda env -> report)
+  (match e
+    [{ds bs ns}
+     {'success e}
+     ;; (match l
+     ;;   [{{ac __} al}
+     ;;    (match (data-gen ac e)
+     ;;      [{c bsl}
+     ;;       (let ([report-list
+     ;;              (filter
+     ;;               (lambda (r)
+     ;;                 (match r
+     ;;                   [{'fail __} #t]
+     ;;                   [{'success __} #f]))
+     ;;               (map (lambda (bs0)
+     ;;                      (cover-check/cedent
+     ;;                       c al
+     ;;                       {ds (append bs0 bs) ns}))
+     ;;                 bsl))])
+     ;;         (if (null? report-list)
+     ;;           {'success e}
+     ;;           {'fail
+     ;;            {`(cover-check
+     ;;               fail
+     ;;               (report-list: ,report-list:))}}))])])
+     ]))
+
+(define (cover-check/cedent c al e)
+  (: cedent (arrow ...) env -> report)
+  )
+
+
+
+(define (data-gen ac e)
+  (: antecedent env -> (cedent (bs ...)))
+  (alter-expand (data-gen/cedent ac e)))
+
+(define (alter-expand alterdata-list)
+  (: (alterdata ...) -> ((data ...) (bs ...)))
+  )
+
+(define (data-gen/cedent ac e)
+  (: cedent env -> (alterdata ...))
+  (match ac
+    [{} {}]
+    [(h . r)
+     (cons (data-gen/data h e)
+           (data-gen/cedent r e))]))
+
+(define (data-gen/data d e)
+  (: data env -> alterdata)
+  (match d
+    [{'var x} (data-gen/var x e)]
+    [{'cons x} (data-gen/cons x e)]
+    [{'arrow x} (data-gen/arrow x e)]
+    [{'lambda x} (data-gen/lambda x e)]
+    [{'trunk x} (data-gen/trunk x e)]))
+
+(define (data-gen/var v e)
+  (: var env -> alterdata)
+  )
+
+(define (data-gen/cons c e)
+  (: cons env -> alterdata)
+  )
+
+(define (data-gen/arrow a e)
+  (: arrow env -> alterdata)
+  )
+
+(define (data-gen/lambda l e)
+  (: arrow env -> alterdata)
+  )
+
+(define (data-gen/trunk l e)
+  (: trunk env -> alterdata)
+  )
+
+(define (recur-check n l e)
+  (: name lambda env -> report)
+  (match e
+    [{ds bs ns}
+     {'success e}]))

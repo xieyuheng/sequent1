@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" href="asset/css/page.css" type="text/css" media="screen" />
+#+HTML_HEAD: <link rel="stylesheet" href="http://xieyuheng.github.io/asset/css/page.css" type="text/css" media="screen" />
 #+PROPERTY: tangle sequent1.scm
 #+title: sequent1
 
@@ -10,11 +10,15 @@
 
 * todo
 
-  - make the sequent/repl more useful then the macro in scheme
-    - when the program writing in sequent1 is wrong
-      sequent1 should handle it instead of crashing
+  - examples I need more examples
 
-  - design more test to cover all the tricks
+  - cover-check
+
+  - recur-check
+
+  - repl handles error
+
+  - report info should be strictly structured
 
 * note
 
@@ -2072,20 +2076,6 @@
 
 * eva
 
-*** note
-
-  - the design must be separately testable
-    first without check
-    then add check
-
-*** check+ & check- & ?check
-
-    #+begin_src scheme
-    (define check? #t)
-    (define (check+) (set! check? #t) #t)
-    (define (check-) (set! check? #f) #f)
-    #+end_src
-
 *** init-env
 
     #+begin_src scheme
@@ -2242,16 +2232,23 @@
                    ;; in ns
                    ;; type global-bindings and arrow-list global-bindings
                    ;; must be separately interfaced
-                   [ns0 (cons (cons n {'lambda {a0 'placeholder}}) ns)])
-              {ds
-               bs
-               (cons (cons n {'lambda
-                                 {a0
-                                  (map (lambda (x)
-                                         (form1/arrow->arrow-check
-                                          a0 x {ds bs ns0}))
-                                    al)}})
-                     ns)})])]))
+                   [ns0 (cons (cons n {'lambda {a0 'placeholder}}) ns)]
+                   [l1 {a0 (map (lambda (x)
+                                  (form1/arrow->arrow-check
+                                   a0 x {ds bs ns0}))
+                             al)}]
+                   [ns1 (cons (cons n {'lambda l1}) ns)]
+                   [e1 {ds bs ns1}])
+              (match (cover-check l1 e1)
+                [{'fail il}
+                 (orz 'eva/defn
+                   ("info-list :~%~a~%" il))]
+                [{'success __}
+                 (match (recur-check n l1 e1)
+                   [{'fail il}
+                    (orz 'eva/defn
+                      ("info-list :~%~a~%" il))]
+                   [{'success __} e1])]))])]))
     #+end_src
 
 * sequent
@@ -2478,53 +2475,157 @@
 
 * cover-check
 
-*** note
-
-    #+begin_src scheme :tangle no
-    (type antecedent-sample (data-sample ...))
-    (type data-sample (data ...))
-    #+end_src
-
-*** >< cover-check
+*** cover-check
 
     #+begin_src scheme
-    (define (cover-check )
-      (: -> )
+    (define (cover-check l e)
+      (: lambda env -> report)
+      (match e
+        [{ds bs ns}
+         (match l
+           [{{ac __} al}
+            (match (data-gen ac (map car al) e)
+              [{c bsl}
+               (let ([report-list
+                      (filter
+                       (lambda (r)
+                         (match r
+                           [{'fail __} #t]
+                           [{'success __} #f]))
+                       (map (lambda (bs0)
+                              (cover-check/cedent
+                               c al
+                               {ds (append bs0 bs) ns}))
+                         bsl))])
+                 (if (null? report-list)
+                   {'success e}
+                   {'fail
+                    {`(cover-check
+                       fail
+                       (report-list: ,report-list:))}}))])])]))
+    #+end_src
+
+*** >< cover-check/cedent
+
+    #+begin_src scheme
+    (define (cover-check/cedent c al e)
+      (: cedent (arrow ...) env -> report)
       )
     #+end_src
 
-*** ac-generate
-
-    - this can be viewed as the reverse of infer
+*** ><
 
     #+begin_src scheme
-    (define (ac-generate ac e)
-      (: antecedent env -> antecedent-sample)
-      (ac-gen (copy-cedent ac) e))
 
-    (define (ac-gen ac e)
-      (: antecedent env -> antecedent-sample)
-      (match ac
-        [{} {}]
-        [(h . r)
-         (cons (ac-gen/data h e)
-               (ac-gen r e))]))
     #+end_src
 
-*** ac-gen/data
+*** note alterdata
+
+    #+begin_src scheme :tangle no
+    (type alterdata
+      {'altervar (var . {alterdata ...})}
+      {'cons   {name {data ...}}}
+      {'arrow  {cedent cedent}}
+      {'lambda {arrow {arrow ...}}}
+      {'trunk  {arrow tody {data ...} index}})
+    #+end_src
+
+*** data-gen
+
+    - this can be viewed as the reverse of infer
+      it generate data from type
 
     #+begin_src scheme
-    (define (ac-gen/data d )
-      (: data env -> data-sample)
+    (define (data-gen ac acl e)
+      (: antecedent (antecedent ...) env -> (cedent (bs ...)))
+      (alter-expand (data-gen/cedent ac acl e)))
+    #+end_src
+
+*** >< alter-expand
+
+    #+begin_src scheme
+    (define (alter-expand alterdata-list)
+      (: (alterdata ...) -> ((data ...) (bs ...)))
+      )
+    #+end_src
+
+*** data-gen/cedent
+
+    #+begin_src scheme
+    (define (data-gen/cedent c cl e)
+      (: cedent (cedent ...) env -> (alterdata ...))
+      (match c
+        [{} {}]
+        [(h . r)
+         (cons (data-gen/data h (map car cl) e)
+               (data-gen/cedent r (map cdr cl) e))]))
+    #+end_src
+
+*** data-gen/data
+
+    #+begin_src scheme
+    (define (data-gen/data d dl e)
+      (: data (data ...) env -> alterdata)
       (match d
-        [{'var } ]
-        [{'cons } ]))
+        [{'var x} (data-gen/var x dl e)]
+        [{'cons x} (data-gen/cons x dl e)]
+        [{'arrow x} (data-gen/arrow x dl e)]
+        [{'lambda x} (data-gen/lambda x dl e)]
+        [{'trunk x} (data-gen/trunk x dl e)]))
+    #+end_src
+
+*** >< data-gen/var
+
+    #+begin_src scheme
+    (define (data-gen/var v dl e)
+      (: var (data ...) env -> alterdata)
+      )
+    #+end_src
+
+*** >< data-gen/cons
+
+    #+begin_src scheme
+    (define (data-gen/cons c dl e)
+      (: cons (data ...) env -> alterdata)
+      )
+    #+end_src
+
+*** >< data-gen/arrow
+
+    #+begin_src scheme
+    (define (data-gen/arrow a dl e)
+      (: arrow (data ...) env -> alterdata)
+      )
+    #+end_src
+
+*** >< data-gen/lambda
+
+    #+begin_src scheme
+    (define (data-gen/lambda l dl e)
+      (: arrow (data ...) env -> alterdata)
+      )
+    #+end_src
+
+*** >< data-gen/trunk
+
+    #+begin_src scheme
+    (define (data-gen/trunk l dl e)
+      (: trunk (data ...) env -> alterdata)
+      )
     #+end_src
 
 * recur-check
 
-*** recur-check
+*** note
+
+    - recur-check is extensible
+
+*** >< recur-check
 
     #+begin_src scheme
-
+    (define (recur-check n l e)
+      (: name lambda env -> report)
+      (match e
+        [{ds bs ns}
+         {'success e}]))
     #+end_src

@@ -1,23 +1,28 @@
-#+HTML_HEAD: <link rel="stylesheet" href="asset/css/index.css" type="text/css" media="screen" />
+#+HTML_HEAD: <link rel="stylesheet" href="http://xieyuheng.github.io/asset/css/index.css" type="text/css" media="screen" />
 #+title: sequent1
 
 ---------
 
 - a prototype interpreter of a lovely functional language
   which uses sequent calculus as its dependent type system
-  the main idea is that
-  functions compose and types cut
-
-- [[./sequent1.html][the implementation]] written in scheme
-
-- [[./example.html][example code]]
-  examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
-
-- (todo) paper for [[http://scheme2016.snow-fort.org/][scheme workshop 2016]]
-  (todo) demo for the talk
-
-- [[https://github.com/xieyuheng/sequent1][source code]] on github
 
 - [[http://xieyuheng.github.io][XIE Yuheng]] created
 
 ---------
+
+* code
+
+  - [[./sequent1.html][the implementation]] written in scheme
+
+  - [[./example.html][example code]] in sequent1
+    examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
+
+  - [[https://github.com/xieyuheng/sequent1][source code]] on github
+
+* reading
+
+  - (todo) [[./reading/function-compose-type-cut.html][function compose type cut]]
+    this reading is also used to form a [[./reading/function-compose-type-cut.pdf][paper]] for [[http://scheme2016.snow-fort.org/][scheme workshop 2016]]
+    and a [[./reading/demo.html][demo]] for the talk at the workshop
+
+  - (todo) [[./reading/term-lattice.html][term lattice]]
