@@ -328,11 +328,20 @@
             {{'form3/bind b1} s1}])]))
     #+end_src
 
-*** pass2/var
+*** id/new
 
     #+begin_src scheme
     (define id/counter 0)
 
+    (define (id/new n ls)
+      (: name ls -> id)
+      (set! id/counter (+ 1 id/counter))
+      (vector (cons n id/counter) ls))
+    #+end_src
+
+*** pass2/var
+
+    #+begin_src scheme
     (define (pass2/var v s)
       (: form2/var scope -> (form3/var scope))
       (match v
@@ -341,8 +350,7 @@
            (if found
              (let ([old (cdr found)])
                {{old level} s})
-             (let ([new (vector (cons symbol id/counter) '())])
-               (set! id/counter (+ 1 id/counter))
+             (let ([new (id/new symbol '())])
                {{new level}
                 (cons (cons symbol new) s)})))]))
     #+end_src
@@ -638,7 +646,7 @@
                       (lambda (i)
                         {'trunk
                           {t {'tody/arrow-list {a}} dl i}})])
-                {(append (map make-trunk (genlist slen))
+                {(append (reverse (map make-trunk (genlist slen)))
                          (sublist ds alen (length ds)))
                  bs
                  ns})]))]))
@@ -660,7 +668,7 @@
                     (lambda (i)
                       {'trunk
                         {{ac sc} {'tody/arrow-list al} dl i}})])
-              {(append (map make-trunk (genlist slen))
+              {(append (reverse (map make-trunk (genlist slen)))
                        (sublist ds alen (length ds)))
                bs
                ns})])]))
@@ -690,7 +698,7 @@
                          (lambda (i)
                            {'trunk
                              {{ac sc} {'tody/var v} dl i}})])
-                   {(append (map make-trunk (genlist slen))
+                   {(append (reverse (map make-trunk (genlist slen)))
                             (sublist ds alen (length ds)))
                     bs
                     ns})]
@@ -773,7 +781,7 @@
                 ;; dl in trunk is as the order of dl in stack
                 ;; thus no reverse is needed
                 [make-trunk (lambda (i) {'trunk {a {'tody/name n} dl i}})])
-           {(append (map make-trunk (genlist slen))
+           {(append (reverse (map make-trunk (genlist slen)))
                     (sublist ds alen (length ds)))
             bs
             ns})]))
@@ -1092,9 +1100,8 @@
            (if found
              {{(cdr found) level} s}
              (let* ([ls (id->ls id)]
-                    [id1 (vector (cons (id->name id) id/counter) '())]
+                    [id1 (id/new (id->name id) '())]
                     [s1 (cons (cons id id1) s)])
-               (set! id/counter (+ 1 id/counter))
                (match (copy/ls ls s1)
                  [{ls1 s2}
                   (id/commit! id1 ls1)
@@ -1223,6 +1230,8 @@
     (define (compute/cedent c e)
       (: cedent env -> report)
       (match c
+        ;; proper tail call
+        [{h} (compute h e)]
         [{} {'success e}]
         [(h . r)
          (match (compute h e)
@@ -2216,6 +2225,22 @@
           (eva/deftype/data-constructor type-name na e))]))
     #+end_src
 
+*** cover-check? & cover-check- & cover-check+
+
+    #+begin_src scheme
+    (define cover-check? #t)
+    (define (cover-check-) (set! cover-check? #f) #f)
+    (define (cover-check+) (set! cover-check? #t) #t)
+    #+end_src
+
+*** recur-check? & recur-check- & recur-check+
+
+    #+begin_src scheme
+    (define recur-check? #t)
+    (define (recur-check-) (set! recur-check? #f) #f)
+    (define (recur-check+) (set! recur-check? #t) #t)
+    #+end_src
+
 *** eva/defn
 
     #+begin_src scheme
@@ -2239,16 +2264,17 @@
                              al)}]
                    [ns1 (cons (cons n {'lambda l1}) ns)]
                    [e1 {ds bs ns1}])
-              (match (cover-check l1 e1)
-                [{'fail il}
-                 (orz 'eva/defn
-                   ("info-list :~%~a~%" il))]
-                [{'success __}
-                 (match (recur-check n l1 e1)
-                   [{'fail il}
-                    (orz 'eva/defn
-                      ("info-list :~%~a~%" il))]
-                   [{'success __} e1])]))])]))
+              (if cover-check?
+                (match (cover-check l1 e1)
+                  [{'fail il} (orz 'eva/defn
+                                ("info-list :~%~a~%" il))]
+                  [{'success __} 'ok]))
+              (if recur-check?
+                (match (recur-check n l1 e1)
+                  [{'fail il} (orz 'eva/defn
+                                ("info-list :~%~a~%" il))]
+                  [{'success __} 'ok]))
+              e1)])]))
     #+end_src
 
 * sequent
@@ -2574,20 +2600,54 @@
         [{'trunk x} (data-gen/trunk x dl e)]))
     #+end_src
 
-*** >< data-gen/var
-
-    #+begin_src scheme
-    (define (data-gen/var v dl e)
-      (: var (data ...) env -> alterdata)
-      )
-    #+end_src
-
 *** >< data-gen/cons
 
     #+begin_src scheme
     (define (data-gen/cons c dl e)
       (: cons (data ...) env -> alterdata)
-      )
+      (match c
+        ;; c must be a type constructor
+        ;; c must not be a data constructor
+        [{n dl0}
+         (if (list-any? (lambda (x)
+                          (match x
+                            [{'var v} (var/fresh? v e)]
+                            [__ #f]))
+                        dl)
+           {'altervar (cons (id/new (symbol-append n ':gen)
+                                    {(cons 1 {'cons c})})
+                            '())}
+           '(>< return an altervar
+
+               whoes type is bind to the cons as type
+               whoes alterdata-list is not empty
+
+               the alterdata-list is generate by recursive call to data-gen/data
+
+               from the type constructor c
+               we get a list of data constructor
+
+               each must be covered by the dl
+
+               for each that is covered by the dl
+               the antecedent of the type arrow of the data constructor
+               is used to do a recursive call to data-gen/data))]))
+    #+end_src
+
+*** >< data-gen/var
+
+    - suppose we meet a var whose type is not bound
+
+    - suppose we meet a var whose type is bound
+
+    #+begin_src scheme
+    (define (data-gen/var v dl e)
+      (: var (data ...) env -> alterdata)
+      (match e
+        [{ds bs ns}
+         (if (not (var/fresh? v e))
+           (data-gen/data (bs/deep bs {'var v}) dl e)
+           '(><><><))]))
     #+end_src
 
 *** >< data-gen/arrow
@@ -2598,20 +2658,23 @@
       )
     #+end_src
 
-*** >< data-gen/lambda
-
-    #+begin_src scheme
-    (define (data-gen/lambda l dl e)
-      (: arrow (data ...) env -> alterdata)
-      )
-    #+end_src
-
 *** >< data-gen/trunk
 
     #+begin_src scheme
     (define (data-gen/trunk l dl e)
       (: trunk (data ...) env -> alterdata)
       )
+    #+end_src
+
+*** data-gen/lambda
+
+    #+begin_src scheme
+    (define (data-gen/lambda l dl e)
+      (: lambda (data ...) env -> alterdata)
+      (orz 'data-gen/lambda
+        ("can not generate data from lambda~%")
+        ("l : ~a~%" l)
+        ("dl : ~a~%" dl)))
     #+end_src
 
 * recur-check

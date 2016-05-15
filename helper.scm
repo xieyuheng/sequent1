@@ -352,3 +352,9 @@
       (if (equal? c c0)
         curser
         (find-char/curser c s (+ 1 curser))))))
+
+(define (symbol-append . l)
+  (: symbol ... -> symbol)
+  (string->symbol
+   (apply string-append
+     (map symbol->string l))))

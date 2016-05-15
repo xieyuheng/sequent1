@@ -8,6 +8,11 @@
 
 ---------
 
+* note
+
+  - part of the examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
+    part of them are learned the little schemer
+
 * natural
 
   #+begin_src scheme
@@ -223,4 +228,21 @@
          (lambda (natural -> natural)
            (zero -> zero succ))
          map)))
+  #+end_src
+
+* swap
+
+  #+begin_src scheme
+  (eva
+
+   (deftype natural (-> type)
+     zero (-> natural)
+     succ (natural -> natural))
+
+   (defn swap (:t1 :t2 -> :t2 :t1)
+     (:d1 :d2 -> :d2 :d1))
+
+   (app (-> zero
+            zero succ
+            swap)))
   #+end_src

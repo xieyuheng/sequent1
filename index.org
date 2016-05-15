@@ -15,7 +15,6 @@
   - [[./sequent1.html][the implementation]] written in scheme
 
   - [[./example.html][example code]] in sequent1
-    examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
 
   - [[https://github.com/xieyuheng/sequent1][source code]] on github
 

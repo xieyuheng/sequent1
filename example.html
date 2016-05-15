@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-14 Sat 23:53 -->
+<!-- 2016-05-15 Sun 18:49 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>example code of sequent1</title>
@@ -67,11 +67,13 @@ for the JavaScript code in this tag.
 <h2>overview</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org8327ff6">natural</a></li>
-<li><a href="#orgbc876e0">list</a></li>
-<li><a href="#orge94c048">list map</a></li>
-<li><a href="#org388afc0">vector</a></li>
-<li><a href="#org5a680ec">vector map</a></li>
+<li><a href="#org8b61ad5"><span class="todo note">note</span> </a></li>
+<li><a href="#org70e5443">natural</a></li>
+<li><a href="#org8d05cb0">list</a></li>
+<li><a href="#org85d3345">list map</a></li>
+<li><a href="#orgc269fe2">vector</a></li>
+<li><a href="#orgc471c58">vector map</a></li>
+<li><a href="#orgffc31ea">swap</a></li>
 </ul>
 </div>
 </div>
@@ -82,9 +84,17 @@ for the JavaScript code in this tag.
 
 <hr  />
 
-<div id="outline-container-org8327ff6" class="outline-2">
-<h2 id="org8327ff6">natural</h2>
-<div class="outline-text-2" id="text-org8327ff6">
+<div id="outline-container-org8b61ad5" class="outline-2">
+<h2 id="org8b61ad5"><span class="todo note">note</span> </h2>
+<div class="outline-text-2" id="text-org8b61ad5">
+<ul class="org-ul">
+<li><p>part of the examples are learned from <a href="http://www.cs.cmu.edu/~drl/teaching/oplss13/">a course about agda</a> at <a href="https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html">OPLSS 2013</a></p><p>part of them are learned the little schemer</p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-org70e5443" class="outline-2">
+<h2 id="org70e5443">natural</h2>
+<div class="outline-text-2" id="text-org70e5443">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -115,9 +125,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgbc876e0" class="outline-2">
-<h2 id="orgbc876e0">list</h2>
-<div class="outline-text-2" id="text-orgbc876e0">
+<div id="outline-container-org8d05cb0" class="outline-2">
+<h2 id="org8d05cb0">list</h2>
+<div class="outline-text-2" id="text-org8d05cb0">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -162,9 +172,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orge94c048" class="outline-2">
-<h2 id="orge94c048">list map</h2>
-<div class="outline-text-2" id="text-orge94c048">
+<div id="outline-container-org85d3345" class="outline-2">
+<h2 id="org85d3345">list map</h2>
+<div class="outline-text-2" id="text-org85d3345">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -226,9 +236,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org388afc0" class="outline-2">
-<h2 id="org388afc0">vector</h2>
-<div class="outline-text-2" id="text-org388afc0">
+<div id="outline-container-orgc269fe2" class="outline-2">
+<h2 id="orgc269fe2">vector</h2>
+<div class="outline-text-2" id="text-orgc269fe2">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -268,9 +278,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org5a680ec" class="outline-2">
-<h2 id="org5a680ec">vector map</h2>
-<div class="outline-text-2" id="text-org5a680ec">
+<div id="outline-container-orgc471c58" class="outline-2">
+<h2 id="orgc471c58">vector map</h2>
+<div class="outline-text-2" id="text-orgc471c58">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -319,6 +329,28 @@ for the JavaScript code in this tag.
        <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">lambda</span> <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
          <span style="color: #696969;">(</span>zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ<span style="color: #696969;">))</span>
        map<span style="color: #696969;">)))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgffc31ea" class="outline-2">
+<h2 id="orgffc31ea">swap</h2>
+<div class="outline-text-2" id="text-orgffc31ea">
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">deftype</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+   zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+   succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">defn</span> swap <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t1</span> <span style="color: #a6e22e;">:t2</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t2</span> <span style="color: #a6e22e;">:t1</span><span style="color: #696969;">)</span>
+   <span style="color: #696969;">(</span><span style="color: #a6e22e;">:d1</span> <span style="color: #a6e22e;">:d2</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:d2</span> <span style="color: #a6e22e;">:d1</span><span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero
+          zero succ
+          swap<span style="color: #696969;">)))</span>
 </pre>
 </div>
 </div>

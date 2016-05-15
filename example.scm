@@ -194,3 +194,16 @@
        (lambda (natural -> natural)
          (zero -> zero succ))
        map)))
+
+(eva
+
+ (deftype natural (-> type)
+   zero (-> natural)
+   succ (natural -> natural))
+
+ (defn swap (:t1 :t2 -> :t2 :t1)
+   (:d1 :d2 -> :d2 :d1))
+
+ (app (-> zero
+          zero succ
+          swap)))

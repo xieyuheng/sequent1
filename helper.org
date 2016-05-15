@@ -386,3 +386,13 @@
           curser
           (find-char/curser c s (+ 1 curser))))))
   #+end_src
+
+* symbol
+
+  #+begin_src scheme
+  (define (symbol-append . l)
+    (: symbol ... -> symbol)
+    (string->symbol
+     (apply string-append
+       (map symbol->string l))))
+  #+end_src

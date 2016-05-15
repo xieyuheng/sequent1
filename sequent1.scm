@@ -131,6 +131,11 @@
 
 (define id/counter 0)
 
+(define (id/new n ls)
+  (: name ls -> id)
+  (set! id/counter (+ 1 id/counter))
+  (vector (cons n id/counter) ls))
+
 (define (pass2/var v s)
   (: form2/var scope -> (form3/var scope))
   (match v
@@ -139,8 +144,7 @@
        (if found
          (let ([old (cdr found)])
            {{old level} s})
-         (let ([new (vector (cons symbol id/counter) '())])
-           (set! id/counter (+ 1 id/counter))
+         (let ([new (id/new symbol '())])
            {{new level}
             (cons (cons symbol new) s)})))]))
 
@@ -332,7 +336,7 @@
                   (lambda (i)
                     {'trunk
                       {t {'tody/arrow-list {a}} dl i}})])
-            {(append (map make-trunk (genlist slen))
+            {(append (reverse (map make-trunk (genlist slen)))
                      (sublist ds alen (length ds)))
              bs
              ns})]))]))
@@ -350,7 +354,7 @@
                 (lambda (i)
                   {'trunk
                     {{ac sc} {'tody/arrow-list al} dl i}})])
-          {(append (map make-trunk (genlist slen))
+          {(append (reverse (map make-trunk (genlist slen)))
                    (sublist ds alen (length ds)))
            bs
            ns})])]))
@@ -376,7 +380,7 @@
                      (lambda (i)
                        {'trunk
                          {{ac sc} {'tody/var v} dl i}})])
-               {(append (map make-trunk (genlist slen))
+               {(append (reverse (map make-trunk (genlist slen)))
                         (sublist ds alen (length ds)))
                 bs
                 ns})]
@@ -433,7 +437,7 @@
             ;; dl in trunk is as the order of dl in stack
             ;; thus no reverse is needed
             [make-trunk (lambda (i) {'trunk {a {'tody/name n} dl i}})])
-       {(append (map make-trunk (genlist slen))
+       {(append (reverse (map make-trunk (genlist slen)))
                 (sublist ds alen (length ds)))
         bs
         ns})]))
@@ -656,9 +660,8 @@
        (if found
          {{(cdr found) level} s}
          (let* ([ls (id->ls id)]
-                [id1 (vector (cons (id->name id) id/counter) '())]
+                [id1 (id/new (id->name id) '())]
                 [s1 (cons (cons id id1) s)])
-           (set! id/counter (+ 1 id/counter))
            (match (copy/ls ls s1)
              [{ls1 s2}
               (id/commit! id1 ls1)
@@ -752,6 +755,8 @@
 (define (compute/cedent c e)
   (: cedent env -> report)
   (match c
+    ;; proper tail call
+    [{h} (compute h e)]
     [{} {'success e}]
     [(h . r)
      (match (compute h e)
@@ -1485,6 +1490,14 @@
       type-name r
       (eva/deftype/data-constructor type-name na e))]))
 
+(define cover-check? #t)
+(define (cover-check-) (set! cover-check? #f) #f)
+(define (cover-check+) (set! cover-check? #t) #t)
+
+(define recur-check? #t)
+(define (recur-check-) (set! recur-check? #f) #f)
+(define (recur-check+) (set! recur-check? #t) #t)
+
 (define (eva/defn defn e)
   (: ((form1/name form1/arrow) (form1/arrow ...)) env -> env)
   (match e
@@ -1505,16 +1518,17 @@
                          al)}]
                [ns1 (cons (cons n {'lambda l1}) ns)]
                [e1 {ds bs ns1}])
-          (match (cover-check l1 e1)
-            [{'fail il}
-             (orz 'eva/defn
-               ("info-list :~%~a~%" il))]
-            [{'success __}
-             (match (recur-check n l1 e1)
-               [{'fail il}
-                (orz 'eva/defn
-                  ("info-list :~%~a~%" il))]
-               [{'success __} e1])]))])]))
+          (if cover-check?
+            (match (cover-check l1 e1)
+              [{'fail il} (orz 'eva/defn
+                            ("info-list :~%~a~%" il))]
+              [{'success __} 'ok]))
+          (if recur-check?
+            (match (recur-check n l1 e1)
+              [{'fail il} (orz 'eva/defn
+                            ("info-list :~%~a~%" il))]
+              [{'success __} 'ok]))
+          e1)])]))
 
 (define (sequent)
   (: -> [loop])
@@ -1682,29 +1696,27 @@
   (: lambda env -> report)
   (match e
     [{ds bs ns}
-     {'success e}
-     ;; (match l
-     ;;   [{{ac __} al}
-     ;;    (match (data-gen ac e)
-     ;;      [{c bsl}
-     ;;       (let ([report-list
-     ;;              (filter
-     ;;               (lambda (r)
-     ;;                 (match r
-     ;;                   [{'fail __} #t]
-     ;;                   [{'success __} #f]))
-     ;;               (map (lambda (bs0)
-     ;;                      (cover-check/cedent
-     ;;                       c al
-     ;;                       {ds (append bs0 bs) ns}))
-     ;;                 bsl))])
-     ;;         (if (null? report-list)
-     ;;           {'success e}
-     ;;           {'fail
-     ;;            {`(cover-check
-     ;;               fail
-     ;;               (report-list: ,report-list:))}}))])])
-     ]))
+     (match l
+       [{{ac __} al}
+        (match (data-gen ac (map car al) e)
+          [{c bsl}
+           (let ([report-list
+                  (filter
+                   (lambda (r)
+                     (match r
+                       [{'fail __} #t]
+                       [{'success __} #f]))
+                   (map (lambda (bs0)
+                          (cover-check/cedent
+                           c al
+                           {ds (append bs0 bs) ns}))
+                     bsl))])
+             (if (null? report-list)
+               {'success e}
+               {'fail
+                {`(cover-check
+                   fail
+                   (report-list: ,report-list:))}}))])])]))
 
 (define (cover-check/cedent c al e)
   (: cedent (arrow ...) env -> report)
@@ -1712,50 +1724,83 @@
 
 
 
-(define (data-gen ac e)
-  (: antecedent env -> (cedent (bs ...)))
-  (alter-expand (data-gen/cedent ac e)))
+(define (data-gen ac acl e)
+  (: antecedent (antecedent ...) env -> (cedent (bs ...)))
+  (alter-expand (data-gen/cedent ac acl e)))
 
 (define (alter-expand alterdata-list)
   (: (alterdata ...) -> ((data ...) (bs ...)))
   )
 
-(define (data-gen/cedent ac e)
-  (: cedent env -> (alterdata ...))
-  (match ac
+(define (data-gen/cedent c cl e)
+  (: cedent (cedent ...) env -> (alterdata ...))
+  (match c
     [{} {}]
     [(h . r)
-     (cons (data-gen/data h e)
-           (data-gen/cedent r e))]))
+     (cons (data-gen/data h (map car cl) e)
+           (data-gen/cedent r (map cdr cl) e))]))
 
-(define (data-gen/data d e)
-  (: data env -> alterdata)
+(define (data-gen/data d dl e)
+  (: data (data ...) env -> alterdata)
   (match d
-    [{'var x} (data-gen/var x e)]
-    [{'cons x} (data-gen/cons x e)]
-    [{'arrow x} (data-gen/arrow x e)]
-    [{'lambda x} (data-gen/lambda x e)]
-    [{'trunk x} (data-gen/trunk x e)]))
+    [{'var x} (data-gen/var x dl e)]
+    [{'cons x} (data-gen/cons x dl e)]
+    [{'arrow x} (data-gen/arrow x dl e)]
+    [{'lambda x} (data-gen/lambda x dl e)]
+    [{'trunk x} (data-gen/trunk x dl e)]))
 
-(define (data-gen/var v e)
-  (: var env -> alterdata)
+(define (data-gen/cons c dl e)
+  (: cons (data ...) env -> alterdata)
+  (match c
+    ;; c must be a type constructor
+    ;; c must not be a data constructor
+    [{n dl0}
+     (if (list-any? (lambda (x)
+                      (match x
+                        [{'var v} (var/fresh? v e)]
+                        [__ #f]))
+                    dl)
+       {'altervar (cons (id/new (symbol-append n ':gen)
+                                {(cons 1 {'cons c})})
+                        '())}
+       '(>< return an altervar
+
+           whoes type is bind to the cons as type
+           whoes alterdata-list is not empty
+
+           the alterdata-list is generate by recursive call to data-gen/data
+
+           from the type constructor c
+           we get a list of data constructor
+
+           each must be covered by the dl
+
+           for each that is covered by the dl
+           the antecedent of the type arrow of the data constructor
+           is used to do a recursive call to data-gen/data))]))
+
+(define (data-gen/var v dl e)
+  (: var (data ...) env -> alterdata)
+  (match e
+    [{ds bs ns}
+     (if (not (var/fresh? v e))
+       (data-gen/data (bs/deep bs {'var v}) dl e)
+       '(><><><))]))
+
+(define (data-gen/arrow a dl e)
+  (: arrow (data ...) env -> alterdata)
   )
 
-(define (data-gen/cons c e)
-  (: cons env -> alterdata)
+(define (data-gen/trunk l dl e)
+  (: trunk (data ...) env -> alterdata)
   )
 
-(define (data-gen/arrow a e)
-  (: arrow env -> alterdata)
-  )
-
-(define (data-gen/lambda l e)
-  (: arrow env -> alterdata)
-  )
-
-(define (data-gen/trunk l e)
-  (: trunk env -> alterdata)
-  )
+(define (data-gen/lambda l dl e)
+  (: lambda (data ...) env -> alterdata)
+  (orz 'data-gen/lambda
+    ("can not generate data from lambda~%")
+    ("l : ~a~%" l)
+    ("dl : ~a~%" dl)))
 
 (define (recur-check n l e)
   (: name lambda env -> report)
