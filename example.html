@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-05-15 Sun 18:49 -->
+<!-- 2016-05-21 Sat 01:43 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>example code of sequent1</title>
@@ -67,13 +67,28 @@ for the JavaScript code in this tag.
 <h2>overview</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org8b61ad5"><span class="todo note">note</span> </a></li>
-<li><a href="#org70e5443">natural</a></li>
-<li><a href="#org8d05cb0">list</a></li>
-<li><a href="#org85d3345">list map</a></li>
-<li><a href="#orgc269fe2">vector</a></li>
-<li><a href="#orgc471c58">vector map</a></li>
-<li><a href="#orgffc31ea">swap</a></li>
+<li><a href="#org7ca0e3f"><span class="todo _gt__lt_">&gt;&lt;</span> from scheme</a>
+<ul>
+<li><a href="#org26bbeb1"><span class="todo note">note</span> </a></li>
+<li><a href="#org9c425cd"><span class="todo _gt__lt_">&gt;&lt;</span> </a></li>
+</ul>
+</li>
+<li><a href="#org9b2ad7b">from agda</a>
+<ul>
+<li><a href="#org1654742"><span class="todo note">note</span> </a></li>
+<li><a href="#orgfa78fab">natural</a></li>
+<li><a href="#orge43ee92">list</a></li>
+<li><a href="#org23e7eb8">list map</a></li>
+<li><a href="#org97af552">vector</a></li>
+<li><a href="#orgf7e540e">vector map</a></li>
+</ul>
+</li>
+<li><a href="#orgc3a1f5">from forth</a>
+<ul>
+<li><a href="#org12c1672">swap</a></li>
+</ul>
+</li>
+<li><a href="#org15495a2"><span class="todo _gt__lt_">&gt;&lt;</span> from joy</a></li>
 </ul>
 </div>
 </div>
@@ -84,17 +99,36 @@ for the JavaScript code in this tag.
 
 <hr  />
 
-<div id="outline-container-org8b61ad5" class="outline-2">
-<h2 id="org8b61ad5"><span class="todo note">note</span> </h2>
-<div class="outline-text-2" id="text-org8b61ad5">
+<div id="outline-container-org7ca0e3f" class="outline-2">
+<h2 id="org7ca0e3f"><span class="todo _gt__lt_">&gt;&lt;</span> from scheme</h2>
+<div class="outline-text-2" id="text-org7ca0e3f">
+</div><div id="outline-container-org26bbeb1" class="outline-3">
+<h3 id="org26bbeb1"><span class="todo note">note</span> </h3>
+<div class="outline-text-3" id="text-org26bbeb1">
 <ul class="org-ul">
-<li><p>part of the examples are learned from <a href="http://www.cs.cmu.edu/~drl/teaching/oplss13/">a course about agda</a> at <a href="https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html">OPLSS 2013</a></p><p>part of them are learned the little schemer</p></li></ul>
+<li><p>these examples are learned from <a href="http://www.ccs.neu.edu/home/matthias/BTLS/">the little schemer</a></p></li></ul>
 </div>
 </div>
 
-<div id="outline-container-org70e5443" class="outline-2">
-<h2 id="org70e5443">natural</h2>
-<div class="outline-text-2" id="text-org70e5443">
+<div id="outline-container-org9c425cd" class="outline-3">
+<h3 id="org9c425cd"><span class="todo _gt__lt_">&gt;&lt;</span> </h3>
+</div>
+</div>
+
+<div id="outline-container-org9b2ad7b" class="outline-2">
+<h2 id="org9b2ad7b">from agda</h2>
+<div class="outline-text-2" id="text-org9b2ad7b">
+</div><div id="outline-container-org1654742" class="outline-3">
+<h3 id="org1654742"><span class="todo note">note</span> </h3>
+<div class="outline-text-3" id="text-org1654742">
+<ul class="org-ul">
+<li><p>these examples are learned from <a href="http://www.cs.cmu.edu/~drl/teaching/oplss13/">a course about agda</a> at <a href="https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html">OPLSS 2013</a></p></li></ul>
+</div>
+</div>
+
+<div id="outline-container-orgfa78fab" class="outline-3">
+<h3 id="orgfa78fab">natural</h3>
+<div class="outline-text-3" id="text-orgfa78fab">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -125,9 +159,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org8d05cb0" class="outline-2">
-<h2 id="org8d05cb0">list</h2>
-<div class="outline-text-2" id="text-org8d05cb0">
+<div id="outline-container-orge43ee92" class="outline-3">
+<h3 id="orge43ee92">list</h3>
+<div class="outline-text-3" id="text-orge43ee92">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -172,9 +206,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org85d3345" class="outline-2">
-<h2 id="org85d3345">list map</h2>
-<div class="outline-text-2" id="text-org85d3345">
+<div id="outline-container-org23e7eb8" class="outline-3">
+<h3 id="org23e7eb8">list map</h3>
+<div class="outline-text-3" id="text-org23e7eb8">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -236,9 +270,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgc269fe2" class="outline-2">
-<h2 id="orgc269fe2">vector</h2>
-<div class="outline-text-2" id="text-orgc269fe2">
+<div id="outline-container-org97af552" class="outline-3">
+<h3 id="org97af552">vector</h3>
+<div class="outline-text-3" id="text-org97af552">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -278,9 +312,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgc471c58" class="outline-2">
-<h2 id="orgc471c58">vector map</h2>
-<div class="outline-text-2" id="text-orgc471c58">
+<div id="outline-container-orgf7e540e" class="outline-3">
+<h3 id="orgf7e540e">vector map</h3>
+<div class="outline-text-3" id="text-orgf7e540e">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -333,10 +367,14 @@ for the JavaScript code in this tag.
 </div>
 </div>
 </div>
+</div>
 
-<div id="outline-container-orgffc31ea" class="outline-2">
-<h2 id="orgffc31ea">swap</h2>
-<div class="outline-text-2" id="text-orgffc31ea">
+<div id="outline-container-orgc3a1f5" class="outline-2">
+<h2 id="orgc3a1f5">from forth</h2>
+<div class="outline-text-2" id="text-orgc3a1f5">
+</div><div id="outline-container-org12c1672" class="outline-3">
+<h3 id="org12c1672">swap</h3>
+<div class="outline-text-3" id="text-org12c1672">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -354,6 +392,11 @@ for the JavaScript code in this tag.
 </pre>
 </div>
 </div>
+</div>
+</div>
+
+<div id="outline-container-org15495a2" class="outline-2">
+<h2 id="org15495a2"><span class="todo _gt__lt_">&gt;&lt;</span> from joy</h2>
 </div>
 </div>
 <div id="postamble" class="status">

@@ -12,9 +12,15 @@
 
   - examples I need more examples
 
-  - cover-check
-
   - recur-check
+
+  - change keyword
+    defn -> ~
+    [maybe] deftype -> intro
+
+  - change syntax
+    ( : ) -> { : }
+    ( @ ) -> ( : )
 
   - repl handles error
 
@@ -138,7 +144,7 @@
       most of the natural of env passing functions
 
     - not to mention the invariants of functions which is described by english
-      neither they can be expressed by the week type notation
+      neither them can be expressed by the week type notation
 
     - it is such a cognitive burden
       it is what makes programming a hard work where mistake is too easy
@@ -1625,7 +1631,7 @@
       semantic unification is used
 
     - semantic unification is unification modulo theory
-      the theory here is function composition
+      the theory here is term-writing-system
 
 *** unify/data-list
 
@@ -1880,7 +1886,7 @@
             (unify/data-list sc1 sc2 {'success e1})]
            [{'fail il}
             {'fail (cons `(unify/arrow
-                           fail  (arrow1: ,a1) (arrow2: ,a2))
+                           fail (arrow1: ,a1) (arrow2: ,a2))
                          il)}])]))
     #+end_src
 
@@ -2499,6 +2505,319 @@
                     {ac1 sc1}])]))])]))
     #+end_src
 
+* cover
+
+*** note
+
+    - this is the poset structure of term lattice
+
+*** cover/data-list
+
+    #+begin_src scheme
+    (define (cover/data-list pl dl r)
+      (: (pattern ...) (data ...) report -> report)
+      (match r
+        [{'fail il} {'fail il}]
+        [{'success e}
+         (cond [(and (eq? pl '()) (eq? dl '()))
+                r]
+               [(eq? pl {})
+                {'fail {`(cover/data-list
+                          fail pl and dl is not of the same length
+                          (additional-dl: ,dl))}}]
+               [(eq? dl {})
+                {'fail {`(cover/data-list
+                          fail pl and dl is not of the same length
+                          (additional-pl: ,pl))}}]
+               [else
+                (cover/data-list
+                 (cdr pl) (cdr dl)
+                 (cover/data (car pl) (car dl) e))])]))
+    #+end_src
+
+*** cover/data
+
+    #+begin_src scheme
+    (define (cover/data p d e)
+      (: pattern data env -> report)
+      (match e
+        [{ds bs ns}
+         ;; var -walk-> fresh-var
+         (let ([p (bs/walk bs p)]
+               [d (bs/walk bs d)])
+           (match {p d}
+             [{{'var v1} {'var v2}}
+              (if (var/eq? v1 v2)
+                {'success e}
+                (cover/var/data v1 d e))]
+             [{{'var v} __} (cover/var/data v d e)]
+             [{__ {'var v}}
+              ;; here is the only different between unify/data
+              {'fail `(cover/data
+                       fail
+                       (pattern: ,p)
+                       (data: ,d))}]
+             [{{'trunk t1} {'trunk t2}} (cover/trunk t1 t2 e)]
+             [{{'trunk t} __} (cover/trunk/data t d e)]
+             [{__ {'trunk t}} (cover/trunk/data t p e)]
+
+             [{{'cons c1} {'cons c2}} (cover/cons c1 c2 e)]
+             [{{'arrow a1} {'arrow a2}} (cover/arrow a1 a2 e)]
+             [{{'lambda l1} {'lambda l2}} (cover/lambda l1 l2 e)]
+             [{__ __}
+              {'fail {`(cover/data
+                        fail to unify
+                        (pattern: ,p) (data: ,d))}}]))]))
+    #+end_src
+
+*** cover/var/data
+
+    #+begin_src scheme
+    (define (cover/var/data v d e)
+      (: fresh-var data env -> report)
+      (match e
+        [{ds bs ns}
+         (match (consistent-check v d e)
+           [{'fail il}
+            {'fail (cons `(cover/var/data
+                           consistent-check fail
+                           (v: ,v)
+                           (d: ,d))
+                         il)}]
+           [{'success __}
+            {'success {ds (bs/extend bs v d) ns}}])]))
+    #+end_src
+
+*** cover/cons
+
+    #+begin_src scheme
+    (define (cover/cons c1 c2 e)
+      (: cons cons env -> report)
+      (match {c1 c2}
+        [{{n1 dl1} {n2 dl2}}
+         (if (eq? n1 n2)
+           (cover/data-list dl1 dl2 {'success e})
+           {'fail {`(cover/cons
+                     fail
+                     (cons1: ,c1)
+                     (cons2: ,c2))}})]))
+    #+end_src
+
+*** cover/arrow
+
+    #+begin_src scheme
+    (define (cover/arrow a1 a2 e)
+      (: arrow arrow env -> report)
+      (match {a1 a2}
+        [{{ac1 sc1} {ac2 sc2}}
+         (match (cover/data-list ac1 ac2 {'success e})
+           [{'success e1}
+            (cover/data-list sc1 sc2 {'success e1})]
+           [{'fail il}
+            {'fail (cons `(cover/arrow
+                           fail (arrow1: ,a1) (arrow2: ,a2))
+                         il)}])]))
+    #+end_src
+
+*** cover/lambda
+
+    #+begin_src scheme
+    (define (cover/lambda l1 l2 e)
+      (: lambda lambda env -> report)
+      (match {l1 l2}
+        [{{a1 al1} {a2 al2}}
+         (cover/arrow-list al1 al2 (cover/arrow a1 a2 e))]))
+    #+end_src
+
+*** cover/arrow-list
+
+    #+begin_src scheme
+    (define (cover/arrow-list al1 al2 r)
+      (: (arrow ...) (arrow ...) report -> report)
+      (match r
+        [{'fail il} {'fail il}]
+        [{'success e}
+         (if (eq? al1 {})
+           r
+           (cover/arrow-list
+            (cdr al1) (cdr al2)
+            (cover/arrow (car al1) (car al2) e)))]))
+    #+end_src
+
+*** cover/trunk
+
+***** note
+
+      - it will not diverge on recursive call here
+        because the trunk of recursive call
+        only have name in it
+        but not have the arrow-list
+
+      - to be able to unify on trunk
+        is different from
+        to be able to unify on arrow or lambda
+        we do not really have
+        second order semantic unification here
+
+***** cover/trunk
+
+      #+begin_src scheme
+      (define (cover/trunk t1 t2 e)
+        (: trunk trunk env -> report)
+        (match (cover/trunk/syntactic t1 t2 e)
+          [{'success e1} {'success e1}]
+          [{'fail il1}
+           (match (cover/trunk/semantic t1 t2 e)
+             [{'success e2} {'success e2}]
+             [{'fail il2}
+              {'fail (append il2 il1)}])]))
+      #+end_src
+
+***** cover/trunk/syntactic
+
+      #+begin_src scheme
+      (define (cover/trunk/syntactic t1 t2 e)
+        (: trunk trunk env -> report)
+        (match {t1 t2}
+          [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
+           (if (not (eq? i1 i2))
+             {'fail {`(cover/trunk/syntactic
+                       fail indexes are different
+                       (trunk1: ,t1)
+                       (trunk2: ,t2))}}
+             (match {tody1 tody2}
+               ;; about name
+               [{{'tody/name n1} {'tody/name n2}}
+                (if (eq? n1 n2)
+                  (cover/data-list dl1 dl2 (cover/arrow a1 a2 e))
+                  {'fail {`(cover/trunk/syntactic
+                            fail names are different
+                            (trunk1: ,t1)
+                            (trunk2: ,t2))}})]
+               [{{'tody/name n} {'tody/var v}}
+                (cover/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
+               [{{'tody/var v} {'tody/name n}}
+                (cover/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
+               [{{'tody/name n} {'tody/arrow-list al}}
+                (cover/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
+               [{{'tody/arrow-list al} {'tody/name n}}
+                (cover/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
+               ;; about var
+               [{{'tody/var v1} {'tody/var v2}}
+                (match (cover/data {'var v1} {'var v2} e)
+                  [{'fail il} {'fail il}]
+                  [{'success e1}
+                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
+               [{{'tody/var v} {'tody/arrow-list al}}
+                (match (cover/data {'var v} {'lambda {a2 al}} e)
+                  [{'fail il} {'fail il}]
+                  [{'success e1}
+                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
+               [{{'tody/arrow-list al} {'tody/var v}}
+                (match (cover/data {'lambda {a1 al}} {'var v} e)
+                  [{'fail il} {'fail il}]
+                  [{'success e1}
+                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
+               ;; about arrow-list
+               [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
+                (cover/data-list
+                 dl1 dl2
+                 (cover/lambda {a1 al1} {a2 al2} e))]))]))
+      #+end_src
+
+***** cover/trunk/semantic
+
+      #+begin_src scheme
+      (define (cover/trunk/semantic t1 t2 e)
+        (: trunk trunk env -> report)
+        (match {t1 t2}
+          [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
+           (match {tody1 tody2}
+             ;; about name
+             [{{'tody/name n} __}
+              (cover/trunk/semantic (trunk->trunk* t1 e) t2 e)]
+             [{__ {'tody/name n}}
+              (cover/trunk/semantic t1 (trunk->trunk* t2 e) e)]
+             ;; about var
+             [{{'tody/var v} __}
+              (match (compute/var v e)
+                [{'fail il} {'fail il}]
+                [{'success {(d . __) __ __}}
+                 (match d
+                   [{'arrow a}
+                    (cover/trunk/semantic
+                     {a1 {'tody/arrow-list {a}} dl1 i1} t2 e)]
+                   [{'lambda {a al}}
+                    (cover/trunk/semantic
+                     {a1 {'tody/arrow-list al} dl1 i1} t2 e)]
+                   [__
+                    {'fail {`(cover/trunk/semantic
+                              a var computes to neither arrow nor lambda
+                              (var: ,v))}}])])]
+             [{__ {'tody/var v}}
+              (match (compute/var v e)
+                [{'fail il} {'fail il}]
+                [{'success {(d . __) __ __}}
+                 (match d
+                   [{'arrow a}
+                    (cover/trunk/semantic
+                     t1 {a2 {'tody/arrow-list {a}} dl2 i2} e)]
+                   [{'lambda {a al}}
+                    (cover/trunk/semantic
+                     t1 {a2 {'tody/arrow-list al} dl2 i2} e)]
+                   [__
+                    {'fail {`(cover/trunk/semantic
+                              a var computes to neither arrow nor lambda
+                              (var: ,v))}}])])]
+             ;; about arrow-list
+             [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
+              ;; recur to cover/data
+              ;; only when at least one of the trunk is reducible
+              ;; and if the arguments of this recur are both trunk
+              ;; one of them may still be reducible
+              ;; thus will get in to this branch again
+              (match {(filter-arrow-list al1 dl1 e)
+                      (filter-arrow-list al2 dl2 e)}
+                [{l1 l2}
+                 (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
+                   {'fail {`(cover/trunk/semantic
+                             fail both trunks are non-reducible
+                             (trunk1: ,t1)
+                             (trunk2: ,t2))}}
+                   (match {(compute/trunk t1 e)
+                           (compute/trunk t2 e)}
+                     [{{'success {(d1 . __) __ __}}
+                       {'success {(d2 . __) __ __}}}
+                      (cover/data d1 d2 e)]
+                     [{__ __}
+                      {'fail {`(cover/trunk/semantic
+                                fail to compute/trunk one of the trunks
+                                (trunk1: ,t1)
+                                (trunk2: ,t2))}}]))])])]))
+      #+end_src
+
+*** cover/trunk/data
+
+    #+begin_src scheme
+    (define (cover/trunk/data t d e)
+      (: trunk data env -> report)
+      (match (compute/trunk t e)
+        [{'fail il}
+         {'fail (cons `(cover/trunk/data
+                        (trunk: ,t)
+                        (data: ,d))
+                      il)}]
+        [{'success e1}
+         (match (env/pop e1)
+           [{{'trunk t1} e2}
+            {'fail {`(cover/trunk/data
+                      (trunk: ,t)
+                      compute to
+                      (trunk: ,t1))}}]
+           [{d1 e2}
+            (cover/data d1 d e2)])]))
+    #+end_src
+
 * cover-check
 
 *** cover-check
@@ -2519,7 +2838,7 @@
                            [{'fail __} #t]
                            [{'success __} #f]))
                        (map (lambda (bs0)
-                              (cover-check/cedent
+                              (cover-check/cedent/arrow-list
                                c al
                                {ds (append bs0 bs) ns}))
                          bsl))])
@@ -2528,21 +2847,39 @@
                    {'fail
                     {`(cover-check
                        fail
-                       (report-list: ,report-list:))}}))])])]))
+                       (report-list: ,report-list))}}))])])]))
     #+end_src
 
-*** >< cover-check/cedent
+*** cover-check/cedent/arrow-list
 
     #+begin_src scheme
-    (define (cover-check/cedent c al e)
-      (: cedent (arrow ...) env -> report)
-      )
+    (define (cover-check/cedent/arrow-list c al e)
+      (: cedent (cedent ...) env -> report)
+      (let* ([report-list
+              (map (lambda (a)
+                     (cover-check/cedent c (car a) e))
+                al)]
+             [good-report-list
+              (filter (lambda (report)
+                        (match report
+                          [{'success __} #t]
+                          [{'fail __} #t]))
+                      report-list)])
+        (if (null? good-report-list)
+          (list 'fail
+                (list
+                 `(cover-check/cedent/arrow-list
+                   fail
+                   (report-list: ,report-list))))
+          (list 'success e))))
     #+end_src
 
-*** ><
+*** cover-check/cedent
 
     #+begin_src scheme
-
+    (define (cover-check/cedent c1 c2 e)
+      (: cedent cedent env -> report)
+      (cover/data-list c1 c2 (list 'success e)))
     #+end_src
 
 *** note alterdata
@@ -2550,7 +2887,7 @@
     #+begin_src scheme :tangle no
     (type alterdata
       {'altervar (var . {alterdata ...})}
-      {'cons   {name {data ...}}}
+      {'cons   {name {alterdata ...}}}
       {'arrow  {cedent cedent}}
       {'lambda {arrow {arrow ...}}}
       {'trunk  {arrow tody {data ...} index}})
@@ -2567,13 +2904,81 @@
       (alter-expand (data-gen/cedent ac acl e)))
     #+end_src
 
-*** >< alter-expand
+*** alter-expand
 
-    #+begin_src scheme
-    (define (alter-expand alterdata-list)
-      (: (alterdata ...) -> ((data ...) (bs ...)))
-      )
-    #+end_src
+***** alter-expand
+
+      #+begin_src scheme
+      (define (alter-expand adl)
+        (: (alterdata ...) -> ((data ...) (bs ...)))
+        (list (alter-expand/get-data-list adl)
+              (alter-expand/alterdata-list adl)))
+      #+end_src
+
+***** alter-expand/get-data-list & alter-expand/get-data
+
+      #+begin_src scheme
+      (define (alter-expand/get-data-list adl)
+        (: (alterdata ...) -> (data ...))
+        (match adl
+          [{} {}]
+          [(ad . r)
+           (cons (alter-expand/get-data ad)
+                 (alter-expand/get-data-list r))]))
+
+      (define (alter-expand/get-data ad)
+        (: alterdata -> data)
+        (match ad
+          [{'altervar (v . __)} {'var v}]
+          [__ (orz 'alter-expand/get-data
+                ("alterdata is not altervar : ~a~%" ad))]))
+      #+end_src
+
+***** alter-expand/alterdata-list
+
+      #+begin_src scheme
+      (define (alter-expand/alterdata-list adl)
+        (: (alterdata ...) -> (bs ...))
+        (match adl
+          [{} {{}}]
+          [({'altervar (v . adl)} . r)
+           (alter-expand/more
+            v adl
+            (alter-expand/alterdata-list r))]))
+
+      (define (alter-expand/more v adl bsl)
+        (: var (alterdata ...) (bs ...) -> (bs ...))
+        (if (null? adl)
+          bsl
+          (apply append
+            (map (lambda (ad)
+                   (apply append
+                     (map (lambda (bs)
+                            (bs/extend-alter bs v ad))
+                       bsl)))
+              adl))))
+      #+end_src
+
+***** bs/extend-alter
+
+      #+begin_src scheme
+      (define (bs/extend-alter bs v ad)
+        (: bs var alterdata -> (bs ...))
+        (match ad
+          [{'cons {n adl}}
+           (let* ([bsl1 (alter-expand/alterdata-list adl)]
+                  [bsl2 (map (lambda (x)
+                               (bs/extend
+                                x v
+                                {'cons {n (alter-expand/get-data-list adl)}}))
+                          bsl1)]
+                  [bsl3 (map (lambda (x)
+                               (append x bs))
+                          bsl2)])
+             bsl3)]
+          [__ (orz 'bs/extend-alter
+                ("alterdata is not cons : ~a~%" ad))]))
+      #+end_src
 
 *** data-gen/cedent
 
@@ -2600,45 +3005,146 @@
         [{'trunk x} (data-gen/trunk x dl e)]))
     #+end_src
 
-*** >< data-gen/cons
+*** data-gen/cons
 
     #+begin_src scheme
     (define (data-gen/cons c dl e)
       (: cons (data ...) env -> alterdata)
-      (match c
-        ;; c must be a type constructor
-        ;; c must not be a data constructor
-        [{n dl0}
-         (if (list-any? (lambda (x)
-                          (match x
-                            [{'var v} (var/fresh? v e)]
-                            [__ #f]))
-                        dl)
-           {'altervar (cons (id/new (symbol-append n ':gen)
-                                    {(cons 1 {'cons c})})
-                            '())}
-           '(>< return an altervar
-
-               whoes type is bind to the cons as type
-               whoes alterdata-list is not empty
-
-               the alterdata-list is generate by recursive call to data-gen/data
-
-               from the type constructor c
-               we get a list of data constructor
-
-               each must be covered by the dl
-
-               for each that is covered by the dl
-               the antecedent of the type arrow of the data constructor
-               is used to do a recursive call to data-gen/data))]))
+      (match e
+        [{ds bs ns}
+         (match c
+           [{n dl0}
+            (let ([found (assq n ns)])
+              (if (not found)
+                (orz 'data-gen/cons
+                  ("unknow name : ~a~%" n))
+                (match (cdr found)
+                  [{'cons/data __}
+                   (orz 'data-gen/cons
+                     ("name is not type constructor but a data constructor : ~a~%" n))]
+                  [{'lambda __}
+                   (orz 'data-gen/cons
+                     ("name is not type constructor but a lambda : ~a~%" n))]
+                  [{'cons/type {__ __ nl}}
+                   (let ([id1 (id/new (symbol-append n ':gen)
+                                      {(cons 1 {'cons c})})])
+                     {'altervar
+                      (cons {id1 0}
+                            (data-gen/alterdata-list c nl dl e))})])))])]))
     #+end_src
 
-*** >< data-gen/var
+*** data-gen/alterdata-list
 
-    - suppose we meet a var whose type is not bound
+***** data-gen/alterdata-list
 
-    - suppose we meet a var whose type is bound
+      #+begin_src scheme
+      (define (data-gen/alterdata-list c nl dl e)
+        (: cons (name ...) (data ...) env -> (alterdata ...))
+        (if (list-any? (lambda (x)
+                         (match x
+                           [{'var v} (var/fresh? v e)]
+                           [__ #f]))
+                       dl)
+          '()
+          (let* ([nal (remove #f (map (lambda (x) (n->na c x e)) nl))]
+                 [nadll (map (lambda (x) (na->nadl x dl)) nal)]
+                 [alterdata-list (map (lambda (x) (nadl->alterdata x e)) nadll)])
+            alterdata-list)))
+      #+end_src
+
+***** n->na
+
+      #+begin_src scheme
+      (define (n->na c n e)
+        (: cons name env -> (name . arrow))
+        (match e
+          [{ds bs ns}
+           (let ([found (assq n ns)])
+             (if (not found)
+               (orz 'n->na
+                 ("unknow name : ~a~%" n))
+               (match (cdr found)
+                 [{'lambda __}
+                  (orz 'n->na
+                    ("name is not data constructor but a lambda : ~a~%" n))]
+                 [{'cons/type __}
+                  (orz 'n->na
+                    ("name is not data constructor but a type constructor : ~a~%" n))]
+                 [{'cons/data {a __ __}}
+                  (let ([a (copy-arrow a)])
+                    (match a
+                      [{ac sc}
+                       (match (unify/data-list
+                               sc {{'cons c}}
+                               {'success
+                                {ds (cons '(commit-point) bs) ns}})
+                         [{'fail il} #f]
+                         [{'success {ds1 bs1 ns1}}
+                          (bs/commit! bs1)
+                          (cons n a)])]))])))]))
+      #+end_src
+
+***** na->nadl
+
+      #+begin_src scheme
+      (define (na->nadl na dl)
+        (: (name . arrow) (data ...) ->
+           ((name . arrow) . (data ...)))
+        (let ([n (car na)])
+          (cons na
+                (filter
+                 (lambda (x)
+                   (match x
+                     [{'cons {n1 __}} (eq? n n1)]
+                     [__ #f]))
+                 dl))))
+      #+end_src
+
+***** nadl->alterdata
+
+      #+begin_src scheme
+      (define (nadl->alterdata nadl e)
+        (: ((name . arrow) . (data ...)) env -> alterdata)
+        (match nadl
+          [((n . a) . dl)
+           (match a
+             [{ac __}
+              (if (null? dl)
+                (orz 'nadl->alterdata
+                  ("na can not be covered~%")
+                  ("n : ~a~%" n)
+                  ("a : ~a~%" a)
+                  ("dl : ~a~%" dl))
+                {'cons
+                 {n (map (lambda (t i)
+                           (data-gen/data t
+                                          (map (lambda (x) (d->subd i x)) dl)
+                                          e))
+                      ac (genlist (length ac)))}})])]))
+      #+end_src
+
+***** d->subd
+
+      #+begin_src scheme
+      (define (d->subd i d)
+        (: index data -> data)
+        (match d
+          [{'cons {n dl}} (list-ref dl i)]
+          [__ (orz 'd->subd
+                ("data is not cons : ~a~%" d))]))
+      #+end_src
+
+*** data-gen/var
+
+    - suppose we meet a fresh var
+      there must be a wild var in function body
+      to cover it
+
+    - ><><><
+      if the type of the fresh var is a type constructor other than the 'type'
+      then it is possible to generate a list of type
+      from this type constructor
+      but I do not handle higher level var here
 
     #+begin_src scheme
     (define (data-gen/var v dl e)
@@ -2647,23 +3153,38 @@
         [{ds bs ns}
          (if (not (var/fresh? v e))
            (data-gen/data (bs/deep bs {'var v}) dl e)
-           '(><><><))]))
+           (match v
+             [{id level}
+              (let ([id1 (id/new (symbol-append
+                                  (id->name id)
+                                  ': (string->symbol (number->string level))
+                                  ':var-gen)
+                                 {})])
+                {'altervar (cons {id1 0} {})})]))]))
     #+end_src
 
-*** >< data-gen/arrow
+*** data-gen/arrow
 
     #+begin_src scheme
     (define (data-gen/arrow a dl e)
       (: arrow (data ...) env -> alterdata)
-      )
+      (match e
+        [{ds bs ns}
+         (let ([id1 (id/new ':arrow-gen
+                            {(cons 1 {'arrow a})})])
+           {'altervar (cons {id1 0} {})})]))
     #+end_src
 
-*** >< data-gen/trunk
+*** data-gen/trunk
 
     #+begin_src scheme
-    (define (data-gen/trunk l dl e)
+    (define (data-gen/trunk t dl e)
       (: trunk (data ...) env -> alterdata)
-      )
+      (match e
+        [{ds bs ns}
+         (let ([id1 (id/new ':trunk-gen
+                            {(cons 1 {'trunk t})})])
+           {'altervar (cons {id1 0} {})})]))
     #+end_src
 
 *** data-gen/lambda

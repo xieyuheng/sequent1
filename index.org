@@ -3,7 +3,7 @@
 
 ---------
 
-- a prototype interpreter of a lovely functional language
+- a prototype functional language
   which uses sequent calculus as its dependent type system
 
 - [[http://xieyuheng.github.io][XIE Yuheng]] created

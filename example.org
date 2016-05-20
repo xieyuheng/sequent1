@@ -8,241 +8,254 @@
 
 ---------
 
-* note
+* >< from scheme
 
-  - part of the examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
-    part of them are learned the little schemer
+*** note
 
-* natural
+    - these examples are learned from [[http://www.ccs.neu.edu/home/matthias/BTLS/][the little schemer]]
 
-  #+begin_src scheme
-  (eva
+*** ><
 
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
+* from agda
 
-   (defn add (natural natural -> natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n add succ))
+*** note
 
-   (defn mul (natural natural -> natural)
-     (:m zero -> zero)
-     (:m :n succ -> :m :n mul :m add))
+    - these examples are learned from [[http://www.cs.cmu.edu/~drl/teaching/oplss13/][a course about agda]] at [[https://www.cs.uoregon.edu/research/summerschool/summer13/curriculum.html][OPLSS 2013]]
 
-   (app (->
-         zero succ
-         zero succ succ
-         add))
+*** natural
 
-   (app (->
-         zero succ succ
-         zero succ succ
-         mul)))
-  #+end_src
+    #+begin_src scheme
+    (eva
 
-* list
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
 
-  #+begin_src scheme
-  (eva
+     (defn add (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n add succ))
 
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
+     (defn mul (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n mul :m add))
 
-   (defn add (natural natural -> natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n add succ))
+     (app (->
+           zero succ
+           zero succ succ
+           add))
 
-   (defn mul (natural natural -> natural)
-     (:m zero -> zero)
-     (:m :n succ -> :m :n mul :m add))
+     (app (->
+           zero succ succ
+           zero succ succ
+           mul)))
+    #+end_src
 
-   (deftype list ((:t : type) :t -> type)
-     null (-> :t list)
-     cons (:t list :t -> :t list))
+*** list
 
-   (defn append (:t list :t list -> :t list)
-     (:l null -> :l)
-     (:l :r :e cons -> :l :r append :e cons))
+    #+begin_src scheme
+    (eva
 
-   (app (->
-         null
-         zero cons
-         null
-         zero cons
-         append))
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
 
-   (app (->
-         null
-         zero cons
-         zero cons
-         null
-         zero cons
-         zero cons
-         append)))
-  #+end_src
+     (defn add (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n add succ))
 
-* list map
+     (defn mul (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n mul :m add))
 
-  #+begin_src scheme
-  (eva
+     (deftype list ((:t : type) :t -> type)
+       null (-> :t list)
+       cons (:t list :t -> :t list))
 
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
+     (defn append (:t list :t list -> :t list)
+       (:l null -> :l)
+       (:l :r :e cons -> :l :r append :e cons))
 
-   (defn add (natural natural -> natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n add succ))
+     (app (->
+           null
+           zero cons
+           null
+           zero cons
+           append))
 
-   (defn mul (natural natural -> natural)
-     (:m zero -> zero)
-     (:m :n succ -> :m :n mul :m add))
+     (app (->
+           null
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           append)))
+    #+end_src
 
-   (deftype list ((:t : type) :t -> type)
-     null (-> :t list)
-     cons (:t list :t -> :t list))
+*** list map
 
-   (defn append (:t list :t list -> :t list)
-     (:l null -> :l)
-     (:l :r :e cons -> :l :r append :e cons))
+    #+begin_src scheme
+    (eva
 
-   (defn map (:t1 list (:t1 -> :t2) -> :t2 list)
-     (null :f -> null)
-     (:l :e cons :f -> :l :f map :e :f apply cons))
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
 
-   (app (->
-         null
-         zero cons
-         zero cons
-         zero cons
-         null
-         zero cons
-         zero cons
-         zero cons
-         append
-         (zero -> zero succ)
-         map))
+     (defn add (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n add succ))
 
-   (app (->
-         null
-         zero cons
-         zero cons
-         (lambda (natural -> natural)
-           (zero -> zero succ))
-         map))
+     (defn mul (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n mul :m add))
 
-   (deftype has-length ((:t : type) :t list natural -> type)
-     null/has-length (-> null zero has-length)
-     cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
+     (deftype list ((:t : type) :t -> type)
+       null (-> :t list)
+       cons (:t list :t -> :t list))
 
-   (defn map/has-length (:l :n has-length -> :l :f map :n has-length)
-     (null/has-length -> null/has-length)
-     (:h cons/has-length -> :h map/has-length cons/has-length)))
-  #+end_src
+     (defn append (:t list :t list -> :t list)
+       (:l null -> :l)
+       (:l :r :e cons -> :l :r append :e cons))
 
-* vector
+     (defn map (:t1 list (:t1 -> :t2) -> :t2 list)
+       (null :f -> null)
+       (:l :e cons :f -> :l :f map :e :f apply cons))
 
-  #+begin_src scheme
-  (eva
+     (app (->
+           null
+           zero cons
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           zero cons
+           append
+           (zero -> zero succ)
+           map))
 
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
+     (app (->
+           null
+           zero cons
+           zero cons
+           (lambda (natural -> natural)
+             (zero -> zero succ))
+           map))
 
-   (defn add (natural natural -> natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n add succ))
+     (deftype has-length ((:t : type) :t list natural -> type)
+       null/has-length (-> null zero has-length)
+       cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
 
-   (defn mul (natural natural -> natural)
-     (:m zero -> zero)
-     (:m :n succ -> :m :n mul :m add))
+     (defn map/has-length (:l :n has-length -> :l :f map :n has-length)
+       (null/has-length -> null/has-length)
+       (:h cons/has-length -> :h map/has-length cons/has-length)))
+    #+end_src
 
-   (deftype vector ((:t : type) natural :t -> type)
-     null (-> zero :t vector)
-     cons (:n :t vector :t -> :n succ :t vector))
+*** vector
 
-   (defn append (:m :t vector :n :t vector -> :m :n add :t vector)
-     (:l null -> :l)
-     (:l :r :e cons -> :l :r append :e cons))
+    #+begin_src scheme
+    (eva
 
-   (app (->
-         null
-         zero cons
-         zero cons
-         zero cons
-         null
-         zero cons
-         zero cons
-         zero cons
-         append)))
-  #+end_src
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
 
-* vector map
+     (defn add (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n add succ))
 
-  #+begin_src scheme
-  (eva
+     (defn mul (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n mul :m add))
 
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
+     (deftype vector ((:t : type) natural :t -> type)
+       null (-> zero :t vector)
+       cons (:n :t vector :t -> :n succ :t vector))
 
-   (defn add (natural natural -> natural)
-     (:m zero -> :m)
-     (:m :n succ -> :m :n add succ))
+     (defn append (:m :t vector :n :t vector -> :m :n add :t vector)
+       (:l null -> :l)
+       (:l :r :e cons -> :l :r append :e cons))
 
-   (defn mul (natural natural -> natural)
-     (:m zero -> zero)
-     (:m :n succ -> :m :n mul :m add))
+     (app (->
+           null
+           zero cons
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           zero cons
+           append)))
+    #+end_src
 
-   (deftype vector ((:t : type) natural :t -> type)
-     null (-> zero :t vector)
-     cons (:n :t vector :t -> :n succ :t vector))
+*** vector map
 
-   (defn append (:m :t vector :n :t vector -> :m :n add :t vector)
-     (:l null -> :l)
-     (:l :r :e cons -> :l :r append :e cons))
+    #+begin_src scheme
+    (eva
 
-   (defn map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
-     (null :f -> null)
-     (:l :e cons :f -> :l :f map :e :f apply cons))
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
 
-   (app (->
-         null
-         zero cons
-         zero cons
-         zero cons
-         null
-         zero cons
-         zero cons
-         zero cons
-         append
-         (zero -> zero succ)
-         map))
+     (defn add (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n add succ))
 
-   (app (->
-         null
-         zero cons
-         zero cons
-         (lambda (natural -> natural)
-           (zero -> zero succ))
-         map)))
-  #+end_src
+     (defn mul (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n mul :m add))
 
-* swap
+     (deftype vector ((:t : type) natural :t -> type)
+       null (-> zero :t vector)
+       cons (:n :t vector :t -> :n succ :t vector))
 
-  #+begin_src scheme
-  (eva
+     (defn append (:m :t vector :n :t vector -> :m :n add :t vector)
+       (:l null -> :l)
+       (:l :r :e cons -> :l :r append :e cons))
 
-   (deftype natural (-> type)
-     zero (-> natural)
-     succ (natural -> natural))
+     (defn map (:n :t1 vector (:t1 -> :t2) -> :n :t2 vector)
+       (null :f -> null)
+       (:l :e cons :f -> :l :f map :e :f apply cons))
 
-   (defn swap (:t1 :t2 -> :t2 :t1)
-     (:d1 :d2 -> :d2 :d1))
+     (app (->
+           null
+           zero cons
+           zero cons
+           zero cons
+           null
+           zero cons
+           zero cons
+           zero cons
+           append
+           (zero -> zero succ)
+           map))
 
-   (app (-> zero
-            zero succ
-            swap)))
-  #+end_src
+     (app (->
+           null
+           zero cons
+           zero cons
+           (lambda (natural -> natural)
+             (zero -> zero succ))
+           map)))
+    #+end_src
+
+* from forth
+
+*** swap
+
+    #+begin_src scheme
+    (eva
+
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
+
+     (defn swap (:t1 :t2 -> :t2 :t1)
+       (:d1 :d2 -> :d2 :d1))
+
+     (app (-> zero
+              zero succ
+              swap)))
+    #+end_src
+
+* >< from joy
