@@ -27,12 +27,14 @@
        (eq? (car v) 'lambda)))
 
 (define (form1/im-bind? v)
-  (and (list? v)
+  (and (list? v) (pair? v)
+       (equal? (car v) (vector 'flower-barcket/in-eva))
        (member ': v)))
 
 (define (form1/ex-bind? v)
-  (and (list? v)
-       (member '@ v)))
+  (and (list? v) (pair? v)
+       (not (equal? (car v) (vector 'flower-barcket/in-eva)))
+       (member ': v)))
 
 (define (pass1 default-level v)
   (: default-level form1 -> form2)
@@ -51,14 +53,15 @@
                      (map (lambda (x) (pass1/arrow default-level x))
                        (cddr v))))]
         [(form1/im-bind? v)
+         (let ([v (cdr v)])
+           (list 'form2/bind
+                 (list (pass1/cedent 1 (left-of ': v))
+                       (pass1/cedent 0 (right-of ': v))
+                       #f)))]
+        [(form1/ex-bind? v)
          (list 'form2/bind
                (list (pass1/cedent 1 (left-of ': v))
                      (pass1/cedent 0 (right-of ': v))
-                     #f))]
-        [(form1/ex-bind? v)
-         (list 'form2/bind
-               (list (pass1/cedent 1 (left-of '@ v))
-                     (pass1/cedent 0 (right-of '@ v))
                      #t))]
         [else
          (orz 'pass1 ("pass1 can not handle sexp-form:~a" v))]))
@@ -879,7 +882,7 @@
                    ;;           report
                    ;;           ,(list-unify/antecedent al dl1 e1))}}
                    {'success
-                    {(cons {'trunk {a {'tody/arrow-list al1} dl1 i}}
+                    {(cons {'trunk {a {'tody/arrow-list al} dl1 i}}
                            ds)
                      bs1
                      ns1}}]
@@ -1411,10 +1414,14 @@
                          type
                          type))))))
 
-(define-syntax eva
-  (syntax-rules ()
-    [(eva e ...)
-     (eva/top-list (map parse/top (quote (e ...))) init-env)]))
+(define-macro (eva . body)
+  `(eva/top-list
+    (map parse/top
+      (quote ,(flower-barcket (lambda (dl)
+                                (cons (vector 'flower-barcket/in-eva)
+                                      dl))
+                              body)))
+    init-env))
 
 (define (eva/top-list tl e)
   (: (top ...) env -> env)

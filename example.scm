@@ -12,6 +12,10 @@
    (:m zero -> zero)
    (:m :n succ -> :m :n mul :m add))
 
+ (defn factorial (natural -> natural)
+   (zero -> zero succ)
+   (:n succ -> :n factorial :n succ mul))
+
  (app (->
        zero succ
        zero succ succ
@@ -20,7 +24,11 @@
  (app (->
        zero succ succ
        zero succ succ
-       mul)))
+       mul))
+
+ (app (->
+       zero succ succ succ
+       factorial)))
 
 (eva
 
@@ -36,7 +44,7 @@
    (:m zero -> zero)
    (:m :n succ -> :m :n mul :m add))
 
- (deftype list ((:t : type) :t -> type)
+ (deftype list ({:t : type} :t -> type)
    null (-> :t list)
    cons (:t list :t -> :t list))
 
@@ -74,7 +82,7 @@
    (:m zero -> zero)
    (:m :n succ -> :m :n mul :m add))
 
- (deftype list ((:t : type) :t -> type)
+ (deftype list ({:t : type} :t -> type)
    null (-> :t list)
    cons (:t list :t -> :t list))
 
@@ -107,7 +115,7 @@
          (zero -> zero succ))
        map))
 
- (deftype has-length ((:t : type) :t list natural -> type)
+ (deftype has-length ({:t : type} :t list natural -> type)
    null/has-length (-> null zero has-length)
    cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
 
@@ -129,7 +137,7 @@
    (:m zero -> zero)
    (:m :n succ -> :m :n mul :m add))
 
- (deftype vector ((:t : type) natural :t -> type)
+ (deftype vector ({:t : type} natural :t -> type)
    null (-> zero :t vector)
    cons (:n :t vector :t -> :n succ :t vector))
 
@@ -162,7 +170,7 @@
    (:m zero -> zero)
    (:m :n succ -> :m :n mul :m add))
 
- (deftype vector ((:t : type) natural :t -> type)
+ (deftype vector ({:t : type} natural :t -> type)
    null (-> zero :t vector)
    cons (:n :t vector :t -> :n succ :t vector))
 

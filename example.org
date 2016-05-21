@@ -75,7 +75,7 @@
        (:m zero -> zero)
        (:m :n succ -> :m :n mul :m add))
 
-     (deftype list ((:t : type) :t -> type)
+     (deftype list ({:t : type} :t -> type)
        null (-> :t list)
        cons (:t list :t -> :t list))
 
@@ -117,7 +117,7 @@
        (:m zero -> zero)
        (:m :n succ -> :m :n mul :m add))
 
-     (deftype list ((:t : type) :t -> type)
+     (deftype list ({:t : type} :t -> type)
        null (-> :t list)
        cons (:t list :t -> :t list))
 
@@ -150,7 +150,7 @@
              (zero -> zero succ))
            map))
 
-     (deftype has-length ((:t : type) :t list natural -> type)
+     (deftype has-length ({:t : type} :t list natural -> type)
        null/has-length (-> null zero has-length)
        cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
 
@@ -176,7 +176,7 @@
        (:m zero -> zero)
        (:m :n succ -> :m :n mul :m add))
 
-     (deftype vector ((:t : type) natural :t -> type)
+     (deftype vector ({:t : type} natural :t -> type)
        null (-> zero :t vector)
        cons (:n :t vector :t -> :n succ :t vector))
 
@@ -213,7 +213,7 @@
        (:m zero -> zero)
        (:m :n succ -> :m :n mul :m add))
 
-     (deftype vector ((:t : type) natural :t -> type)
+     (deftype vector ({:t : type} natural :t -> type)
        null (-> zero :t vector)
        cons (:n :t vector :t -> :n succ :t vector))
 
@@ -249,7 +249,7 @@
 
 *** >< associative of add
 
-    #+begin_src scheme
+    #+begin_src scheme :tangle no
     (eva
 
      (deftype natural (-> type)
@@ -264,17 +264,17 @@
        (:m zero -> zero)
        (:m :n succ -> :m :n mul :m add))
 
-     (deftype eq ((:t : type) :t :t -> type)
-       refl ((:t : type) (:d : :t) -> :d :d eq))
+     (deftype eq ({:t : type} :t :t -> type)
+       refl ({:t : type} {:d : :t} -> :d :d eq))
 
      (defn cong
-         ((:t1 :t2 : type) (:x :y : :t1)
-          :x :y eq (:f @ (:t1 -> :t2)) ->
+         ({:t1 :t2 : type} {:x :y : :t1}
+          :x :y eq (:f : (:t1 -> :t2)) ->
           :x :f apply :y :f apply eq)
        (refl :f -> refl))
 
      (defn associative
-         ((:x :y :z @ natural) ->
+         ((:x :y :z : natural) ->
           :x :y add :z add
           :x :y :z add add eq)
        (:x :y zero -> refl)
