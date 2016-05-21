@@ -861,8 +861,7 @@
           [{'fail il}
            {'fail (cons `(compute/trunk/tody/arrow-list
                           fail when computing data-list
-                          (data-list: ,dl)
-                          (cons: ,c))
+                          (data-list: ,dl))
                         il)}]
           [{'success e1}
            (match e1
@@ -871,14 +870,19 @@
                      [al1 (filter-arrow-list al dl1 e1)])
                 (match al1
                   [{}
-                   {'fail {`(compute/trunk/tody/arrow-list
-                             no antecedent match
-                             (data-list: ,ds1)
-                             (arrow-list: ,al)
-                             (trunk: ,t))
-                           `(list-unify/antecedent
-                             report
-                             ,(list-unify/antecedent al dl1 e1))}}]
+                   ;; {'fail {`(compute/trunk/tody/arrow-list
+                   ;;           no antecedent match
+                   ;;           (data-list: ,ds1)
+                   ;;           (arrow-list: ,al)
+                   ;;           (trunk: ,t))
+                   ;;         `(list-unify/antecedent
+                   ;;           report
+                   ;;           ,(list-unify/antecedent al dl1 e1))}}
+                   {'success
+                    {(cons {'trunk {a {'tody/arrow-list al1} dl1 i}}
+                           ds)
+                     bs1
+                     ns1}}]
                   [{a1}
                    (match (compute/arrow a1 e1)
                      ;; after this compute/arrow
@@ -1241,11 +1245,20 @@
   (match r
     [{'fail il} {'fail il}]
     [{'success e}
-     (if (eq? al1 {})
-       r
-       (unify/arrow-list
-        (cdr al1) (cdr al2)
-        (unify/arrow (car al1) (car al2) e)))]))
+     (cond  [(and (eq? al1 {}) (eq? al2 {}))
+             r]
+            [(eq? al1 {})
+             {'fail {`(unify/arrow-list
+                       fail al1 and al2 is not of the same length
+                       (additional-al2: ,al2))}}]
+            [(eq? al2 {})
+             {'fail {`(unify/arrow-list
+                       fail al1 and al2 is not of the same length
+                       (additional-al1: ,al1))}}]
+            [else
+             (unify/arrow-list
+              (cdr al1) (cdr al2)
+              (unify/arrow (car al1) (car al2) e))])]))
 
 (define (unify/trunk t1 t2 e)
   (: trunk trunk env -> report)

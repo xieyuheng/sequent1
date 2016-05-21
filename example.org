@@ -39,6 +39,10 @@
        (:m zero -> zero)
        (:m :n succ -> :m :n mul :m add))
 
+     (defn factorial (natural -> natural)
+       (zero -> zero succ)
+       (:n succ -> :n factorial :n succ mul))
+
      (app (->
            zero succ
            zero succ succ
@@ -47,7 +51,11 @@
      (app (->
            zero succ succ
            zero succ succ
-           mul)))
+           mul))
+
+     (app (->
+           zero succ succ succ
+           factorial)))
     #+end_src
 
 *** list
@@ -237,6 +245,40 @@
            (lambda (natural -> natural)
              (zero -> zero succ))
            map)))
+    #+end_src
+
+*** >< associative of add
+
+    #+begin_src scheme
+    (eva
+
+     (deftype natural (-> type)
+       zero (-> natural)
+       succ (natural -> natural))
+
+     (defn add (natural natural -> natural)
+       (:m zero -> :m)
+       (:m :n succ -> :m :n add succ))
+
+     (defn mul (natural natural -> natural)
+       (:m zero -> zero)
+       (:m :n succ -> :m :n mul :m add))
+
+     (deftype eq ((:t : type) :t :t -> type)
+       refl ((:t : type) (:d : :t) -> :d :d eq))
+
+     (defn cong
+         ((:t1 :t2 : type) (:x :y : :t1)
+          :x :y eq (:f @ (:t1 -> :t2)) ->
+          :x :f apply :y :f apply eq)
+       (refl :f -> refl))
+
+     (defn associative
+         ((:x :y :z @ natural) ->
+          :x :y add :z add
+          :x :y :z add add eq)
+       (:x :y zero -> refl)
+       (:x :y :z succ -> :x :y :z associative (:n -> :n succ) cong)))
     #+end_src
 
 * from forth
