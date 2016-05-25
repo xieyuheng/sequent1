@@ -12,9 +12,9 @@
 
   - fix check
 
-  - more examples
-
   - recur-check
+
+  - module system
 
   - no repl
     but load file
@@ -32,7 +32,7 @@
     - as a prototype implementation of an interpreter
       its unsatisfactory features are
       1. call-by-name
-         to use graph-rewrite-system instead of term-writing-system
+         to use graph-rewrite-system instead of term-rewriting-system
          can be used to solve this
       2. using copy to handle scope
          a vm
@@ -139,8 +139,8 @@
 
     #+begin_src scheme :tangle no
     (type top
-      {'deftype {{form1/name form1/arrow} {{form1/name form1/arrow} ...}}}
-      {'defn {{form1/name form1/arrow} {form1/arrow ...}}}
+      {'+ {{form1/name form1/arrow} {{form1/name form1/arrow} ...}}}
+      {'~ {{form1/name form1/arrow} {form1/arrow ...}}}
       {'app form1/arrow})
     #+end_src
 
@@ -1646,7 +1646,7 @@
       semantic unification is used
 
     - semantic unification is unification modulo theory
-      the theory here is term-writing-system
+      the theory here is term-rewriting-system
 
 *** unify/data-list
 
@@ -2156,10 +2156,10 @@
     (define (parse/top s)
       (: sexp-top -> top)
       (match s
-        [('deftype n a . body)
-         {'deftype {{n a} (parse/top/deftype-body body)}}]
-        [('defn n a . al)
-         {'defn {{n a} al}}]
+        [('+ n a . body)
+         {'+ {{n a} (parse/top/deftype-body body)}}]
+        [('~ n a . al)
+         {'~ {{n a} al}}]
         [{'app a}
          {'app a}]))
     #+end_src
@@ -2183,8 +2183,8 @@
     (define (eva/top t e)
       (: top env -> env)
       (match t
-        [{'deftype deftype} (eva/deftype deftype e)]
-        [{'defn defn} (eva/defn defn e)]
+        [{'+ deftype} (eva/deftype deftype e)]
+        [{'~ defn} (eva/defn defn e)]
         [{'app a} (eva/app a e)]))
     #+end_src
 

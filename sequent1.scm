@@ -1432,10 +1432,10 @@
 (define (parse/top s)
   (: sexp-top -> top)
   (match s
-    [('deftype n a . body)
-     {'deftype {{n a} (parse/top/deftype-body body)}}]
-    [('defn n a . al)
-     {'defn {{n a} al}}]
+    [('+ n a . body)
+     {'+ {{n a} (parse/top/deftype-body body)}}]
+    [('~ n a . al)
+     {'~ {{n a} al}}]
     [{'app a}
      {'app a}]))
 
@@ -1451,8 +1451,8 @@
 (define (eva/top t e)
   (: top env -> env)
   (match t
-    [{'deftype deftype} (eva/deftype deftype e)]
-    [{'defn defn} (eva/defn defn e)]
+    [{'+ deftype} (eva/deftype deftype e)]
+    [{'~ defn} (eva/defn defn e)]
     [{'app a} (eva/app a e)]))
 
 (define (form1/arrow->arrow a e)

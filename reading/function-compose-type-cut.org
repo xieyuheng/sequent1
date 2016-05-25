@@ -1,2 +1,56 @@
 #+HTML_HEAD: <link rel="stylesheet" href="http://xieyuheng.github.io/asset/css/page.css" type="text/css" media="screen" />
 #+title: function compose, type cut
+
+* intuitionistic [constructive] logic
+
+  - to prove (P and Q)
+    is to prove P and prove Q
+    this is the same as classical logic
+
+  - to prove (P or Q)
+    is to prove P or prove Q
+    while in classical logic
+    you can prove (P or Q)
+    without a proof of P
+    and without a proof of Q
+
+  - to prove (P -> Q)
+    is to prove that
+    if we have a proof of P
+    then we can construct a proof of Q
+
+  - to prove (not P)
+    is to prove (P -> something-we-consider-wrong)
+    something-we-consider-wrong like (0 = 1)
+    (not (not P)) is weaker than P
+    while in classical logic
+    (not (not P)) is equal to P
+
+  - to prove ((x : A) -> P(x))
+    is to prove that
+    for every (x : A) we can construct a proof of P(x)
+    this is the same as classical logic
+
+  - to prove (-> (x : A) P(x))
+    is to construct a value of type A
+    and construct a proof of P(x)
+    the only way to prove something exist
+    is to find such thing
+    while in classical logic
+    to prove something exist
+    you do not need to find such thing
+
+* >< the algebra of logic as deduction system
+
+  - >< why not cartesian closed category
+    
+
+* >< to compare with other deduction systems
+
+  - sequent calculus with a little change to get an algebra of logic
+
+* >< let us design a language to record deduction, a record of a deduction is a proof
+
+* >< the language just designed can be viewed as a term-rewriting-system
+
+* >< implementation of such a language

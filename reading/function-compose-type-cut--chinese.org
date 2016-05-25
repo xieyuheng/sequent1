@@ -1,16 +1,8 @@
 #+HTML_HEAD: <link rel="stylesheet" href="http://xieyuheng.github.io/asset/css/page.css" type="text/css" media="screen" />
 #+title: 函數複合 類型切合
 
-* >< logic deduction
+* ><
 
-* >< the algebra of logic
-
-  - 新語法的特點是
-    1. 每個命題都帶有 ->
-       可以理解爲分數線
-    2. 消去否定詞
-    3. 所有的 inference rule
-       都用分數的運算規則來表示
   - 所有的命題都是蘊含式
     其表示方式有兩種
     首先 箭頭
@@ -114,40 +106,12 @@
     所以
     就可以用 分子中的 (B + C)
     消除 分母中的 B
-  - 否定消去
-    其動機在於
-    在古典的命題演算中 (A -> B) 等價於 ((not A) or B)
-    但是若如我所言 否定不能直接爲 or 所連
-    那麼這裏的動機就失效了
-    這種對等也許必定是不合適的
-    (not (A -> B))
-    (not ((not A) or B))
-    ((not (not A)) and (not B))
-    (A and (not B))
-    ((not B) and A)
-    而
-    (A -> (not B))
-    ((not A) or (not B))
-    (not (A and B))
-    ???
-    (A B ->)
 
-* >< 
-
-* note 
+* note
 
   - 函數複合 與 類型切合 之間的區別是
     函數體爲則式的列表
     而類型爲單一的則式
-
-  - 以命題證明爲中心
-    作爲類型的則式 爲表達邏輯命題的方式
-    作爲體的則式列表 爲記錄推演的語法
-
-  - 以類型函數爲中心
-    就是我們熟悉的意義
-
-  - 在統一的框架下 總結各種風格的邏輯
 
   - cut 與分數的乘法太相似了
     是否能找到 sequent 在 cut 下的代數結構
@@ -155,12 +119,3 @@
     發現如果類型信息不減少的話
     也就是所有的 unify 都是嚴絲合縫的話
     那麼就有較好的代數性質
-
-  - 真的需要 或 嗎
-    hott 是如何處理 或 的
-
-  - 如果有 或
-    就可以用 deftype 來定義新的類型 模擬匿名的 或
-
-  - 如果 defn = deftheorem
-    那麼 deftype = ???
