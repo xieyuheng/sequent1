@@ -40,10 +40,9 @@
     to prove something exist
     you do not need to find such thing
 
-* >< the algebra of logic as deduction system
+* >< a deduction system
 
   - >< why not cartesian closed category
-    
 
 * >< to compare with other deduction systems
 

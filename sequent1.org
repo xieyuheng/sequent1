@@ -10,8 +10,6 @@
 
 * todo
 
-  - fix check
-
   - recur-check
 
   - module system
@@ -756,10 +754,14 @@
              (orz 'pass3/name ("unknow name : ~a~%" n))
              (let ([meaning (cdr found)])
                (match meaning
-                 [{'cons/type {{ac sc} n1 __}}
-                  (pass3/name/cons (length ac) n1 e)]
-                 [{'cons/data {{ac sc} n1 __}}
-                  (pass3/name/cons (length ac) n1 e)]
+                 [{'cons/type {a n1 __}}
+                  (match (copy-arrow a)
+                    [{ac __}
+                     (pass3/name/cons (length ac) ac n1 e)])]
+                 [{'cons/data {a n1 __}}
+                  (match (copy-arrow a)
+                    [{ac __}
+                     (pass3/name/cons (length ac) ac n1 e)])]
                  [{'lambda {{ac sc} __}}
                   (pass3/name/trunk (length ac) (length sc) {ac sc} n e)]))))]))
     #+end_src
@@ -767,20 +769,42 @@
 *** pass3/name/cons
 
     #+begin_src scheme
-    (define (pass3/name/cons len name e)
-      (: length name env -> env)
+    (define (pass3/name/cons len ac n e)
+      (: length antecedent name env -> env)
       (match e
         [{ds bs ns}
-         {(cons {'cons
-                 ;; dl in cons is as the order of dl in start
-                 ;; thus no reverse is needed
-                 {name (sublist ds 0 len)}}
-                (sublist ds len (length ds)))
-          bs
-          ns}]))
+         (let ([dl (sublist ds 0 len)])
+           (match (type-compute/cedent (reverse dl)
+                                       {{} (cons '(commit-point) bs) ns})
+             [{'fail il}
+              (orz 'pass3/name/cons
+                ("type-compute/cedent fail~%")
+                ("(reverse dl) : ~a~%" (reverse dl))
+                ("info list : ~%~a~%" il))]
+             [{'success {ds1 bs1 ns1}}
+              (match (unify/data-list
+                      ds1 (reverse ac)
+                      {'success {ds bs1 ns1}})
+                [{'fail il}
+                 (orz 'pass3/name/cons
+                   ("unify/data-list fail~%")
+                   ("ds1 : ~a~%" ds1)
+                   ("(reverse ac) : ~a~%" (reverse ac))
+                   ("info list : ~%~a~%" il))]
+                [{'success {ds2 bs2 ns2}}
+                 {(cons {'cons
+                         ;; dl in cons is as the order of dl in stack
+                         ;; thus no reverse is needed
+                         {n dl}}
+                        (sublist ds len (length ds)))
+                  (bs/commit! bs2)
+                  ns}])]))]))
     #+end_src
 
 *** pass3/name/trunk
+
+    - ><><>< in this first write
+      no redex is reduced
 
     - when intro a trunk from name
       only name should be recorded not the body
@@ -969,6 +993,33 @@
         [{ds bs ns}
          (equal? (bs/walk bs {'var v})
                  {'var v})]))
+    #+end_src
+
+*** bs/extend
+
+    #+begin_src scheme
+    (define (bs/extend bs v d)
+      (: bs var data -> bs)
+      (match v
+        [{id level}
+         (let ([found/ls (assq id bs)])
+           (if found/ls
+             (substitute (cons id (cons (cons level d)
+                                        (cdr found/ls)))
+                         (lambda (pair) (eq? (car pair) id))
+                         bs)
+             (cons (cons id (list (cons level d)))
+                   bs)))]))
+    #+end_src
+
+*** var/eq?
+
+    #+begin_src scheme
+    (define (var/eq? v1 v2)
+      (match (list v1 v2)
+        [{{id1 level1} {id2 level2}}
+         (and (eq? id1 id2)
+              (eq? level1 level2))]))
     #+end_src
 
 * copy-arrow
@@ -1211,7 +1262,37 @@
               (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
                 [{'fail il} {'fail il}]
                 [{'success {ds1 bs1 ns1}}
+                 (match (;; unify/data-list
+                         cover/data-list
+                         (take ds1 alen) (take (drop ds1 alen) alen)
+                         {'success
+                          {(drop (drop ds1 alen) alen)
+                           bs1
+                           ns1}})
+                   [{'fail il} {'fail il}]
+                   [{'success e2}
+                    (match (compute/cedent sc e2)
+                      [{'fail il} {'fail il}]
+                      [{'success {ds3 bs3 ns3}}
+                       {'success {ds3 (bs/commit! bs3) ns3}}])])]))])]))
+    #+end_src
+
+*** solve/arrow
+
+    #+begin_src scheme
+    (define (solve/arrow a e)
+      (: arrow env -> report)
+      (match e
+        [{ds bs ns}
+         (match a
+           [{ac sc}
+            (let ([alen (length ac)]
+                  [slen (length sc)])
+              (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
+                [{'fail il} {'fail il}]
+                [{'success {ds1 bs1 ns1}}
                  (match (unify/data-list
+                         ;; cover/data-list
                          (take ds1 alen) (take (drop ds1 alen) alen)
                          {'success
                           {(drop (drop ds1 alen) alen)
@@ -1407,14 +1488,6 @@
                            [al1 (filter-arrow-list al dl1 e1)])
                       (match al1
                         [{}
-                         ;; {'fail {`(compute/trunk/tody/arrow-list
-                         ;;           no antecedent match
-                         ;;           (data-list: ,ds1)
-                         ;;           (arrow-list: ,al)
-                         ;;           (trunk: ,t))
-                         ;;         `(list-unify/antecedent
-                         ;;           report
-                         ;;           ,(list-unify/antecedent al dl1 e1))}}
                          {'success
                           {(cons {'trunk {a {'tody/arrow-list al} dl1 i}}
                                  ds)
@@ -1428,13 +1501,7 @@
                             {'success {(cons (proj i e2) ds)
                                        bs1
                                        ns1}}]
-                           [{'fail il} {'fail il}])]
-                        [(a1 a2 . __)
-                         {'success
-                          {(cons {'trunk {a {'tody/arrow-list al1} dl1 i}}
-                                 ds)
-                           bs1
-                           ns1}}]))])])])]))
+                           [{'fail il} {'fail il}])]))])])])]))
       #+end_src
 
 ***** trunk->trunk*
@@ -1467,28 +1534,6 @@
              [{a tody dl i} {a tody dl i}])]))
       #+end_src
 
-*** list-unify/antecedent
-
-    #+begin_src scheme
-    (define (list-unify/antecedent al dl e)
-      (: (arrow ...) (data ...) env -> ((report arrow) ...))
-      (map (lambda (a)
-             (match e
-               [{ds bs ns}
-                (match a
-                  [{ac __}
-                   {a (match (compute/cedent ac {{} bs ns})
-                        [{'fail il} {'fail (cons `(list-unify/antecedent
-                                                   fail to compute/cedent
-                                                   (ac: ,ac))
-                                                 il)}]
-                        [{'success {ds1 bs1 ns1}}
-                         (unify/data-list
-                          dl ds1
-                          {'success {ds bs1 ns1}})])}])]))
-        al))
-    #+end_src
-
 *** filter-arrow-list
 
     - no commit should be made here
@@ -1507,16 +1552,16 @@
                   [{'fail __}
                    (orz 'filter-arrow-list ("fail to compute/cedent~%"))]
                   [{'success {ds1 bs1 ns1}}
-                   (match (unify/data-list
-                           dl (take ds1 alen)
+                   (match (;; unify/data-list
+                           cover/data-list
+                           (take ds1 alen) dl
                            {'success {(drop ds1 alen)
                                       bs1
                                       ns1}})
                      [{'fail __}
                       (filter-arrow-list (cdr al) dl e)]
                      [{'success __}
-                      (cons (car al)
-                            (filter-arrow-list (cdr al) dl e))])]))])])))
+                      (cons (car al) '())])]))])])))
     #+end_src
 
 *** proj
@@ -1631,6 +1676,246 @@
          (format #t "<trunk>")]))
     #+end_src
 
+* consistent-check
+
+*** consistent-check
+
+    #+begin_src scheme
+    (define (consistent-check v d e)
+      (: fresh-var data env -> report)
+      (match {v e}
+        [{{id level} {ds bs ns}}
+         (match {(var/highest? v e) (var/lowest? v e)}
+           [{#t #t} {'success e}]
+           [{#t #f}
+            (match (var/below v e)
+              [{{__ low-level} low-d}
+               (consistent-check/level-diff (- level low-level) low-d d e)])]
+           [{#f #t}
+            (match (var/above v e)
+              [{{__ high-level} high-d}
+               (consistent-check/level-diff (- high-level level) d high-d e)])]
+           [{#f #f}
+            (match (var/below v e)
+              [{{__ low-level} low-d}
+               (match (consistent-check/level-diff (- level low-level) low-d d e)
+                 [{'fail il} {'fail il}]
+                 [{'success __}
+                  (match (var/above v e)
+                    [{{__ high-level} high-d}
+                     (consistent-check/level-diff (- high-level level) d high-d e)])])])])]))
+    #+end_src
+
+*** consistent-check/level-diff
+
+    #+begin_src scheme
+    (define (consistent-check/level-diff level-diff d1 d2 e)
+      (: level-diff data data env -> report)
+      (match e
+        [{ds bs ns}
+         (match (type-compute/repeat level-diff d1 e)
+           [{'fail il} {'fail il}]
+           [{'success {(d0 . __) bs1 ns1}}
+            (unify/data d0 d2 {ds bs1 ns1})])]))
+    #+end_src
+
+*** type-compute/repeat
+
+    #+begin_src scheme
+    (define (type-compute/repeat c d e)
+      (: counter data env -> report)
+      (match e
+        [{ds bs ns}
+         (match (eq? 0 c)
+           [#t {'success {(cons d ds) bs ns}}]
+           [#f (match (type-compute d e)
+                 [{'fail il} {'fail il}]
+                 [{'success {(d1 . r) bs1 ns1}}
+                  (type-compute/repeat (- c 1) d1 {r bs1 ns1})])])]))
+    #+end_src
+
+*** var/highest? & var/lowest?
+
+    #+begin_src scheme
+    (define (var/highest? v e)
+      (: fresh-var env -> bool)
+      (match e
+        [{ds bs ns}
+         (match v
+           [{id level}
+            (let* ([found (assq id bs)]
+                   [ls (append (id->ls id)
+                               (if found (cdr found) '()))])
+              (list-every?
+               (lambda (x) (> level (car x)))
+               ls))])]))
+
+    (define (var/lowest? v e)
+      (: fresh-var env -> bool)
+      (match e
+        [{ds bs ns}
+         (match v
+           [{id level}
+            (let* ([found (assq id bs)]
+                   [ls (append (id->ls id)
+                               (if found (cdr found) '()))])
+              (list-every?
+               (lambda (x) (< level (car x)))
+               ls))])]))
+    #+end_src
+
+*** var/above & var/below
+
+    #+begin_src scheme
+    (define (var/above v e)
+      (: fresh-var env -> (var data))
+      (match e
+        [{ds bs ns}
+         (match v
+           [{id level}
+            (let* ([found (assq id bs)]
+                   [ls (append (id->ls id)
+                               (if found (cdr found) '()))])
+              (let ([pair
+                     (car (filter (lambda (x) (> (car x) level))
+                                  (sort (lambda (x y) (< (car x) (car y)))
+                                        ls)))])
+                {{id (car pair)} (cdr pair)}))])]))
+
+    (define (var/below v e)
+      (: fresh-var env -> (var data))
+      (match e
+        [{ds bs ns}
+         (match v
+           [{id level}
+            (let* ([found (assq id bs)]
+                   [ls (append (id->ls id)
+                               (if found (cdr found) '()))])
+              (let ([pair
+                     (car (filter (lambda (x) (< (car x) level))
+                                  (sort (lambda (x y) (> (car x) (car y)))
+                                        ls)))])
+                {{id (car pair)} (cdr pair)}))])]))
+    #+end_src
+
+* occur-check
+
+*** note
+
+    - this is a simple occurrence check
+      ><><><
+      it should be merged with consistent check
+      without such merging
+      the occurrence check will be not complete
+
+*** occur-check/data
+
+    #+begin_src scheme
+    (define (occur-check/data v d e)
+      (: fresh-var data env -> report)
+      (match e
+        [{ds bs ns}
+         (match (bs/deep bs d)
+           [{'var x} (occur-check/var v x e)]
+           [{'cons x} (occur-check/cons v x e)]
+           [{'arrow x} (occur-check/arrow v x e)]
+           [{'lambda x} (occur-check/lambda v x e)]
+           [{'trunk x} (occur-check/trunk v x e)])]))
+    #+end_src
+
+*** occur-check/var
+
+    #+begin_src scheme
+    (define (occur-check/var v v0 e)
+      (: fresh-var var env -> report)
+      (match (var/eq? v v0)
+        [#t {'fail {`(occur-check/var fail (v: ,v))}}]
+        [#f {'success e}]))
+    #+end_src
+
+*** occur-check/cons
+
+    #+begin_src scheme
+    (define (occur-check/cons v c e)
+      (: fresh-var cons env -> report)
+      (match c
+        [{n dl}
+         (occur-check/data-list v dl e)]))
+    #+end_src
+
+*** occur-check/data-list
+
+    #+begin_src scheme
+    (define (occur-check/data-list v dl e)
+      (: fresh-var (data ...) env -> report)
+      (match dl
+        [{} {'success e}]
+        [(d . r)
+         (match (occur-check/data v d e)
+           [{'fail il} {'fail il}]
+           [{'success __}
+            (occur-check/data-list v r e)])]))
+    #+end_src
+
+*** occur-check/arrow
+
+    #+begin_src scheme
+    (define (occur-check/arrow v a e)
+      (: fresh-var arrow env -> report)
+      (match a
+        [{ac sc}
+         (match (occur-check/data-list v ac e)
+           [{'fail il} {'fail il}]
+           [{'success __}
+            (occur-check/data-list v sc e)])]))
+    #+end_src
+
+*** occur-check/lambda
+
+    #+begin_src scheme
+    (define (occur-check/lambda v l e)
+      (: fresh-var lambda env -> report)
+      (match l
+        [{a al}
+         (match (occur-check/arrow v a e)
+           [{'fail il} {'fail il}]
+           [{'success __}
+            (occur-check/arrow-list v al e)])]))
+    #+end_src
+
+*** occur-check/arrow-list
+
+    #+begin_src scheme
+    (define (occur-check/arrow-list v al e)
+      (: fresh-var (arrow ...) env -> report)
+      (match al
+        [{} {'success e}]
+        [(a . r)
+         (match (occur-check/arrow v a e)
+           [{'fail il} {'fail il}]
+           [{'success __}
+            (occur-check/arrow-list v r e)])]))
+    #+end_src
+
+*** occur-check/trunk
+
+    #+begin_src scheme
+    (define (occur-check/trunk v t e)
+      (: fresh-var trunk env -> report)
+      (match t
+        [{a tody dl i}
+         (match (occur-check/arrow v a e)
+           [{'fail il} {'fail il}]
+           [{'success __}
+            (match (occur-check/data-list v dl e)
+              [{'fail il} {'fail il}]
+              [{'success __}
+               (match tody
+                 [{'tody/name __} {'success e}]
+                 [{'tody/arrow-list al} (occur-check/arrow-list v al e)]
+                 [{'tody/var v1} (occur-check/var v v1 e)])])])]))
+    #+end_src
+
 * unify
 
 *** note
@@ -1672,16 +1957,6 @@
                  (unify/data (car pl) (car dl) e))])]))
     #+end_src
 
-*** var/eq?
-
-    #+begin_src scheme
-    (define (var/eq? v1 v2)
-      (match (list v1 v2)
-        [{{id1 level1} {id2 level2}}
-         (and (eq? id1 id2)
-              (eq? level1 level2))]))
-    #+end_src
-
 *** unify/data
 
     #+begin_src scheme
@@ -1713,23 +1988,6 @@
                         (pattern: ,p) (data: ,d))}}]))]))
     #+end_src
 
-*** bs/extend
-
-    #+begin_src scheme
-    (define (bs/extend bs v d)
-      (: bs var data -> bs)
-      (match v
-        [{id level}
-         (let ([found/ls (assq id bs)])
-           (if found/ls
-             (substitute (cons id (cons (cons level d)
-                                        (cdr found/ls)))
-                         (lambda (pair) (eq? (car pair) id))
-                         bs)
-             (cons (cons id (list (cons level d)))
-                   bs)))]))
-    #+end_src
-
 *** unify/var/data
 
     - before bs/extend need to ensure that
@@ -1741,6 +1999,7 @@
       (: fresh-var data env -> report)
       (match e
         [{ds bs ns}
+         ;; {'success {ds (bs/extend bs v d) ns}}
          (match (consistent-check v d e)
            [{'fail il}
             {'fail (cons `(unify/var/data
@@ -1749,130 +2008,11 @@
                            (d: ,d))
                          il)}]
            [{'success __}
-            {'success {ds (bs/extend bs v d) ns}}])]))
+            (match (occur-check/data v d e)
+              [{'fail il} {'fail il}]
+              [{'success __}
+               {'success {ds (bs/extend bs v d) ns}}])])]))
     #+end_src
-
-*** consistent-check
-
-***** consistent-check
-
-      #+begin_src scheme
-      (define (consistent-check v d e)
-        (: fresh-var data env -> report)
-        (match {v e}
-          [{{id level} {ds bs ns}}
-           (match {(var/highest? v e) (var/lowest? v e)}
-             [{#t #t} {'success e}]
-             [{#t #f}
-              (match (var/below v e)
-                [{{__ low-level} low-d}
-                 (consistent-check/level-diff (- level low-level) low-d d e)])]
-             [{#f #t}
-              (match (var/above v e)
-                [{{__ high-level} high-d}
-                 (consistent-check/level-diff (- high-level level) d high-d e)])]
-             [{#f #f}
-              (match (var/below v e)
-                [{{__ low-level} low-d}
-                 (match (consistent-check/level-diff (- level low-level) low-d d e)
-                   [{'fail il} {'fail il}]
-                   [{'success __}
-                    (match (var/above v e)
-                      [{{__ high-level} high-d}
-                       (consistent-check/level-diff (- high-level level) d high-d e)])])])])]))
-      #+end_src
-
-***** consistent-check/level-diff
-
-      #+begin_src scheme
-      (define (consistent-check/level-diff level-diff d1 d2 e)
-        (: level-diff data data env -> report)
-        (match e
-          [{ds bs ns}
-           (match (type-compute/repeat level-diff d1 e)
-             [{'fail il} {'fail il}]
-             [{'success {(d0 . __) bs1 ns1}}
-              (unify/data d0 d2 {ds bs1 ns1})])]))
-      #+end_src
-
-***** type-compute/repeat
-
-      #+begin_src scheme
-      (define (type-compute/repeat c d e)
-        (: counter data env -> report)
-        (match e
-          [{ds bs ns}
-           (match (eq? 0 c)
-             [#t {'success {(cons d ds) bs ns}}]
-             [#f (match (type-compute d e)
-                   [{'fail il} {'fail il}]
-                   [{'success {(d1 . r) bs1 ns1}}
-                    (type-compute/repeat (- c 1) d1 {r bs1 ns1})])])]))
-      #+end_src
-
-***** var/highest? & var/lowest?
-
-      #+begin_src scheme
-      (define (var/highest? v e)
-        (: fresh-var env -> bool)
-        (match e
-          [{ds bs ns}
-           (match v
-             [{id level}
-              (let* ([found (assq id bs)]
-                     [ls (append (id->ls id)
-                                 (if found (cdr found) '()))])
-                (list-every?
-                 (lambda (x) (> level (car x)))
-                 ls))])]))
-
-      (define (var/lowest? v e)
-        (: fresh-var env -> bool)
-        (match e
-          [{ds bs ns}
-           (match v
-             [{id level}
-              (let* ([found (assq id bs)]
-                     [ls (append (id->ls id)
-                                 (if found (cdr found) '()))])
-                (list-every?
-                 (lambda (x) (< level (car x)))
-                 ls))])]))
-      #+end_src
-
-***** var/above & var/below
-
-      #+begin_src scheme
-      (define (var/above v e)
-        (: fresh-var env -> (var data))
-        (match e
-          [{ds bs ns}
-           (match v
-             [{id level}
-              (let* ([found (assq id bs)]
-                     [ls (append (id->ls id)
-                                 (if found (cdr found) '()))])
-                (let ([pair
-                       (car (filter (lambda (x) (> (car x) level))
-                                    (sort (lambda (x y) (< (car x) (car y)))
-                                          ls)))])
-                  {{id (car pair)} (cdr pair)}))])]))
-
-      (define (var/below v e)
-        (: fresh-var env -> (var data))
-        (match e
-          [{ds bs ns}
-           (match v
-             [{id level}
-              (let* ([found (assq id bs)]
-                     [ls (append (id->ls id)
-                                 (if found (cdr found) '()))])
-                (let ([pair
-                       (car (filter (lambda (x) (< (car x) level))
-                                    (sort (lambda (x y) (> (car x) (car y)))
-                                          ls)))])
-                  {{id (car pair)} (cdr pair)}))])]))
-      #+end_src
 
 *** unify/cons
 
@@ -2083,6 +2223,7 @@
                            (compute/trunk t2 e)}
                      [{{'success {(d1 . __) __ __}}
                        {'success {(d2 . __) __ __}}}
+                      (cat ("<unify>~%"))
                       (unify/data d1 d2 e)]
                      [{__ __}
                       {'fail {`(unify/trunk/semantic
@@ -2122,7 +2263,7 @@
       '(()
         ()
         ((type . (cons/type ((()
-                              (cons (type ())))
+                              ((cons (type ()))))
                              type
                              type))))))
     #+end_src
@@ -2395,7 +2536,8 @@
                      (match (type-compute/cedent (reverse dl) e)
                        [{'fail il} {'fail il}]
                        [{'success e1}
-                        (compute/arrow (copy-arrow t) e1)])]))))])]))
+                        ;; (compute/arrow (copy-arrow t) e1)
+                        (solve/arrow (copy-arrow t) e1)])]))))])]))
     #+end_src
 
 *** type-compute/arrow
@@ -2449,7 +2591,8 @@
               [{'success e1}
                (match e1
                  [{ds1 bs1 ns1}
-                  (match (compute/arrow (copy-arrow a) e1)
+                  (match ;; (compute/arrow (copy-arrow a) e1)
+                      (solve/arrow (copy-arrow a) e1)
                     [{'fail il} {'fail il}]
                     [{'success e2}
                      {'success {(cons (proj i e2) ds)
@@ -2605,6 +2748,7 @@
       (: fresh-var data env -> report)
       (match e
         [{ds bs ns}
+         ;; {'success {ds (bs/extend bs v d) ns}}
          (match (consistent-check v d e)
            [{'fail il}
             {'fail (cons `(cover/var/data
@@ -2613,7 +2757,10 @@
                            (d: ,d))
                          il)}]
            [{'success __}
-            {'success {ds (bs/extend bs v d) ns}}])]))
+            (match (occur-check/data v d e)
+              [{'fail il} {'fail il}]
+              [{'success __}
+               {'success {ds (bs/extend bs v d) ns}}])])]))
     #+end_src
 
 *** cover/cons
@@ -2816,6 +2963,7 @@
                            (compute/trunk t2 e)}
                      [{{'success {(d1 . __) __ __}}
                        {'success {(d2 . __) __ __}}}
+                      (cat ("<cover>~%"))
                       (cover/data d1 d2 e)]
                      [{__ __}
                       {'fail {`(cover/trunk/semantic
@@ -3103,7 +3251,7 @@
                     (match a
                       [{ac sc}
                        (match (unify/data-list
-                               sc {{'cons c}}
+                               {{'cons c}} sc
                                {'success
                                 {ds (cons '(commit-point) bs) ns}})
                          [{'fail il} #f]

@@ -267,6 +267,12 @@
      (+ eq ({:t : type} :t :t -> type)
         refl ({:t : type} {:d : :t} -> :d :d eq))
 
+     (~ eq/test1
+        (-> :z zero succ succ eq
+            :y :z eq
+            :y zero succ zero succ add eq)
+        (-> refl refl refl))
+
      (~ cong
         ({:t1 :t2 : type} {:x :y : :t1}
          :x :y eq (:f : (:t1 -> :t2)) ->
