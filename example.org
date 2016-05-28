@@ -281,10 +281,99 @@
 
      (~ associative
         ((:x :y :z : natural) ->
-         :x :y add :z add
-         :x :y :z add add eq)
+         :z :x :y add add
+         :z :y add :x add eq)
         (:x :y zero -> refl)
-        (:x :y :z succ -> :x :y :z associative (:n -> :n succ) cong)))
+        (:x :y :z succ -> :x :y :z associative (:n -> :n succ) cong)
+        ))
+    #+end_src
+
+* from doc of idris
+
+*** natural-induction
+
+    #+begin_src scheme
+    (eva
+
+     (+ natural (-> type)
+        zero (-> natural)
+        succ (natural -> natural))
+
+     (~ add (natural natural -> natural)
+        (:m zero -> :m)
+        (:m :n succ -> :m :n add succ))
+
+     (~ mul (natural natural -> natural)
+        (:m zero -> zero)
+        (:m :n succ -> :m :n mul :m add))
+
+     (~ natural-induction
+        ((:p : (natural -> type))
+         zero :p apply
+         ((:k : natural) :k :p apply -> :k succ :p apply)
+         (:x : natural) -> :x :p apply)
+        (:p :p-z :p-s zero -> :p-z)
+        (:p :p-z :p-s :k succ ->
+            :k
+            :p :p-z :p-s :k natural-induction
+            :p-s apply)))
+    #+end_src
+
+*** add/commute
+
+    #+begin_src scheme
+    (eva
+
+     (+ natural (-> type)
+        zero (-> natural)
+        succ (natural -> natural))
+
+     (~ add (natural natural -> natural)
+        (:m zero -> :m)
+        (:m :n succ -> :m :n add succ))
+
+     (~ mul (natural natural -> natural)
+        (:m zero -> zero)
+        (:m :n succ -> :m :n mul :m add))
+
+     (+ eq ({:t : type} :t :t -> type)
+        refl ({:t : type} {:d : :t} -> :d :d eq))
+
+     (~ eq/zero
+        (-> zero zero add zero zero add eq)
+        (-> refl))
+
+     (~ add/commute/zero
+        ;; ((:m : natural) -> zero :m add :m zero add eq)
+        ((:m : natural) -> :m zero add zero :m add eq)
+        (zero -> refl)
+        ;; ><><><
+        ;; fail to bind zero to :m^0
+
+        ;; (:n succ -> :n add/commute/zero)
+        )
+
+     ;; (~ add/commute ((:m :n : natural) -> :m :n add :n :m add eq)
+     ;;    (:m zero -> ))
+     )
+
+
+    Exception in pass3/arrow-check:
+    fail to unify/data-list:
+    dl-tsc :
+    ((cons
+      (eq ((trunk ((((cons (natural ())) (cons (natural ()))) ((cons (natural ())))) (tody/arrow-list ((((var (#((:m . 1339) ((1 cons (natural ())))) 0)) (cons (zero ()))) ((var (#((:m . 1339) ((1 cons (natural ())))) 0)))) (((var (#((:m . 1340) ((1 cons (natural ())))) 0)) (cons (succ ((var (#((:n . 1341) ((1 cons (natural ())))) 0)))))) ((cons (succ ((trunk ((((cons (natural ())) (cons (natural ()))) ((cons (natural ())))) (tody/name add) ((var (#((:n . 1341) ((1 cons (natural ())))) 0)) (var (#((:m . 1340) ((1 cons (natural ())))) 0))) 0))))))))) ((var (#((:m . 1329) ((1 cons (natural ())))) 0)) (cons (zero ()))) 0)) (var (#((:m . 1329) ((1 cons (natural ())))) 0))))))
+
+    type-dl-sc :
+    ((cons
+      (eq
+       ((var (#((:d . 1333) ((1 var (#((:t . 1334) ((0 var (#((:t . 1335) ((1 cons (type ())))) 0)) (1 cons (type ())))) 0)))) 0))
+        (var (#((:d . 1333) ((1 var (#((:t . 1334) ((0 var (#((:t . 1335) ((1 cons (type ())))) 0)) (1 cons (type ())))) 0)))) 0))))))
+
+    info-list :
+    ((occur-check/var
+      fail
+      (v: (#((:m . 1329) ((1 cons (natural ())))) 0))))
     #+end_src
 
 * from forth

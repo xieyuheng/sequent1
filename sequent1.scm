@@ -204,10 +204,10 @@
          [{{tac tsc} {ac sc}}
           (match (pass3/cedent ac {{} (cons '(commit-point) bs) ns})
             [{dl-ac bs-ac __}
-             (match (type-compute/cedent (reverse dl-ac) {{} bs-ac ns})
+             (match (type-solve/cedent (reverse dl-ac) {{} bs-ac ns})
                [{'fail il}
                 (orz 'pass3/arrow-check
-                  ("fail to type-compute/cedent~%")
+                  ("fail to type-solve/cedent~%")
                   ("ac : ~a~%" (reverse dl-ac))
                   ("info-list : ~a~%" il))]
                [{'success {type-dl-ac type-bs-ac __}}
@@ -231,10 +231,10 @@
                       (bs/commit! bs-antecedent)
                       (match (pass3/cedent sc {{} (cons '(commit-point) bs) ns})
                         [{dl-sc bs-sc __}
-                         (match (type-compute/cedent (reverse dl-sc) {{} bs-sc ns})
+                         (match (type-solve/cedent (reverse dl-sc) {{} bs-sc ns})
                            [{'fail il}
                             (orz 'pass3/arrow-check
-                              ("fail to type-compute/cedent~%")
+                              ("fail to type-solve/cedent~%")
                               ("sc : ~a~%" (reverse dl-sc))
                               ("info-list : ~a~%" il))]
                            [{'success {type-dl-sc type-bs-sc __}}
@@ -368,7 +368,7 @@
     [{ds bs ns}
      (if (not (var/fresh? v e))
        (pass3/apply/data (bs/deep bs {'var v}) e)
-       (match (type-compute/var v e)
+       (match (type-solve/var v e)
          [{'fail il}
           (orz 'pass3/apply/var
             ("fail to compute the type of var : ~a~%" v)
@@ -428,7 +428,7 @@
   (match e
     [{ds bs ns}
      (let ([dl (sublist ds 0 len)])
-       (match (type-compute/cedent (reverse dl)
+       (match (type-solve/cedent (reverse dl)
                                    {{} (cons '(commit-point) bs) ns})
          [{'fail il}
           (orz 'pass3/name/cons
@@ -786,31 +786,6 @@
                   [{'success {ds3 bs3 ns3}}
                    {'success {ds3 (bs/commit! bs3) ns3}}])])]))])]))
 
-(define (solve/arrow a e)
-  (: arrow env -> report)
-  (match e
-    [{ds bs ns}
-     (match a
-       [{ac sc}
-        (let ([alen (length ac)]
-              [slen (length sc)])
-          (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
-            [{'fail il} {'fail il}]
-            [{'success {ds1 bs1 ns1}}
-             (match (unify/data-list
-                     ;; cover/data-list
-                     (take ds1 alen) (take (drop ds1 alen) alen)
-                     {'success
-                      {(drop (drop ds1 alen) alen)
-                       bs1
-                       ns1}})
-               [{'fail il} {'fail il}]
-               [{'success e2}
-                (match (compute/cedent sc e2)
-                  [{'fail il} {'fail il}]
-                  [{'success {ds3 bs3 ns3}}
-                   {'success {ds3 (bs/commit! bs3) ns3}}])])]))])]))
-
 (define (bs/commit! bs)
   (: bs -> bs
      [with effect on part of elements of bs])
@@ -1007,6 +982,31 @@
     [(ds bs ns)
      (list-ref ds (- (length ds) (+ 1 i)))]))
 
+(define (solve/arrow a e)
+  (: arrow env -> report)
+  (match e
+    [{ds bs ns}
+     (match a
+       [{ac sc}
+        (let ([alen (length ac)]
+              [slen (length sc)])
+          (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
+            [{'fail il} {'fail il}]
+            [{'success {ds1 bs1 ns1}}
+             (match (unify/data-list
+                     ;; cover/data-list
+                     (take ds1 alen) (take (drop ds1 alen) alen)
+                     {'success
+                      {(drop (drop ds1 alen) alen)
+                       bs1
+                       ns1}})
+               [{'fail il} {'fail il}]
+               [{'success e2}
+                (match (compute/cedent sc e2)
+                  [{'fail il} {'fail il}]
+                  [{'success {ds3 bs3 ns3}}
+                   {'success {ds3 (bs/commit! bs3) ns3}}])])]))])]))
+
 (define (print/cedent c e)
   (: cedent env -> [effect on terminal])
   (match c
@@ -1098,21 +1098,21 @@
   (: level-diff data data env -> report)
   (match e
     [{ds bs ns}
-     (match (type-compute/repeat level-diff d1 e)
+     (match (type-solve/repeat level-diff d1 e)
        [{'fail il} {'fail il}]
        [{'success {(d0 . __) bs1 ns1}}
         (unify/data d0 d2 {ds bs1 ns1})])]))
 
-(define (type-compute/repeat c d e)
+(define (type-solve/repeat c d e)
   (: counter data env -> report)
   (match e
     [{ds bs ns}
      (match (eq? 0 c)
        [#t {'success {(cons d ds) bs ns}}]
-       [#f (match (type-compute d e)
+       [#f (match (type-solve d e)
              [{'fail il} {'fail il}]
              [{'success {(d1 . r) bs1 ns1}}
-              (type-compute/repeat (- c 1) d1 {r bs1 ns1})])])]))
+              (type-solve/repeat (- c 1) d1 {r bs1 ns1})])])]))
 
 (define (var/highest? v e)
   (: fresh-var env -> bool)
@@ -1705,8 +1705,7 @@
                  (match (type-compute/cedent (reverse dl) e)
                    [{'fail il} {'fail il}]
                    [{'success e1}
-                    ;; (compute/arrow (copy-arrow t) e1)
-                    (solve/arrow (copy-arrow t) e1)])]))))])]))
+                    (compute/arrow (copy-arrow t) e1)])]))))])]))
 
 (define (type-compute/arrow a e)
   (: arrow env -> report)
@@ -1748,8 +1747,98 @@
           [{'success e1}
            (match e1
              [{ds1 bs1 ns1}
-              (match ;; (compute/arrow (copy-arrow a) e1)
-                  (solve/arrow (copy-arrow a) e1)
+              (match (compute/arrow (copy-arrow a) e1)
+                [{'fail il} {'fail il}]
+                [{'success e2}
+                 {'success {(cons (proj i e2) ds)
+                            bs1
+                            ns1}}])])])])]))
+
+(define (type-solve/cedent c e)
+  (: cedent env -> report)
+  (match c
+    [{} {'success e}]
+    [(d . r)
+     (match (type-solve d e)
+       [{'fail il} {'fail il}]
+       [{'success e1}
+        (type-solve/cedent r e1)])]))
+
+(define (type-solve d e)
+  (: data env -> report)
+  (match d
+    [{'var x} (type-solve/var x e)]
+    [{'cons x} (type-solve/cons x e)]
+    [{'arrow x} (type-solve/arrow x e)]
+    [{'lambda x} (type-solve/lambda x e)]
+    [{'trunk x} (type-solve/trunk x e)]))
+
+(define (type-solve/var v e)
+  (: var env -> report)
+  (match v
+    [{id level}
+     (compute/var {id (+ 1 level)} e)]))
+
+(define (type-solve/cons c e)
+  (: cons env -> report)
+  (match e
+    [{ds bs ns}
+     (match c
+       [{n dl}
+        (let ([found (assq n ns)])
+          (if (not found)
+            (orz 'type-solve/cons
+              ("unknow name : ~a~%" n)
+              ("cons : ~a~%" c))
+            (let ([meaning (cdr found)])
+              (match meaning
+                [{any-type (t . __)}
+                 (match (type-solve/cedent (reverse dl) e)
+                   [{'fail il} {'fail il}]
+                   [{'success e1}
+                    (solve/arrow (copy-arrow t) e1)])]))))])]))
+
+(define (type-solve/arrow a e)
+  (: arrow env -> report)
+  (match e
+    [{ds bs ns}
+     (match (copy-arrow a)
+       ;; need to copy the arrow first
+       ;; because the return arrow might be applied somewhere else
+       [{ac sc}
+        (match (type-solve/cedent ac {{} (cons '(commit-point) bs) ns})
+          [{'fail il} {'fail il}]
+          [{'success {ds1 bs1 ns1}}
+           (match (type-solve/cedent sc {{} bs1 ns1})
+             [{'fail il} {'fail il}]
+             [{'success {ds2 bs2 ns2}}
+              {'success {(cons {'arrow {(reverse ds1) (reverse ds2)}}
+                               ds)
+                         (bs/commit! bs2)
+                         ns2}}])])])]))
+
+(define (type-solve/lambda l e)
+  (: lambda env -> report)
+  (match e
+    [{ds bs ns}
+     (match l
+       [{a al}
+        {'success {(cons {'arrow a} ds)
+                   bs
+                   ns}}])]))
+
+(define (type-solve/trunk t e)
+  (: trunk env -> report)
+  (match e
+    [{ds bs ns}
+     (match t
+       [{a __ dl i}
+        (match (type-solve/cedent (reverse dl) {{} bs ns})
+          [{'fail il} {'fail il}]
+          [{'success e1}
+           (match e1
+             [{ds1 bs1 ns1}
+              (match (solve/arrow (copy-arrow a) e1)
                 [{'fail il} {'fail il}]
                 [{'success e2}
                  {'success {(cons (proj i e2) ds)
@@ -1758,10 +1847,10 @@
 
 (define (infer/arrow a e)
   (: arrow env -> arrow)
-  (match (type-compute/arrow a e)
+  (match (type-solve/arrow a e)
     [{'fail il}
      (orz 'infer/arrow
-       ("fail to type-compute/arrow : ~a~%" a)
+       ("fail to type-solve/arrow : ~a~%" a)
        ("reported info-list : ~a~%" il))]
     [{'success {(a1 . __) __ __}}
      a1]))
