@@ -245,7 +245,8 @@
                                  ("tsc : ~a~%" tsc)
                                  ("info-list : ~a~%" il))]
                               [{'success {dl-tsc bs-tsc __}}
-                               (match (unify/data-list
+                               (match (;; unify/data-list
+                                       cover/data-list
                                        dl-tsc type-dl-sc
                                        {'success {{} bs-tsc ns}})
                                  [{'fail il}
@@ -429,7 +430,7 @@
     [{ds bs ns}
      (let ([dl (sublist ds 0 len)])
        (match (type-solve/cedent (reverse dl)
-                                   {{} (cons '(commit-point) bs) ns})
+                                 {{} (cons '(commit-point) bs) ns})
          [{'fail il}
           (orz 'pass3/name/cons
             ("type-compute/cedent fail~%")
@@ -458,15 +459,54 @@
   (: length length arrow name env -> env)
   (match e
     [{ds bs ns}
-     (let* ([a (copy-arrow a)]
-            [dl (sublist ds 0 alen)]
-            ;; dl in trunk is as the order of dl in stack
-            ;; thus no reverse is needed
-            [make-trunk (lambda (i) {'trunk {a {'tody/name n} dl i}})])
-       {(append (reverse (map make-trunk (genlist slen)))
-                (sublist ds alen (length ds)))
-        bs
-        ns})]))
+     (let ([a (copy-arrow a)])
+       (match a
+         [{ac sc}
+          (let* ([dl (sublist ds 0 alen)]
+                 ;; dl in trunk is as the order of dl in stack
+                 ;; thus no reverse is needed
+                 [make-trunk (lambda (i) {'trunk {a {'tody/name n} dl i}})])
+            {(append (reverse (map make-trunk (genlist slen)))
+                     (sublist ds alen (length ds)))
+             bs
+             ns})]))]))
+
+;; try to fix map/has-length
+;; by the commit of a copy of type into the arguments
+
+;; (define (pass3/name/trunk alen slen a n e)
+;;   (: length length arrow name env -> env)
+;;   (match e
+;;     [{ds bs ns}
+;;      (let ([a (copy-arrow a)])
+;;        (match a
+;;          [{ac sc}
+;;           (let* ([dl (sublist ds 0 alen)]
+;;                  ;; dl in trunk is as the order of dl in stack
+;;                  ;; thus no reverse is needed
+;;                  [make-trunk (lambda (i) {'trunk {a {'tody/name n} dl i}})])
+;;             (match (type-solve/cedent (reverse dl)
+;;                                       {{} (cons '(commit-point) bs) ns})
+;;               [{'fail il}
+;;                (orz 'pass3/name/trunk
+;;                  ("type-compute/cedent fail~%")
+;;                  ("(reverse dl) : ~a~%" (reverse dl))
+;;                  ("info list : ~%~a~%" il))]
+;;               [{'success {ds1 bs1 ns1}}
+;;                (match (unify/data-list
+;;                        (reverse ac) ds1
+;;                        {'success {ds bs1 ns1}})
+;;                  [{'fail il}
+;;                   (orz 'pass3/name/trunk
+;;                     ("unify/data-list fail~%")
+;;                     ("ds1 : ~a~%" ds1)
+;;                     ("(reverse ac) : ~a~%" (reverse ac))
+;;                     ("info list : ~%~a~%" il))]
+;;                  [{'success {ds2 bs2 ns2}}
+;;                   {(append (reverse (map make-trunk (genlist slen)))
+;;                            (sublist ds alen (length ds)))
+;;                    (bs/commit! bs2)
+;;                    ns}])]))]))]))
 
 (define (pass3/bind b e)
   (: form3/bind env -> env)

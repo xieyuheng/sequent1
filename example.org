@@ -100,7 +100,9 @@
            append)))
     #+end_src
 
-*** list map
+*** >< list map
+
+    - map/has-length fail
 
     #+begin_src scheme
     (eva
@@ -319,9 +321,9 @@
             :p-s apply)))
     #+end_src
 
-*** add/commute
+*** >< add/commute
 
-    #+begin_src scheme
+    #+begin_src scheme :tangle no
     (eva
 
      (+ natural (-> type)

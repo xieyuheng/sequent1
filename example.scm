@@ -209,6 +209,31 @@
     zero (-> natural)
     succ (natural -> natural))
 
+ (~ add (natural natural -> natural)
+    (:m zero -> :m)
+    (:m :n succ -> :m :n add succ))
+
+ (~ mul (natural natural -> natural)
+    (:m zero -> zero)
+    (:m :n succ -> :m :n mul :m add))
+
+ (~ natural-induction
+    ((:p : (natural -> type))
+     zero :p apply
+     ((:k : natural) :k :p apply -> :k succ :p apply)
+     (:x : natural) -> :x :p apply)
+    (:p :p-z :p-s zero -> :p-z)
+    (:p :p-z :p-s :k succ ->
+        :k
+        :p :p-z :p-s :k natural-induction
+        :p-s apply)))
+
+(eva
+
+ (+ natural (-> type)
+    zero (-> natural)
+    succ (natural -> natural))
+
  (~ swap (:t1 :t2 -> :t2 :t1)
     (:d1 :d2 -> :d2 :d1))
 
