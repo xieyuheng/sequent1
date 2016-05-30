@@ -20,13 +20,12 @@
 
 * reading
 
-  - [[http://xieyuheng.github.io/math/function-compose-type-cut.html][function compose type cut]]
+  - [[http://xieyuheng.github.io/math/function-compose-type-cut.html][function compose, type cut, and the algebra of logic is a field]]
     this reading is also used to form a [[./reading/function-compose-type-cut.pdf][paper]] for [[http://scheme2016.snow-fort.org/][scheme workshop 2016]]
     and a [[./reading/demo.html][demo]] for the talk at the workshop
 
-  - [[http://xieyuheng.github.io/math/term-lattice.html][term lattice]]
+  - [[http://xieyuheng.github.io/math/term-lattice.html][term lattice -- the meaning of equality]]
     a summarization of the structure obtained by composing
-    the subsumption lattice
-    and the abstract rewriting system
+    the subsumption lattice and the abstract rewriting system
     I simply call it term lattice
     this reading helps to understand the implementation of sequent1
