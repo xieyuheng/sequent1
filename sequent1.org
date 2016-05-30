@@ -10,7 +10,9 @@
 
 * todo
 
-  - fix map/has-length
+  - [bug] fix bind to pass add/commute
+
+  - [bug] can not cover-check success even map/has-length only has one arrow (null/has-length -> null/has-length)
 
   - recur-check
 
@@ -549,11 +551,11 @@
                                   [{'success {dl-tsc bs-tsc __}}
                                    (match (;; unify/data-list
                                            cover/data-list
-                                           dl-tsc type-dl-sc
+                                           type-dl-sc dl-tsc
                                            {'success {{} bs-tsc ns}})
                                      [{'fail il}
                                       (orz 'pass3/arrow-check
-                                        ("fail to unify/data-list:~%")
+                                        ("fail to cover/data-list:~%")
                                         ("dl-tsc : ~a~%" dl-tsc)
                                         ("type-dl-sc : ~a~%" type-dl-sc)
                                         ("info-list : ~a~%" il))]
@@ -2899,7 +2901,7 @@
              [{__ {'var v}}
               ;; here is the only different between unify/data
               {'fail `(cover/data
-                       fail
+                       fail because non-var can never cover var
                        (pattern: ,p)
                        (data: ,d))}]
              [{{'trunk t1} {'trunk t2}} (cover/trunk t1 t2 e)]

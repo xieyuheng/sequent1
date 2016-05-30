@@ -389,12 +389,26 @@
         zero (-> natural)
         succ (natural -> natural))
 
+     (~ drop (:t ->)
+        (:d ->))
+
+     (~ dup (:t -> :t :t)
+        (:d -> :d :d))
+
+     (~ over (:t1 :t2 -> :t1 :t2 :t1)
+        (:d1 :d2 -> :d1 :d2 :d1))
+
+     (~ tuck (:t1 :t2 -> :t2 :t1 :t2)
+        (:d1 :d2 -> :d2 :d1 :d2))
+
      (~ swap (:t1 :t2 -> :t2 :t1)
         (:d1 :d2 -> :d2 :d1))
 
      (app (-> zero
               zero succ
-              swap)))
+              swap
+              drop
+              dup)))
     #+end_src
 
 * >< from joy
