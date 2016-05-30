@@ -38,6 +38,55 @@
 
  (~ add (natural natural -> natural)
     (:m zero -> :m)
+    (zero :m -> :m)
+    (:m succ :n succ -> :m :n add succ succ))
+
+ (+ eq ({:t : type} :t :t -> type)
+    refl ({:t : type} {:d : :t} -> :d :d eq))
+
+ (~ eq/test
+    (-> zero zero add zero zero add eq)
+    (-> refl))
+
+ (~ add/commute ((:m :n : natural) -> :m :n add :n :m add eq)
+    (:m zero -> refl)
+    (:m :n succ -> refl)))
+
+(eva
+
+ (+ natural (-> type)
+    zero (-> natural)
+    succ (natural -> natural))
+
+ (~ drop (:t ->)
+    (:d ->))
+
+ (~ dup (:t -> :t :t)
+    (:d -> :d :d))
+
+ (~ over (:t1 :t2 -> :t1 :t2 :t1)
+    (:d1 :d2 -> :d1 :d2 :d1))
+
+ (~ tuck (:t1 :t2 -> :t2 :t1 :t2)
+    (:d1 :d2 -> :d2 :d1 :d2))
+
+ (~ swap (:t1 :t2 -> :t2 :t1)
+    (:d1 :d2 -> :d2 :d1))
+
+ (app (-> zero
+          zero succ
+          swap
+          drop
+          dup)))
+
+(eva
+
+ (+ natural (-> type)
+    zero (-> natural)
+    succ (natural -> natural))
+
+ (~ add (natural natural -> natural)
+    (:m zero -> :m)
     (:m :n succ -> :m :n add succ))
 
  (~ mul (natural natural -> natural)
@@ -133,6 +182,20 @@
     (:m zero -> :m)
     (:m :n succ -> :m :n add succ))
 
+ ;; ;; this can not be used to prove append
+ ;; (~ add (natural natural -> natural)
+ ;;    (:m zero -> :m)
+ ;;    (zero :m -> :m)
+ ;;    (:m succ :n succ -> :m :n add succ succ))
+
+ ;; ;; this can be used to prove append
+ ;; (~ add (natural natural -> natural)
+ ;;    (:m zero -> :m)
+ ;;    (zero :m -> :m)
+ ;;    (:m succ :n succ -> :m :n add succ succ)
+ ;;    (:m :n succ -> :m :n add succ)
+ ;;    (:m succ :n -> :m :n add succ))
+
  (~ mul (natural natural -> natural)
     (:m zero -> zero)
     (:m :n succ -> :m :n mul :m add))
@@ -227,16 +290,3 @@
         :k
         :p :p-z :p-s :k natural-induction
         :p-s apply)))
-
-(eva
-
- (+ natural (-> type)
-    zero (-> natural)
-    succ (natural -> natural))
-
- (~ swap (:t1 :t2 -> :t2 :t1)
-    (:d1 :d2 -> :d2 :d1))
-
- (app (-> zero
-          zero succ
-          swap)))
