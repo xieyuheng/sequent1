@@ -358,3 +358,69 @@
   (string->symbol
    (apply string-append
      (map symbol->string l))))
+
+(define-macro (with-monad m body)
+  `(let ([mbind (monad->mbind ,m)]
+         [return (monad->return ,m)])
+     ,body))
+
+(define (monad/pass1 body)
+  (: '(a <- 2
+       b <- (+ 1 a)
+       (return (* a b)))
+     ----------------->
+     '((back-arrow a 2)
+       (back-arrow b (+ 1 a))
+       (non-arrow (return (* a b)))))
+  (match body
+    [(v '<- e) (cons {'non-arrow e} '())]
+    [(v '<- e . r) (cons {'back-arrow v e} (monad/pass1 r))]
+    [(e) (cons {'non-arrow e} '())]
+    [(e . r) (cons {'non-arrow e} (monad/pass1 r))]))
+
+;; (monad/pass1 '(a <- 2
+;;                b <- (+ 1 a)
+;;                (return (* a b))))
+
+(define (monad/pass2 body)
+  (: '((back-arrow a 2)
+       (back-arrow b (+ 1 a))
+       (non-arrow (return (* a b))))
+     ----------------->
+     ((mbind
+       2 (lambda (a)
+           (mbind
+            (+ 1 a) (lambda (b)
+                      (return (* a b))))))))
+  (match body
+    [({'non-arrow e}) e]
+    [({'non-arrow e} . r) `(begin
+                             ,e ,(monad/pass2 r))]
+    ;; [({'back-arrow v e}) e]
+    [({'back-arrow v e} . r) `(mbind
+                               ,e (lambda (,v)
+                                    ,(monad/pass2 r)))]))
+
+;; (monad/pass2 '((back-arrow a 2)
+;;                (back-arrow b (+ 1 a))
+;;                (non-arrow (return (* a b)))))
+
+(define-macro (do/monad m . body)
+  `(with-monad ,m ,(monad/pass2 (monad/pass1 body))))
+
+(define-macro (define-monad name . body)
+  (let ([found/mbind (assq 'mbind body)])
+    (if (not found/mbind)
+      (orz 'define-macro
+        ("fail to find mbind in body :~%")
+        ("~a" body))
+      (let ([found/return (assq 'return body)])
+        (if (not found/return)
+          (orz 'define-macro
+            ("fail to find return in body :~%")
+            ("~a" body))
+          `(define ,name (list ,(cadr found/mbind)
+                               ,(cadr found/return))))))))
+
+(define monad->mbind car)
+(define monad->return cadr)
