@@ -143,9 +143,7 @@
          append)))
   #+end_src
 
-* ><><>< list map
-
-  - cover-check of map/has-length is wrong
+* list map
 
   #+begin_src scheme
   (eva

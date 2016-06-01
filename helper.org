@@ -340,29 +340,38 @@
 
     #+begin_src scheme :tangle no
     (define-monad identity-m
-      [mbind (lambda (value function)
-               (function value))]
-      [return (lambda (value)
-                value)])
-
-    (define-monad maybe-m
-      [mbind (lambda (value function)
-               (if (eq? value #f)
-                 #f
-                 (function value)))]
-      [return (lambda (value)
-                (if (eq? value #f)
-                  #f
-                  value))])
+      [mbind
+       (lambda (v f)
+         (: value (value -> value) -> value)
+         (f v))]
+      [return
+        (lambda (v)
+          (: value -> value)
+          v)])
 
     (do/monad identity-m
       a <- 2
       b <- (+ 1 a)
       (return (* a b)))
 
+
+    (define-monad maybe-m
+      [mbind
+       (lambda (v f)
+         (: (or value #f) (value -> (or value #f)) -> (or value #f))
+         (if (eq? v #f)
+           #f
+           (f v)))]
+      [return
+        (lambda (v)
+          (: value -> (or value #f))
+          v)])
+
     (do/monad maybe-m
       a <- 2
       b <- (+ 1 a)
+      ;; we do not have type check
+      ;; so, anything can occors in do/monad
       (display "<here> ")
       (return (* a b)))
 
@@ -371,4 +380,25 @@
       b <- (+ 1 a)
       (display "<here> ")
       (return (* a b)))
+
+
+    (define-monad list-m
+      [mbind
+       (lambda (vl f)
+         (: (value ...) (value -> (value ...)) -> (value ...))
+         (apply append (map f vl)))]
+      [return
+        (lambda (v)
+          (: value -> (value ...))
+          (list v))])
+
+    (do/monad list-m
+      a <- (genlist 3)
+      b <- (genlist 4)
+      (return (* a b)))
+
+    (do/monad list-m
+      a <- (genlist 3)
+      b <- (genlist 4)
+      (return (list a b)))
     #+end_src

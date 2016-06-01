@@ -10,8 +10,6 @@
 
 * todo
 
-  - [bug] can not cover-check success even map/has-length only has one arrow (null/has-length -> null/has-length)
-
   - recur-check
 
   - report info should be strictly structured
@@ -3341,6 +3339,11 @@
 
 * cover-check
 
+*** note
+
+    - first data-gen
+      of type (: type-antecedent (antecedent ...) env -> (cedent (bs ...)))
+
 *** cover-check
 
     #+begin_src scheme
@@ -3350,6 +3353,7 @@
         [{ds bs ns}
          (match l
            [{{ac __} al}
+            ;; no cover-check on sc
             (match (data-gen ac (map car al) e)
               [{c bsl}
                (let ([report-list
@@ -3365,10 +3369,9 @@
                          bsl))])
                  (if (null? report-list)
                    {'success e}
-                   {'fail
-                    {`(cover-check
-                       fail
-                       (report-list: ,report-list))}}))])])]))
+                   {'fail {`(cover-check
+                             fail
+                             (report-list: ,report-list))}}))])])]))
     #+end_src
 
 *** cover-check/cedent/arrow-list
@@ -3578,7 +3581,7 @@
 
       #+begin_src scheme
       (define (n->na c n e)
-        (: cons name env -> (name . arrow))
+        (: cons name env -> (or #f (name . arrow)))
         (match e
           [{ds bs ns}
            (let ([found (assq n ns)])
@@ -3596,13 +3599,13 @@
                   (let ([a (copy-arrow a)])
                     (match a
                       [{ac sc}
-                       (match (unify/data-list
+                       (match (cover/data-list
                                {{'cons c}} sc
                                {'success
-                                {ds (cons '(commit-point) bs) ns}})
-                         [{'fail il} #f]
+                                {ds bs ns}})
+                         [{'fail il} (cat ("<il> : ~a~%" il)) #f]
                          [{'success {ds1 bs1 ns1}}
-                          (bs/commit! bs1)
+                          bs1
                           (cons n a)])]))])))]))
       #+end_src
 

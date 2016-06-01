@@ -2323,6 +2323,7 @@
     [{ds bs ns}
      (match l
        [{{ac __} al}
+        ;; no cover-check on sc
         (match (data-gen ac (map car al) e)
           [{c bsl}
            (let ([report-list
@@ -2338,10 +2339,9 @@
                      bsl))])
              (if (null? report-list)
                {'success e}
-               {'fail
-                {`(cover-check
-                   fail
-                   (report-list: ,report-list))}}))])])]))
+               {'fail {`(cover-check
+                         fail
+                         (report-list: ,report-list))}}))])])]))
 
 (define (cover-check/cedent/arrow-list c al e)
   (: cedent (cedent ...) env -> report)
@@ -2485,7 +2485,7 @@
       alterdata-list)))
 
 (define (n->na c n e)
-  (: cons name env -> (name . arrow))
+  (: cons name env -> (or #f (name . arrow)))
   (match e
     [{ds bs ns}
      (let ([found (assq n ns)])
@@ -2503,13 +2503,13 @@
             (let ([a (copy-arrow a)])
               (match a
                 [{ac sc}
-                 (match (unify/data-list
+                 (match (cover/data-list
                          {{'cons c}} sc
                          {'success
-                          {ds (cons '(commit-point) bs) ns}})
-                   [{'fail il} #f]
+                          {ds bs ns}})
+                   [{'fail il} (cat ("<il> : ~a~%" il)) #f]
                    [{'success {ds1 bs1 ns1}}
-                    (bs/commit! bs1)
+                    bs1
                     (cons n a)])]))])))]))
 
 (define (na->nadl na dl)

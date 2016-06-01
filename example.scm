@@ -281,12 +281,14 @@
     (:m :n succ -> :m :n mul :m add))
 
  (~ natural-induction
+
     ((:p : (natural -> type))
      zero :p apply
      ((:k : natural) :k :p apply -> :k succ :p apply)
      (:x : natural) -> :x :p apply)
-    (:p :p-z :p-s zero -> :p-z)
-    (:p :p-z :p-s :k succ ->
+
+    (:p :p/z :p/s zero -> :p/z)
+    (:p :p/z :p/s :k succ ->
         :k
-        :p :p-z :p-s :k natural-induction
-        :p-s apply)))
+        :p :p/z :p/s :k natural-induction
+        :p/s apply)))
