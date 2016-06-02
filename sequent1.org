@@ -4141,8 +4141,7 @@
     #+begin_src scheme
     (define (get-recur-check-list)
       (list structural-recur-check/all
-            ;; structural-recur-check/each
-            ))
+            structural-recur-check/each))
     #+end_src
 
 *** recur-check

@@ -2886,8 +2886,7 @@
 
 (define (get-recur-check-list)
   (list structural-recur-check/all
-        ;; structural-recur-check/each
-        ))
+        structural-recur-check/each))
 
 (define (recur-check n l e)
   (: name lambda env -> report)
