@@ -3732,12 +3732,13 @@
       because a list of such functions can be used to confirm descent
 
     - note that
-      because of "the halting problem is undecidable"
-      so, we know that
+      if "the halting problem is undecidable"
+      then we know that
       for each checker
       one can find a function which
       will never running into infinite loop (i.e. a good function)
       but can not pass the checker
+      - I do not know how to prove this
 
     - I merely provide two checkers for structural recursion
       better checkers can be added
