@@ -375,3 +375,26 @@
           :p :p/z :p/s :k natural-induction
           :p/s apply)))
   #+end_src
+
+* test recur-check
+
+  #+begin_src scheme :tangle no
+  (eva
+
+   (+ natural (-> type)
+      zero (-> natural)
+      succ (natural -> natural))
+
+   (~ add (natural natural -> natural)
+      (:m zero -> :m)
+      (:m :n succ -> :m :n succ add succ)))
+
+  (eva
+
+   (+ natural (-> type)
+      zero (-> natural)
+      succ (natural -> natural))
+
+   (~ add (natural natural -> natural)
+      (:m :n -> :m :n add succ)))
+  #+end_src

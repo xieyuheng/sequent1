@@ -1,7 +1,7 @@
 (define-syntax cating
   (syntax-rules ()
     [(cating (str . args))
-     (format #f str . args)]
+    (format #f str . args)]
     [(cat (str . args) (str2 . args2) ...)
      (string-append
       (cating (str . args))
@@ -96,6 +96,9 @@
 (define (list-any? p? l)
   (: (element -> bool) l -> bool)
   (member #t (map p? l)))
+
+(define (sexp->string s)
+  (format #f "~a" s))
 
 (define (find-char c s)
   (: char string -> (or curser #f))

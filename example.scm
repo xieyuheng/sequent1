@@ -182,19 +182,19 @@
     (:m zero -> :m)
     (:m :n succ -> :m :n add succ))
 
- ;; ;; this can not be used to prove append
- ;; (~ add (natural natural -> natural)
- ;;    (:m zero -> :m)
- ;;    (zero :m -> :m)
- ;;    (:m succ :n succ -> :m :n add succ succ))
+ ;; this can not be used to prove append
+ (~ add (natural natural -> natural)
+    (:m zero -> :m)
+    (zero :m -> :m)
+    (:m succ :n succ -> :m :n add succ succ))
 
- ;; ;; this can be used to prove append
- ;; (~ add (natural natural -> natural)
- ;;    (:m zero -> :m)
- ;;    (zero :m -> :m)
- ;;    (:m succ :n succ -> :m :n add succ succ)
- ;;    (:m :n succ -> :m :n add succ)
- ;;    (:m succ :n -> :m :n add succ))
+ ;; this can be used to prove append
+ (~ add (natural natural -> natural)
+    (:m zero -> :m)
+    (zero :m -> :m)
+    (:m succ :n succ -> :m :n add succ succ)
+    (:m :n succ -> :m :n add succ)
+    (:m succ :n -> :m :n add succ))
 
  (~ mul (natural natural -> natural)
     (:m zero -> zero)

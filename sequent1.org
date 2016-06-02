@@ -10,16 +10,12 @@
 
 * todo
 
-  - recur-check
-
   - report info should be strictly structured
 
   - module system
 
   - no repl
     but load file
-
-* note mistake
 
   - code is not well factored
     cover is copying unify
@@ -2399,6 +2395,326 @@
             (unify/data d1 d e2)])]))
     #+end_src
 
+* cover
+
+*** note
+
+    - this is the poset structure of term lattice
+
+*** cover/data-list
+
+    #+begin_src scheme
+    (define (cover/data-list pl dl r)
+      (: (pattern ...) (data ...) report -> report)
+      (match r
+        [{'fail il} {'fail il}]
+        [{'success e}
+         (cond [(and (eq? pl '()) (eq? dl '()))
+                r]
+               [(eq? pl {})
+                {'fail {`(cover/data-list
+                          fail pl and dl is not of the same length
+                          (additional-dl: ,dl))}}]
+               [(eq? dl {})
+                {'fail {`(cover/data-list
+                          fail pl and dl is not of the same length
+                          (additional-pl: ,pl))}}]
+               [else
+                (cover/data-list
+                 (cdr pl) (cdr dl)
+                 (cover/data (car pl) (car dl) e))])]))
+    #+end_src
+
+*** cover/data
+
+    #+begin_src scheme
+    (define (cover/data p d e)
+      (: pattern data env -> report)
+      (match e
+        [{ds bs ns}
+         ;; var -walk-> fresh-var
+         (let ([p (bs/walk bs p)]
+               [d (bs/walk bs d)])
+           (match {p d}
+             [{{'bind {__ p0}} __} (cover/data p0 d e)]
+             [{__ {'bind {__ d0}}} (cover/data p d0 e)]
+             [{{'var v1} {'var v2}}
+              (if (var/eq? v1 v2)
+                {'success e}
+                (cover/var/data v1 d e))]
+             [{{'var v} __} (cover/var/data v d e)]
+             [{__ {'var v}}
+              ;; here is the only different between unify/data
+              {'fail {`(cover/data
+                        fail because non-var can never cover var
+                        (pattern: ,p)
+                        (data: ,d))}}]
+             [{{'trunk t1} {'trunk t2}} (cover/trunk t1 t2 e)]
+             [{{'trunk t} __} (cover/trunk/data t d e)]
+             [{__ {'trunk t}} (cover/trunk/data t p e)]
+
+             [{{'cons c1} {'cons c2}} (cover/cons c1 c2 e)]
+             [{{'arrow a1} {'arrow a2}} (cover/arrow a1 a2 e)]
+             [{{'lambda l1} {'lambda l2}} (cover/lambda l1 l2 e)]
+             [{__ __}
+              {'fail {`(cover/data
+                        fail to unify
+                        (pattern: ,p) (data: ,d))}}]))]))
+    #+end_src
+
+*** cover/var/data
+
+    #+begin_src scheme
+    (define (cover/var/data v d e)
+      (: fresh-var data env -> report)
+      (match e
+        [{ds bs ns}
+         ;; {'success {ds (bs/extend bs v d) ns}}
+         (match (consistent-check v d e)
+           [{'fail il}
+            {'fail (cons `(cover/var/data
+                           consistent-check fail
+                           (v: ,v)
+                           (d: ,d))
+                         il)}]
+           [{'success __}
+            (match (occur-check/data v d e)
+              [{'fail il} {'fail il}]
+              [{'success __}
+               {'success {ds (bs/extend bs v d) ns}}])])]))
+    #+end_src
+
+*** cover/cons
+
+    #+begin_src scheme
+    (define (cover/cons c1 c2 e)
+      (: cons cons env -> report)
+      (match {c1 c2}
+        [{{n1 dl1} {n2 dl2}}
+         (if (eq? n1 n2)
+           (cover/data-list dl1 dl2 {'success e})
+           {'fail {`(cover/cons
+                     fail
+                     (cons1: ,c1)
+                     (cons2: ,c2))}})]))
+    #+end_src
+
+*** cover/arrow
+
+    #+begin_src scheme
+    (define (cover/arrow a1 a2 e)
+      (: arrow arrow env -> report)
+      (match {a1 a2}
+        [{{ac1 sc1} {ac2 sc2}}
+         (match (cover/data-list ac1 ac2 {'success e})
+           [{'success e1}
+            (cover/data-list sc1 sc2 {'success e1})]
+           [{'fail il}
+            {'fail (cons `(cover/arrow
+                           fail (arrow1: ,a1) (arrow2: ,a2))
+                         il)}])]))
+    #+end_src
+
+*** cover/lambda
+
+    #+begin_src scheme
+    (define (cover/lambda l1 l2 e)
+      (: lambda lambda env -> report)
+      (match {l1 l2}
+        [{{a1 al1} {a2 al2}}
+         (cover/arrow-list al1 al2 (cover/arrow a1 a2 e))]))
+    #+end_src
+
+*** cover/arrow-list
+
+    #+begin_src scheme
+    (define (cover/arrow-list al1 al2 r)
+      (: (arrow ...) (arrow ...) report -> report)
+      (match r
+        [{'fail il} {'fail il}]
+        [{'success e}
+         (if (eq? al1 {})
+           r
+           (cover/arrow-list
+            (cdr al1) (cdr al2)
+            (cover/arrow (car al1) (car al2) e)))]))
+    #+end_src
+
+*** cover/trunk
+
+***** note
+
+      - it will not diverge on recursive call here
+        because the trunk of recursive call
+        only have name in it
+        but not have the arrow-list
+
+      - to be able to unify on trunk
+        is different from
+        to be able to unify on arrow or lambda
+        we do not really have
+        second order semantic unification here
+
+***** cover/trunk
+
+      #+begin_src scheme
+      (define (cover/trunk t1 t2 e)
+        (: trunk trunk env -> report)
+        (match (cover/trunk/syntactic t1 t2 e)
+          [{'success e1} {'success e1}]
+          [{'fail il1}
+           (match (cover/trunk/semantic t1 t2 e)
+             [{'success e2} {'success e2}]
+             [{'fail il2}
+              {'fail (append il2 il1)}])]))
+      #+end_src
+
+***** cover/trunk/syntactic
+
+      #+begin_src scheme
+      (define (cover/trunk/syntactic t1 t2 e)
+        (: trunk trunk env -> report)
+        (match {t1 t2}
+          [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
+           (if (not (eq? i1 i2))
+             {'fail {`(cover/trunk/syntactic
+                       fail indexes are different
+                       (trunk1: ,t1)
+                       (trunk2: ,t2))}}
+             (match {tody1 tody2}
+               ;; about name
+               [{{'tody/name n1} {'tody/name n2}}
+                (if (eq? n1 n2)
+                  (cover/data-list dl1 dl2 (cover/arrow a1 a2 e))
+                  {'fail {`(cover/trunk/syntactic
+                            fail names are different
+                            (trunk1: ,t1)
+                            (trunk2: ,t2))}})]
+               [{{'tody/name n} {'tody/var v}}
+                (cover/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
+               [{{'tody/var v} {'tody/name n}}
+                (cover/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
+               [{{'tody/name n} {'tody/arrow-list al}}
+                (cover/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
+               [{{'tody/arrow-list al} {'tody/name n}}
+                (cover/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
+               ;; about var
+               [{{'tody/var v1} {'tody/var v2}}
+                (match (cover/data {'var v1} {'var v2} e)
+                  [{'fail il} {'fail il}]
+                  [{'success e1}
+                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
+               [{{'tody/var v} {'tody/arrow-list al}}
+                (match (cover/data {'var v} {'lambda {a2 al}} e)
+                  [{'fail il} {'fail il}]
+                  [{'success e1}
+                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
+               [{{'tody/arrow-list al} {'tody/var v}}
+                (match (cover/data {'lambda {a1 al}} {'var v} e)
+                  [{'fail il} {'fail il}]
+                  [{'success e1}
+                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
+               ;; about arrow-list
+               [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
+                (cover/data-list
+                 dl1 dl2
+                 (cover/lambda {a1 al1} {a2 al2} e))]))]))
+      #+end_src
+
+***** cover/trunk/semantic
+
+      #+begin_src scheme
+      (define (cover/trunk/semantic t1 t2 e)
+        (: trunk trunk env -> report)
+        (match {t1 t2}
+          [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
+           (match {tody1 tody2}
+             ;; about name
+             [{{'tody/name n} __}
+              (cover/trunk/semantic (trunk->trunk* t1 e) t2 e)]
+             [{__ {'tody/name n}}
+              (cover/trunk/semantic t1 (trunk->trunk* t2 e) e)]
+             ;; about var
+             [{{'tody/var v} __}
+              (match (compute/var v e)
+                [{'fail il} {'fail il}]
+                [{'success {(d . __) __ __}}
+                 (match d
+                   [{'arrow a}
+                    (cover/trunk/semantic
+                     {a1 {'tody/arrow-list {a}} dl1 i1} t2 e)]
+                   [{'lambda {a al}}
+                    (cover/trunk/semantic
+                     {a1 {'tody/arrow-list al} dl1 i1} t2 e)]
+                   [__
+                    {'fail {`(cover/trunk/semantic
+                              a var computes to neither arrow nor lambda
+                              (var: ,v))}}])])]
+             [{__ {'tody/var v}}
+              (match (compute/var v e)
+                [{'fail il} {'fail il}]
+                [{'success {(d . __) __ __}}
+                 (match d
+                   [{'arrow a}
+                    (cover/trunk/semantic
+                     t1 {a2 {'tody/arrow-list {a}} dl2 i2} e)]
+                   [{'lambda {a al}}
+                    (cover/trunk/semantic
+                     t1 {a2 {'tody/arrow-list al} dl2 i2} e)]
+                   [__
+                    {'fail {`(cover/trunk/semantic
+                              a var computes to neither arrow nor lambda
+                              (var: ,v))}}])])]
+             ;; about arrow-list
+             [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
+              ;; recur to cover/data
+              ;; only when at least one of the trunk is reducible
+              ;; and if the arguments of this recur are both trunk
+              ;; one of them may still be reducible
+              ;; thus will get in to this branch again
+              (match {(filter-arrow-list al1 dl1 e)
+                      (filter-arrow-list al2 dl2 e)}
+                [{l1 l2}
+                 (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
+                   {'fail {`(cover/trunk/semantic
+                             fail both trunks are non-reducible
+                             (trunk1: ,t1)
+                             (trunk2: ,t2))}}
+                   (match {(compute/trunk t1 e)
+                           (compute/trunk t2 e)}
+                     [{{'success {(d1 . __) __ __}}
+                       {'success {(d2 . __) __ __}}}
+                      (cat ("<cover>~%"))
+                      (cover/data d1 d2 e)]
+                     [{__ __}
+                      {'fail {`(cover/trunk/semantic
+                                fail to compute/trunk one of the trunks
+                                (trunk1: ,t1)
+                                (trunk2: ,t2))}}]))])])]))
+      #+end_src
+
+*** cover/trunk/data
+
+    #+begin_src scheme
+    (define (cover/trunk/data t d e)
+      (: trunk data env -> report)
+      (match (compute/trunk t e)
+        [{'fail il}
+         {'fail (cons `(cover/trunk/data
+                        (trunk: ,t)
+                        (data: ,d))
+                      il)}]
+        [{'success e1}
+         (match (env/pop e1)
+           [{{'trunk t1} e2}
+            {'fail {`(cover/trunk/data
+                      (trunk: ,t)
+                      compute to
+                      (trunk: ,t1))}}]
+           [{d1 e2}
+            (cover/data d1 d e2)])]))
+    #+end_src
+
 * bind-unify
 
 *** bind-unify/data-list
@@ -3017,326 +3333,6 @@
                     {ac1 sc1}])]))])]))
     #+end_src
 
-* cover
-
-*** note
-
-    - this is the poset structure of term lattice
-
-*** cover/data-list
-
-    #+begin_src scheme
-    (define (cover/data-list pl dl r)
-      (: (pattern ...) (data ...) report -> report)
-      (match r
-        [{'fail il} {'fail il}]
-        [{'success e}
-         (cond [(and (eq? pl '()) (eq? dl '()))
-                r]
-               [(eq? pl {})
-                {'fail {`(cover/data-list
-                          fail pl and dl is not of the same length
-                          (additional-dl: ,dl))}}]
-               [(eq? dl {})
-                {'fail {`(cover/data-list
-                          fail pl and dl is not of the same length
-                          (additional-pl: ,pl))}}]
-               [else
-                (cover/data-list
-                 (cdr pl) (cdr dl)
-                 (cover/data (car pl) (car dl) e))])]))
-    #+end_src
-
-*** cover/data
-
-    #+begin_src scheme
-    (define (cover/data p d e)
-      (: pattern data env -> report)
-      (match e
-        [{ds bs ns}
-         ;; var -walk-> fresh-var
-         (let ([p (bs/walk bs p)]
-               [d (bs/walk bs d)])
-           (match {p d}
-             [{{'bind {__ p0}} __} (cover/data p0 d e)]
-             [{__ {'bind {__ d0}}} (cover/data p d0 e)]
-             [{{'var v1} {'var v2}}
-              (if (var/eq? v1 v2)
-                {'success e}
-                (cover/var/data v1 d e))]
-             [{{'var v} __} (cover/var/data v d e)]
-             [{__ {'var v}}
-              ;; here is the only different between unify/data
-              {'fail {`(cover/data
-                        fail because non-var can never cover var
-                        (pattern: ,p)
-                        (data: ,d))}}]
-             [{{'trunk t1} {'trunk t2}} (cover/trunk t1 t2 e)]
-             [{{'trunk t} __} (cover/trunk/data t d e)]
-             [{__ {'trunk t}} (cover/trunk/data t p e)]
-
-             [{{'cons c1} {'cons c2}} (cover/cons c1 c2 e)]
-             [{{'arrow a1} {'arrow a2}} (cover/arrow a1 a2 e)]
-             [{{'lambda l1} {'lambda l2}} (cover/lambda l1 l2 e)]
-             [{__ __}
-              {'fail {`(cover/data
-                        fail to unify
-                        (pattern: ,p) (data: ,d))}}]))]))
-    #+end_src
-
-*** cover/var/data
-
-    #+begin_src scheme
-    (define (cover/var/data v d e)
-      (: fresh-var data env -> report)
-      (match e
-        [{ds bs ns}
-         ;; {'success {ds (bs/extend bs v d) ns}}
-         (match (consistent-check v d e)
-           [{'fail il}
-            {'fail (cons `(cover/var/data
-                           consistent-check fail
-                           (v: ,v)
-                           (d: ,d))
-                         il)}]
-           [{'success __}
-            (match (occur-check/data v d e)
-              [{'fail il} {'fail il}]
-              [{'success __}
-               {'success {ds (bs/extend bs v d) ns}}])])]))
-    #+end_src
-
-*** cover/cons
-
-    #+begin_src scheme
-    (define (cover/cons c1 c2 e)
-      (: cons cons env -> report)
-      (match {c1 c2}
-        [{{n1 dl1} {n2 dl2}}
-         (if (eq? n1 n2)
-           (cover/data-list dl1 dl2 {'success e})
-           {'fail {`(cover/cons
-                     fail
-                     (cons1: ,c1)
-                     (cons2: ,c2))}})]))
-    #+end_src
-
-*** cover/arrow
-
-    #+begin_src scheme
-    (define (cover/arrow a1 a2 e)
-      (: arrow arrow env -> report)
-      (match {a1 a2}
-        [{{ac1 sc1} {ac2 sc2}}
-         (match (cover/data-list ac1 ac2 {'success e})
-           [{'success e1}
-            (cover/data-list sc1 sc2 {'success e1})]
-           [{'fail il}
-            {'fail (cons `(cover/arrow
-                           fail (arrow1: ,a1) (arrow2: ,a2))
-                         il)}])]))
-    #+end_src
-
-*** cover/lambda
-
-    #+begin_src scheme
-    (define (cover/lambda l1 l2 e)
-      (: lambda lambda env -> report)
-      (match {l1 l2}
-        [{{a1 al1} {a2 al2}}
-         (cover/arrow-list al1 al2 (cover/arrow a1 a2 e))]))
-    #+end_src
-
-*** cover/arrow-list
-
-    #+begin_src scheme
-    (define (cover/arrow-list al1 al2 r)
-      (: (arrow ...) (arrow ...) report -> report)
-      (match r
-        [{'fail il} {'fail il}]
-        [{'success e}
-         (if (eq? al1 {})
-           r
-           (cover/arrow-list
-            (cdr al1) (cdr al2)
-            (cover/arrow (car al1) (car al2) e)))]))
-    #+end_src
-
-*** cover/trunk
-
-***** note
-
-      - it will not diverge on recursive call here
-        because the trunk of recursive call
-        only have name in it
-        but not have the arrow-list
-
-      - to be able to unify on trunk
-        is different from
-        to be able to unify on arrow or lambda
-        we do not really have
-        second order semantic unification here
-
-***** cover/trunk
-
-      #+begin_src scheme
-      (define (cover/trunk t1 t2 e)
-        (: trunk trunk env -> report)
-        (match (cover/trunk/syntactic t1 t2 e)
-          [{'success e1} {'success e1}]
-          [{'fail il1}
-           (match (cover/trunk/semantic t1 t2 e)
-             [{'success e2} {'success e2}]
-             [{'fail il2}
-              {'fail (append il2 il1)}])]))
-      #+end_src
-
-***** cover/trunk/syntactic
-
-      #+begin_src scheme
-      (define (cover/trunk/syntactic t1 t2 e)
-        (: trunk trunk env -> report)
-        (match {t1 t2}
-          [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
-           (if (not (eq? i1 i2))
-             {'fail {`(cover/trunk/syntactic
-                       fail indexes are different
-                       (trunk1: ,t1)
-                       (trunk2: ,t2))}}
-             (match {tody1 tody2}
-               ;; about name
-               [{{'tody/name n1} {'tody/name n2}}
-                (if (eq? n1 n2)
-                  (cover/data-list dl1 dl2 (cover/arrow a1 a2 e))
-                  {'fail {`(cover/trunk/syntactic
-                            fail names are different
-                            (trunk1: ,t1)
-                            (trunk2: ,t2))}})]
-               [{{'tody/name n} {'tody/var v}}
-                (cover/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
-               [{{'tody/var v} {'tody/name n}}
-                (cover/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
-               [{{'tody/name n} {'tody/arrow-list al}}
-                (cover/trunk/syntactic (trunk->trunk* t1 e) t2 e)]
-               [{{'tody/arrow-list al} {'tody/name n}}
-                (cover/trunk/syntactic  t1 (trunk->trunk* t2 e) e)]
-               ;; about var
-               [{{'tody/var v1} {'tody/var v2}}
-                (match (cover/data {'var v1} {'var v2} e)
-                  [{'fail il} {'fail il}]
-                  [{'success e1}
-                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
-               [{{'tody/var v} {'tody/arrow-list al}}
-                (match (cover/data {'var v} {'lambda {a2 al}} e)
-                  [{'fail il} {'fail il}]
-                  [{'success e1}
-                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
-               [{{'tody/arrow-list al} {'tody/var v}}
-                (match (cover/data {'lambda {a1 al}} {'var v} e)
-                  [{'fail il} {'fail il}]
-                  [{'success e1}
-                   (cover/data-list dl1 dl2 (cover/arrow a1 a2 e1))])]
-               ;; about arrow-list
-               [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
-                (cover/data-list
-                 dl1 dl2
-                 (cover/lambda {a1 al1} {a2 al2} e))]))]))
-      #+end_src
-
-***** cover/trunk/semantic
-
-      #+begin_src scheme
-      (define (cover/trunk/semantic t1 t2 e)
-        (: trunk trunk env -> report)
-        (match {t1 t2}
-          [{{a1 tody1 dl1 i1} {a2 tody2 dl2 i2}}
-           (match {tody1 tody2}
-             ;; about name
-             [{{'tody/name n} __}
-              (cover/trunk/semantic (trunk->trunk* t1 e) t2 e)]
-             [{__ {'tody/name n}}
-              (cover/trunk/semantic t1 (trunk->trunk* t2 e) e)]
-             ;; about var
-             [{{'tody/var v} __}
-              (match (compute/var v e)
-                [{'fail il} {'fail il}]
-                [{'success {(d . __) __ __}}
-                 (match d
-                   [{'arrow a}
-                    (cover/trunk/semantic
-                     {a1 {'tody/arrow-list {a}} dl1 i1} t2 e)]
-                   [{'lambda {a al}}
-                    (cover/trunk/semantic
-                     {a1 {'tody/arrow-list al} dl1 i1} t2 e)]
-                   [__
-                    {'fail {`(cover/trunk/semantic
-                              a var computes to neither arrow nor lambda
-                              (var: ,v))}}])])]
-             [{__ {'tody/var v}}
-              (match (compute/var v e)
-                [{'fail il} {'fail il}]
-                [{'success {(d . __) __ __}}
-                 (match d
-                   [{'arrow a}
-                    (cover/trunk/semantic
-                     t1 {a2 {'tody/arrow-list {a}} dl2 i2} e)]
-                   [{'lambda {a al}}
-                    (cover/trunk/semantic
-                     t1 {a2 {'tody/arrow-list al} dl2 i2} e)]
-                   [__
-                    {'fail {`(cover/trunk/semantic
-                              a var computes to neither arrow nor lambda
-                              (var: ,v))}}])])]
-             ;; about arrow-list
-             [{{'tody/arrow-list al1} {'tody/arrow-list al2}}
-              ;; recur to cover/data
-              ;; only when at least one of the trunk is reducible
-              ;; and if the arguments of this recur are both trunk
-              ;; one of them may still be reducible
-              ;; thus will get in to this branch again
-              (match {(filter-arrow-list al1 dl1 e)
-                      (filter-arrow-list al2 dl2 e)}
-                [{l1 l2}
-                 (if (not (or (eq? 1 (length l1)) (eq? 1 (length l2))))
-                   {'fail {`(cover/trunk/semantic
-                             fail both trunks are non-reducible
-                             (trunk1: ,t1)
-                             (trunk2: ,t2))}}
-                   (match {(compute/trunk t1 e)
-                           (compute/trunk t2 e)}
-                     [{{'success {(d1 . __) __ __}}
-                       {'success {(d2 . __) __ __}}}
-                      (cat ("<cover>~%"))
-                      (cover/data d1 d2 e)]
-                     [{__ __}
-                      {'fail {`(cover/trunk/semantic
-                                fail to compute/trunk one of the trunks
-                                (trunk1: ,t1)
-                                (trunk2: ,t2))}}]))])])]))
-      #+end_src
-
-*** cover/trunk/data
-
-    #+begin_src scheme
-    (define (cover/trunk/data t d e)
-      (: trunk data env -> report)
-      (match (compute/trunk t e)
-        [{'fail il}
-         {'fail (cons `(cover/trunk/data
-                        (trunk: ,t)
-                        (data: ,d))
-                      il)}]
-        [{'success e1}
-         (match (env/pop e1)
-           [{{'trunk t1} e2}
-            {'fail {`(cover/trunk/data
-                      (trunk: ,t)
-                      compute to
-                      (trunk: ,t1))}}]
-           [{d1 e2}
-            (cover/data d1 d e2)])]))
-    #+end_src
-
 * cover-check
 
 *** note
@@ -3727,20 +3723,449 @@
 
 *** note
 
-    - recur-check is done by functions
-      of type : term -> bounded-total-order-set
+    - recur-check is done by functions of type :
+      data -> bounded-total-order-set
       to use bounded-total-order-set
       is to use the infinite descent method of Fermat
 
     - recur-check is extensible
       because a list of such functions can be used to confirm descent
 
-*** >< recur-check
+    - note that
+      because of "the halting problem is undecidable"
+      so, we know that
+      for each checker
+      one can find a function which
+      will never running into infinite loop (i.e. a good function)
+      but can not pass the checker
+
+    - I merely provide two checkers for structural recursion
+      better checkers can be added
+      to make more good functions be able to written in this language
+
+*** licons
+
+***** note
+
+      #+begin_src scheme :tangle no
+      (type licons [ordered list of linearized cons])
+      #+end_src
+
+***** licons/extend-list
+
+      #+begin_src scheme
+      (define (licons/extend-list lc dl e)
+        (: licons (data ...) env -> licons)
+        (match dl
+          [{} lc]
+          [(d . r)
+           (licons/extend-list (licons/extend lc d e)
+                               r e)]))
+      #+end_src
+
+***** licons/extend
+
+      #+begin_src scheme
+      (define (licons/extend lc d e)
+        (: licons data env -> licons)
+        (match e
+          [{ds bs ns}
+           (match d
+             [{'var v} (if (var/fresh? v e)
+                         (licons/extend/one lc d e)
+                         (licons/extend lc (bs/deep bs d) e))]
+             [{'cons {n dl}} (licons/extend/one
+                              (licons/extend-list lc dl e)
+                              {'cons-name n} e)]
+             [{'bind {__ d1}} (licons/extend/one lc d1 e)]
+             [__ (licons/extend/one lc d e)])]))
+      #+end_src
+
+***** licons/extend/one
+
+      #+begin_src scheme
+      (define (licons/extend/one lc d e)
+        (: licons data env -> licons)
+        (match lc
+          [{} {d}]
+          [(d0 . r)
+           (if (licons/data-less-then d d0)
+             (cons d lc)
+             (cons d0 (licons/extend/one r d e)))]))
+      #+end_src
+
+***** licons/data-less-then
+
+      #+begin_src scheme
+      (define (licons/data-less-then d d0)
+        (: data data -> bool)
+        (match {d d0}
+          [{{'var x} {'var x0}} (string<? (sexp->string x) (sexp->string x0))]
+          [{{'var __} __} #t]
+
+          [{{'cons-name __} {'var __}} #f]
+          [{{'cons-name x} {'cons-name x0}} (string<? (sexp->string x) (sexp->string x0))]
+          [{{'cons-name __} __} #t]
+
+          [{{'arrow __} {'var __}} #f]
+          [{{'arrow __} {'cons-name __}} #f]
+          [{{'arrow x} {'arrow x0}} (string<? (sexp->string x) (sexp->string x0))]
+          [{{'arrow __} __} #t]
+
+          [{{'lambda __} {'var __}} #f]
+          [{{'lambda __} {'cons-name __}} #f]
+          [{{'lambda __} {'arrow __}} #f]
+          [{{'lambda x} {'lambda x0}} (string<? (sexp->string x) (sexp->string x0))]
+          [{{'lambda __} __} #t]
+
+          [{{'trunk x} {'trunk x0}} (string<? (sexp->string x) (sexp->string x0))]
+          [{{'trunk __} __} #f]))
+      #+end_src
+
+***** licons/less-or-equal
+
+      #+begin_src scheme
+      (define (licons/less-or-equal lc lc0)
+        (: licons licons -> bool)
+        (list-every? (lambda (x) (member x lc0)) lc))
+      #+end_src
+
+***** licons/less-then
+
+      #+begin_src scheme
+      (define (licons/less-then lc lc0)
+        (: licons licons -> bool)
+        (not (licons/less-or-equal lc0 lc)))
+      #+end_src
+
+*** structural-recur-check/all
+
+***** structural-recur-check/all
+
+      #+begin_src scheme
+      (define (structural-recur-check/all n l e)
+        (: name lambda env -> report)
+        (match l
+          [{__ al}
+           (letrec ([recur
+                     (lambda (x)
+                       (match x
+                         [{} {'success e}]
+                         [({ac sc} . r)
+                          (match (struct-rec/all/cedent n ac sc e)
+                            [{'fail il}
+                             {'fail (cons `(structural-recur-check/all
+                                            fail
+                                            (name: ,n)
+                                            (arrow: ,(list ac sc)))
+                                          il)}]
+                            [{'success __}
+                             (recur r)])]))])
+             (recur al))]))
+      #+end_src
+
+***** struct-rec/all/cedent
+
+      #+begin_src scheme
+      (define (struct-rec/all/cedent n ac sc e)
+        (: name antecedent succedent env -> report)
+        (match sc
+          [{} {'success e}]
+          [(d . r)
+           (match (struct-rec/all/data n ac d e)
+             [{'fail il} {'fail il}]
+             [{'success __} (struct-rec/all/cedent n ac r e)])]))
+      #+end_src
+
+***** struct-rec/all/data
+
+      #+begin_src scheme
+      (define (struct-rec/all/data n ac d e)
+        (: name antecedent data env -> report)
+        (match e
+          [{ds bs ns}
+           (match d
+             [{'var v}
+              (if (var/fresh? v e)
+                {'success e}
+                (struct-rec/all/data n ac (bs/deep bs d) e))]
+             [{'cons {__ dl}}
+              (struct-rec/all/cedent n ac dl e)]
+             [{'arrow a}
+              (struct-rec/all/arrow n ac a e)]
+             [{'lambda {a al}}
+              (match (struct-rec/all/arrow n ac a e)
+                [{'fail il} {'fail il}]
+                [{'success __}
+                 (struct-rec/all/arrow-list n ac al e)])]
+             [{'trunk t}
+              (struct-rec/all/trunk n ac t e)]
+             [{'bind {v d0}}
+              (struct-rec/all/data n ac d0 e)])]))
+      #+end_src
+
+***** struct-rec/all/arrow-list
+
+      #+begin_src scheme
+      (define (struct-rec/all/arrow-list n ac al e)
+        (: name antecedent (arrow ...) env -> report)
+        (match al
+          [{} {'success e}]
+          [(a . r)
+           (match (struct-rec/all/arrow n ac a e)
+             [{'fail il} {'fail il}]
+             [{'success __}
+              (struct-rec/all/arrow-list n ac r e)])]))
+      #+end_src
+
+***** struct-rec/all/arrow
+
+      #+begin_src scheme
+      (define (struct-rec/all/arrow n ac a e)
+        (: name antecedent arrow env -> report)
+        (match a
+          [{ac sc}
+           (match (struct-rec/all/cedent n ac ac e)
+             [{'fail il} {'fail il}]
+             [{'success __}
+              (struct-rec/all/cedent n ac sc e)])]))
+      #+end_src
+
+***** licons/less-then/data-list
+
+      #+begin_src scheme
+      (define (licons/less-then/data-list dl1 dl2 e)
+        (: (data ...) (data ...) env -> bool)
+        (licons/less-then
+         (licons/extend-list '() dl1 e)
+         (licons/extend-list '() dl2 e)))
+      #+end_src
+
+***** struct-rec/all/trunk
+
+      #+begin_src scheme
+      (define (struct-rec/all/trunk n ac t e)
+        (: name antecedent trunk env -> report)
+        (match t
+          [{a tody dl i}
+           (match tody
+             [{'tody/name n0}
+              (if (not (eq? n n0))
+                {'success e}
+                (if (licons/less-then/data-list dl (reverse ac) e)
+                  {'success e}
+                  {'fail {`(struct-rec/all/trunk
+                            licons1 is not less-then licons2
+                            (licons1: ,(licons/extend-list '() dl e))
+                            (licons2: ,(licons/extend-list '() (reverse ac) e)))}}))]
+             [{'tody/arrow-list al}
+              (match (cover/lambda {a al1} {a al2} e)
+                [{'fail il} {'success e}]
+                [{'success e}
+                 (if (licons/less-then/data-list dl (reverse ac) e)
+                   {'success e}
+                   {'fail {`(struct-rec/all/trunk
+                             licons1 is not less-then licons2
+                             (licons1: ,(licons/extend-list '() dl e))
+                             (licons2: ,(licons/extend-list '() (reverse ac) e)))}})])]
+             [{'tody/var v}
+              (if (var/fresh? v e)
+                {'success e}
+                (orz 'struct-rec/all/trunk
+                  ("meet non fresh var : ~a~%" v)
+                  ("trunk : ~a~%" t)))])]))
+      #+end_src
+
+*** structural-recur-check/each
+
+***** structural-recur-check/each
+
+      #+begin_src scheme
+      (define (structural-recur-check/each n l e)
+        (: name lambda env -> report)
+        (match l
+          [{__ al}
+           (letrec ([recur
+                     (lambda (x)
+                       (match x
+                         [{} {'success e}]
+                         [({ac sc} . r)
+                          (match (struct-rec/each/cedent n ac sc e)
+                            [{'fail il}
+                             {'fail (cons `(structural-recur-check/each
+                                            fail
+                                            (name: ,n)
+                                            (arrow: ,(list ac sc)))
+                                          il)}]
+                            [{'success __}
+                             (recur r)])]))])
+             (recur al))]))
+      #+end_src
+
+***** struct-rec/each/cedent
+
+      #+begin_src scheme
+      (define (struct-rec/each/cedent n ac sc e)
+        (: name antecedent succedent env -> report)
+        (match sc
+          [{} {'success e}]
+          [(d . r)
+           (match (struct-rec/each/data n ac d e)
+             [{'fail il} {'fail il}]
+             [{'success __} (struct-rec/each/cedent n ac r e)])]))
+      #+end_src
+
+***** struct-rec/each/data
+
+      #+begin_src scheme
+      (define (struct-rec/each/data n ac d e)
+        (: name antecedent data env -> report)
+        (match e
+          [{ds bs ns}
+           (match d
+             [{'var v}
+              (if (var/fresh? v e)
+                {'success e}
+                (struct-rec/each/data n ac (bs/deep bs d) e))]
+             [{'cons {__ dl}}
+              (struct-rec/each/cedent n ac dl e)]
+             [{'arrow a}
+              (struct-rec/each/arrow n ac a e)]
+             [{'lambda {a al}}
+              (match (struct-rec/each/arrow n ac a e)
+                [{'fail il} {'fail il}]
+                [{'success __}
+                 (struct-rec/each/arrow-list n ac al e)])]
+             [{'trunk t}
+              (struct-rec/each/trunk n ac t e)]
+             [{'bind {v d0}}
+              (struct-rec/each/data n ac d0 e)])]))
+      #+end_src
+
+***** struct-rec/each/arrow-list
+
+      #+begin_src scheme
+      (define (struct-rec/each/arrow-list n ac al e)
+        (: name antecedent (arrow ...) env -> report)
+        (match al
+          [{} {'success e}]
+          [(a . r)
+           (match (struct-rec/each/arrow n ac a e)
+             [{'fail il} {'fail il}]
+             [{'success __}
+              (struct-rec/each/arrow-list n ac r e)])]))
+      #+end_src
+
+***** struct-rec/each/arrow
+
+      #+begin_src scheme
+      (define (struct-rec/each/arrow n ac a e)
+        (: name antecedent arrow env -> report)
+        (match a
+          [{ac sc}
+           (match (struct-rec/each/cedent n ac ac e)
+             [{'fail il} {'fail il}]
+             [{'success __}
+              (struct-rec/each/cedent n ac sc e)])]))
+      #+end_src
+
+***** licons/less-then/each-data
+
+      #+begin_src scheme
+      (define (licons/less-then/each-data dl1 dl2 e)
+        (: (data ...) (data ...) env -> bool)
+        (null? (remove #t (map (lambda (x y)
+                                 (licons/less-then
+                                  (licons/extend '() x e)
+                                  (licons/extend '() y e)))
+                            dl1 dl2))))
+      #+end_src
+
+***** licons/less-then/each-data/info
+
+      #+begin_src scheme
+      (define (licons/less-then/each-data/info dl1 dl2 e)
+        (: (data ...) (data ...) env -> info)
+        `(licons/less-then/each-data/info
+          (dl1: ,dl1)
+          (dl2: ,dl2)
+          licons/less-then fail on
+          ,(map (lambda (result)
+                  (cdr result))
+             (filter (lambda (result)
+                       (eq? #f (car result)))
+                     (map (lambda (x y)
+                            (list (licons/less-then
+                                   (licons/extend '() x e)
+                                   (licons/extend '() y e))
+                                  x y))
+                       dl1 dl2)))))
+      #+end_src
+
+***** struct-rec/each/trunk
+
+      #+begin_src scheme
+      (define (struct-rec/each/trunk n ac t e)
+        (: name antecedent trunk env -> report)
+        (match t
+          [{a tody dl i}
+           (match tody
+             [{'tody/name n0}
+              (if (not (eq? n n0))
+                {'success e}
+                (if (licons/less-then/each-data dl (reverse ac) e)
+                  {'success e}
+                  {'fail {`(struct-rec/each/trunk
+                            fail
+                            ,(licons/less-then/each-data/info dl (reverse ac) e))}}))]
+             [{'tody/arrow-list al}
+              (match (cover/lambda {a al1} {a al2} e)
+                [{'fail il} {'success e}]
+                [{'success e}
+                 (if (licons/less-then/each-data dl (reverse ac) e)
+                   {'success e}
+                   {'fail {`(struct-rec/each/trunk
+                             fail
+                             ,(licons/less-then/each-data/info dl (reverse ac) e))}})])]
+             [{'tody/var v}
+              (if (var/fresh? v e)
+                {'success e}
+                (orz 'struct-rec/each/trunk
+                  ("meet non fresh var : ~a~%" v)
+                  ("trunk : ~a~%" t)))])]))
+      #+end_src
+
+*** get-recur-check-list
+
+    #+begin_src scheme
+    (define (get-recur-check-list)
+      (list structural-recur-check/all
+            ;; structural-recur-check/each
+            ))
+    #+end_src
+
+*** recur-check
 
     #+begin_src scheme
     (define (recur-check n l e)
       (: name lambda env -> report)
-      (match e
-        [{ds bs ns}
-         {'success e}]))
+      (recur-check/list (get-recur-check-list) n l e))
+    #+end_src
+
+*** recur-check/list
+
+    #+begin_src scheme
+    (define (recur-check/list chl n l e)
+      (: (checker ...) name lambda env -> report)
+      (recur-check/list/loop '() chl n l e))
+
+    (define (recur-check/list/loop ill chl n l e)
+      (: (info-list ...) (checker ...) name lambda env -> report)
+      (match chl
+        [{} {'fail {`(recur-check/list
+                      fail . ,ill)}}]
+        [(ch . r)
+         (match (ch n l e)
+           [{'fail il} (recur-check/list/loop (cons il ill) r n l e)]
+           [{'success e1} {'success e1}])]))
     #+end_src
