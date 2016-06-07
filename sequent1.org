@@ -23,10 +23,6 @@
 
 * note
 
-*** alternative branches
-
-    - alternative branches of a function must be disjoint
-
 *** unsatisfactory features
 
     - as a prototype implementation of an interpreter
@@ -545,6 +541,7 @@
                                ("info-list : ~a~%" il))]
                             [{'success {__ bs-antecedent2 __}}
                              (bs/commit! bs-antecedent2)
+                             ;; ------------
                              (match (pass3/cedent sc {{} (cons '(commit-point) bs) ns})
                                [{dl-sc bs-sc __}
                                 (match (type-solve/cedent (reverse dl-sc) {{} bs-sc ns})
@@ -561,13 +558,7 @@
                                         ("tsc : ~a~%" tsc)
                                         ("info-list : ~a~%" il))]
                                      [{'success {dl-tsc bs-tsc __}}
-                                      ;; (cat ("~%")
-                                      ;;      ("<-------------------->~%")
-                                      ;;      ("dl-tsc : ~a~%" dl-tsc)
-                                      ;;      ("type-dl-sc : ~a~%" type-dl-sc)
-                                      ;;      ("<-------------------->~%"))
-                                      (match (;; unify/data-list
-                                              cover/data-list
+                                      (match (cover/data-list
                                               type-dl-sc dl-tsc
                                               {'success {{} bs-tsc ns}})
                                         [{'fail il}
@@ -578,12 +569,6 @@
                                            ("info-list : ~a~%" il))]
                                         [{'success {__ bs-succedent __}}
                                          (bs/commit! bs-succedent)
-                                         ;; (cat ("~%")
-                                         ;;      ("<-------------------->~%")
-                                         ;;      ("dl-tsc : ~a~%" dl-tsc)
-                                         ;;      ("type-dl-sc : ~a~%" type-dl-sc)
-                                         ;;      ("bs-succedent : ~a~%" bs-succedent)
-                                         ;;      ("<-------------------->~%"))
                                          {(cons {'arrow {(reverse dl-ac) (reverse dl-sc)}}
                                                 ds)
                                           bs
@@ -1364,8 +1349,7 @@
               (match (compute/cedent ac {ds (cons '(commit-point) bs) ns})
                 [{'fail il} {'fail il}]
                 [{'success {ds1 bs1 ns1}}
-                 (match (;; unify/data-list
-                         cover/data-list
+                 (match (cover/data-list
                          (take ds1 alen) (take (drop ds1 alen) alen)
                          {'success
                           {(drop (drop ds1 alen) alen)
@@ -1637,8 +1621,7 @@
                   [{'fail __}
                    (orz 'filter-arrow-list ("fail to compute/cedent~%"))]
                   [{'success {ds1 bs1 ns1}}
-                   (match (;; unify/data-list
-                           cover/data-list
+                   (match (cover/data-list
                            (take ds1 alen) dl
                            {'success {(drop ds1 alen)
                                       bs1

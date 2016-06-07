@@ -101,6 +101,10 @@
     (:l null -> :l)
     (:l :r :e cons -> :l :r append :e cons))
 
+ (~ length (:t list -> natural)
+    (null -> zero)
+    (:l :e cons -> :l length succ))
+
  (app (->
        null
        zero cons
@@ -115,7 +119,8 @@
        null
        zero cons
        zero cons
-       append)))
+       append
+       length)))
 
 (eva
 
@@ -182,19 +187,19 @@
     (:m zero -> :m)
     (:m :n succ -> :m :n add succ))
 
- ;; this can not be used to prove append
- (~ add (natural natural -> natural)
-    (:m zero -> :m)
-    (zero :m -> :m)
-    (:m succ :n succ -> :m :n add succ succ))
+ ;; ;; this can not be used to prove append
+ ;; (~ add (natural natural -> natural)
+ ;;    (:m zero -> :m)
+ ;;    (zero :m -> :m)
+ ;;    (:m succ :n succ -> :m :n add succ succ))
 
- ;; this can be used to prove append
- (~ add (natural natural -> natural)
-    (:m zero -> :m)
-    (zero :m -> :m)
-    (:m succ :n succ -> :m :n add succ succ)
-    (:m :n succ -> :m :n add succ)
-    (:m succ :n -> :m :n add succ))
+ ;; ;; this can be used to prove append
+ ;; (~ add (natural natural -> natural)
+ ;;    (:m zero -> :m)
+ ;;    (zero :m -> :m)
+ ;;    (:m succ :n succ -> :m :n add succ succ)
+ ;;    (:m :n succ -> :m :n add succ)
+ ;;    (:m succ :n -> :m :n add succ))
 
  (~ mul (natural natural -> natural)
     (:m zero -> zero)
@@ -272,23 +277,12 @@
     zero (-> natural)
     succ (natural -> natural))
 
- (~ add (natural natural -> natural)
-    (:m zero -> :m)
-    (:m :n succ -> :m :n add succ))
-
- (~ mul (natural natural -> natural)
-    (:m zero -> zero)
-    (:m :n succ -> :m :n mul :m add))
-
- (~ natural-induction
-
-    ((:p : (natural -> type))
-     zero :p apply
-     ((:k : natural) :k :p apply -> :k succ :p apply)
-     (:x : natural) -> :x :p apply)
-
-    (:p :p/z :p/s zero -> :p/z)
-    (:p :p/z :p/s :k succ ->
-        :k
-        :p :p/z :p/s :k natural-induction
-        :p/s apply)))
+ (~ natural-induction ((:p : (natural -> type))
+                       zero :p apply
+                       ((:k : natural) :k :p apply -> :k succ :p apply)
+                       (:x : natural) -> :x :p apply)
+    (:q :q/z :q/s zero -> :q/z)
+    (:q :q/z :q/s :n succ ->
+        :n
+        :q :q/z :q/s :n natural-induction
+        :q/s apply)))

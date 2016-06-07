@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2016-06-02 Thu 16:09 -->
+<!-- 2016-06-07 Tue 17:17 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>example code of sequent1</title>
@@ -67,16 +67,17 @@ for the JavaScript code in this tag.
 <h2>overview</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgb419871">natural</a></li>
-<li><a href="#org8754817">add/commute by richly-defined add</a></li>
-<li><a href="#org604dc">stack processing</a></li>
-<li><a href="#orgf261d27">list</a></li>
-<li><a href="#orgb879d64">list map</a></li>
-<li><a href="#orgdaffa43">vector</a></li>
-<li><a href="#org65e77a">vector map</a></li>
-<li><a href="#orgcde334a"><span class="todo _gt__lt_">&gt;&lt;</span> associative of add</a></li>
-<li><a href="#orgab24881">natural-induction</a></li>
-<li><a href="#orgfbfcd7c"><span class="done test">test</span> recur-check</a></li>
+<li><a href="#orgc637833">natural</a></li>
+<li><a href="#org9d26eaa">add/commute by richly-defined add</a></li>
+<li><a href="#org9b7966b">stack processing</a></li>
+<li><a href="#org7810e64">list</a></li>
+<li><a href="#org789be49">list map</a></li>
+<li><a href="#org1f6568e">vector</a></li>
+<li><a href="#orgbbc5ff0">vector map</a></li>
+<li><a href="#org88a72ac"><span class="todo _gt__lt_">&gt;&lt;</span> equality</a></li>
+<li><a href="#org9788a82"><span class="todo _gt__lt_">&gt;&lt;</span> associative of add</a></li>
+<li><a href="#orgcd257a3">natural-induction</a></li>
+<li><a href="#org23644bc"><span class="done test">test</span> recur-check</a></li>
 </ul>
 </div>
 </div>
@@ -87,9 +88,9 @@ for the JavaScript code in this tag.
 
 <hr  />
 
-<div id="outline-container-orgb419871" class="outline-2">
-<h2 id="orgb419871">natural</h2>
-<div class="outline-text-2" id="text-orgb419871">
+<div id="outline-container-orgc637833" class="outline-2">
+<h2 id="orgc637833">natural</h2>
+<div class="outline-text-2" id="text-orgc637833">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -128,9 +129,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org8754817" class="outline-2">
-<h2 id="org8754817">add/commute by richly-defined add</h2>
-<div class="outline-text-2" id="text-org8754817">
+<div id="outline-container-org9d26eaa" class="outline-2">
+<h2 id="org9d26eaa">add/commute by richly-defined add</h2>
+<div class="outline-text-2" id="text-org9d26eaa">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -159,9 +160,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org604dc" class="outline-2">
-<h2 id="org604dc">stack processing</h2>
-<div class="outline-text-2" id="text-org604dc">
+<div id="outline-container-org9b7966b" class="outline-2">
+<h2 id="org9b7966b">stack processing</h2>
+<div class="outline-text-2" id="text-org9b7966b">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -195,9 +196,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgf261d27" class="outline-2">
-<h2 id="orgf261d27">list</h2>
-<div class="outline-text-2" id="text-orgf261d27">
+<div id="outline-container-org7810e64" class="outline-2">
+<h2 id="org7810e64">list</h2>
+<div class="outline-text-2" id="text-org7810e64">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -222,6 +223,10 @@ for the JavaScript code in this tag.
     <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span><span style="color: #696969;">)</span>
     <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:r</span> append <span style="color: #a6e22e;">:e</span> cons<span style="color: #696969;">))</span>
 
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> length <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t</span> list <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span>null <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:l</span> <span style="color: #a6e22e;">:e</span> cons <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:l</span> length succ<span style="color: #696969;">))</span>
+
  <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">app</span> <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
        null
        zero cons
@@ -236,15 +241,16 @@ for the JavaScript code in this tag.
        null
        zero cons
        zero cons
-       append<span style="color: #696969;">)))</span>
+       append
+       length<span style="color: #696969;">)))</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgb879d64" class="outline-2">
-<h2 id="orgb879d64">list map</h2>
-<div class="outline-text-2" id="text-orgb879d64">
+<div id="outline-container-org789be49" class="outline-2">
+<h2 id="org789be49">list map</h2>
+<div class="outline-text-2" id="text-org789be49">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -306,9 +312,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgdaffa43" class="outline-2">
-<h2 id="orgdaffa43">vector</h2>
-<div class="outline-text-2" id="text-orgdaffa43">
+<div id="outline-container-org1f6568e" class="outline-2">
+<h2 id="org1f6568e">vector</h2>
+<div class="outline-text-2" id="text-org1f6568e">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -362,9 +368,9 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org65e77a" class="outline-2">
-<h2 id="org65e77a">vector map</h2>
-<div class="outline-text-2" id="text-org65e77a">
+<div id="outline-container-orgbbc5ff0" class="outline-2">
+<h2 id="orgbbc5ff0">vector map</h2>
+<div class="outline-text-2" id="text-orgbbc5ff0">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -418,9 +424,57 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgcde334a" class="outline-2">
-<h2 id="orgcde334a"><span class="todo _gt__lt_">&gt;&lt;</span> associative of add</h2>
-<div class="outline-text-2" id="text-orgcde334a">
+<div id="outline-container-org88a72ac" class="outline-2">
+<h2 id="org88a72ac"><span class="todo _gt__lt_">&gt;&lt;</span> equality</h2>
+<div class="outline-text-2" id="text-org88a72ac">
+<ul class="org-ul">
+<li><p>I do not know how to handle equality</p></li></ul>
+
+<div class="org-src-container">
+
+<pre class="src src-scheme"><span style="color: #696969;">(</span>eva
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">+</span> natural <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+    zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
+    succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
+
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">+</span> eq <span style="color: #696969;">(</span><span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #B380A8;">}</span> <span style="color: #a6e22e;">:t</span> <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
+    refl <span style="color: #696969;">(</span><span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #B380A8;">}</span> <span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:d</span> : <span style="color: #a6e22e;">:t</span><span style="color: #B380A8;">}</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:d</span> <span style="color: #a6e22e;">:d</span> eq<span style="color: #696969;">))</span>
+
+ <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">success</span>
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> eq/test0
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ succ <span style="color: #a6e22e;">:z</span> eq<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl<span style="color: #696969;">))</span>
+
+ <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">fail</span>
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> eq/test1
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:z</span> zero succ succ eq<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl<span style="color: #696969;">)))</span>
+
+fail to cover/data-list:
+dl-tsc :
+<span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>eq <span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>succ <span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>succ <span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>zero <span style="color: #696969;">()))))))))</span>
+            <span style="color: #696969;">(</span>var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:z</span> . 3852<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>1 cons <span style="color: #696969;">(</span>natural <span style="color: #696969;">()))))</span> 0<span style="color: #696969;">))))))</span>
+
+type-dl-sc :
+<span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>eq <span style="color: #696969;">((</span>var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:d</span> . 3856<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>1 var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> . 3857<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>0 var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> . 3858<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>1 cons <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">type</span> <span style="color: #696969;">()))))</span> 0<span style="color: #696969;">))</span> <span style="color: #696969;">(</span>1 cons <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">type</span> <span style="color: #696969;">()))))</span> 0<span style="color: #696969;">))))</span> 0<span style="color: #696969;">))</span>
+            <span style="color: #696969;">(</span>var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:d</span> . 3856<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>1 var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> . 3857<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>0 var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:t</span> . 3858<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>1 cons <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">type</span> <span style="color: #696969;">()))))</span> 0<span style="color: #696969;">))</span> <span style="color: #696969;">(</span>1 cons <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">type</span> <span style="color: #696969;">()))))</span> 0<span style="color: #696969;">))))</span> 0<span style="color: #696969;">))))))</span>
+
+info-list :
+<span style="color: #696969;">(</span>cover/data
+ fail because non-var can never cover var
+ <span style="color: #696969;">(</span>pattern:
+   <span style="color: #696969;">(</span>cons <span style="color: #696969;">(</span>succ <span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>succ <span style="color: #696969;">((</span>cons <span style="color: #696969;">(</span>zero <span style="color: #696969;">())))))))))</span>
+ <span style="color: #696969;">(</span>data:
+   <span style="color: #696969;">(</span>var <span style="color: #696969;">(</span>#<span style="color: #696969;">((</span><span style="color: #a6e22e;">:z</span> . 3852<span style="color: #696969;">)</span> <span style="color: #696969;">((</span>1 cons <span style="color: #696969;">(</span>natural <span style="color: #696969;">()))))</span> 0<span style="color: #696969;">))))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9788a82" class="outline-2">
+<h2 id="org9788a82"><span class="todo _gt__lt_">&gt;&lt;</span> associative of add</h2>
+<div class="outline-text-2" id="text-org9788a82">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -440,33 +494,53 @@ for the JavaScript code in this tag.
  <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">+</span> eq <span style="color: #696969;">(</span><span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #B380A8;">}</span> <span style="color: #a6e22e;">:t</span> <span style="color: #a6e22e;">:t</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">)</span>
     refl <span style="color: #696969;">(</span><span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:t</span> : type<span style="color: #B380A8;">}</span> <span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:d</span> : <span style="color: #a6e22e;">:t</span><span style="color: #B380A8;">}</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:d</span> <span style="color: #a6e22e;">:d</span> eq<span style="color: #696969;">))</span>
 
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> eq/test0
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero succ succ <span style="color: #a6e22e;">:z</span> eq<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl<span style="color: #696969;">))</span>
+
  <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> eq/test1
-    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:z</span> zero succ succ eq
-        <span style="color: #a6e22e;">:y</span> <span style="color: #a6e22e;">:z</span> eq
-        <span style="color: #a6e22e;">:y</span> zero succ zero succ add eq<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl refl refl<span style="color: #696969;">))</span>
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:z</span> zero succ succ eq<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl<span style="color: #696969;">))</span>
 
- <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> cong
-    <span style="color: #696969;">(</span><span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:t1</span> <span style="color: #a6e22e;">:t2</span> : type<span style="color: #B380A8;">}</span> <span style="color: #B380A8;">{</span><span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> : <span style="color: #a6e22e;">:t1</span><span style="color: #B380A8;">}</span>
-     <span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> eq <span style="color: #696969;">(</span><span style="color: #a6e22e;">:f</span> : <span style="color: #696969;">(</span><span style="color: #a6e22e;">:t1</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:t2</span><span style="color: #696969;">))</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-     <span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:f</span> apply <span style="color: #a6e22e;">:y</span> <span style="color: #a6e22e;">:f</span> apply eq<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span>refl <span style="color: #a6e22e;">:f</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl<span style="color: #696969;">))</span>
+ <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(~ eq/test1</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(-&gt; :z zero succ succ eq</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">:y :z eq</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">:y zero succ zero succ add eq)</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(-&gt; refl refl refl))</span>
 
- <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> associative
-    <span style="color: #696969;">((</span><span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> <span style="color: #a6e22e;">:z</span> : natural<span style="color: #696969;">)</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-     <span style="color: #a6e22e;">:z</span> <span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> add add
-     <span style="color: #a6e22e;">:z</span> <span style="color: #a6e22e;">:y</span> add <span style="color: #a6e22e;">:x</span> add eq<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> refl<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> <span style="color: #a6e22e;">:z</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:y</span> <span style="color: #a6e22e;">:z</span> associative <span style="color: #696969;">(</span><span style="color: #a6e22e;">:n</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:n</span> succ<span style="color: #696969;">)</span> cong<span style="color: #696969;">)</span>
-    <span style="color: #696969;">))</span>
+ <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(~ cong</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">({:t1 :t2 : type} {:x :y : :t1}</span>
+ <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">:x :y eq (:f : (:t1 -&gt; :t2)) -&gt;</span>
+ <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">:x :f apply :y :f apply eq)</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(refl :f -&gt; refl))</span>
+
+ <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(~ associative</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">((:x :y :z : natural) -&gt;</span>
+ <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">:x :y :z add add</span>
+ <span style="color: #FF8888;">;;     </span><span style="color: #FF8888;">:x :y add :z add eq)</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(:x :y zero -&gt; refl)</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(:x :y :z succ -&gt; refl;;:x :y :z associative (:n -&gt; :n succ) cong</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">)</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">)</span>
+
+ <span style="color: #FF8888;">;; </span><span style="color: #FF8888;">(~ eq/test2</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(-&gt; zero succ</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">zero succ succ</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">zero succ succ succ add add</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">zero succ</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">zero succ succ add</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">zero succ succ succ add</span>
+ <span style="color: #FF8888;">;;        </span><span style="color: #FF8888;">eq)</span>
+ <span style="color: #FF8888;">;;    </span><span style="color: #FF8888;">(-&gt; refl))</span>
+ <span style="color: #696969;">)</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgab24881" class="outline-2">
-<h2 id="orgab24881">natural-induction</h2>
-<div class="outline-text-2" id="text-orgab24881">
+<div id="outline-container-orgcd257a3" class="outline-2">
+<h2 id="orgcd257a3">natural-induction</h2>
+<div class="outline-text-2" id="text-orgcd257a3">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva
@@ -475,34 +549,23 @@ for the JavaScript code in this tag.
     zero <span style="color: #696969;">(</span><span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
     succ <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">))</span>
 
- <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> add <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span><span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> add succ<span style="color: #696969;">))</span>
-
- <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> mul <span style="color: #696969;">(</span>natural natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> natural<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> zero<span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:m</span> <span style="color: #a6e22e;">:n</span> mul <span style="color: #a6e22e;">:m</span> add<span style="color: #696969;">))</span>
-
- <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> natural-induction
-
-    <span style="color: #696969;">((</span><span style="color: #a6e22e;">:p</span> : <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">))</span>
-     zero <span style="color: #a6e22e;">:p</span> apply
-     <span style="color: #696969;">((</span><span style="color: #a6e22e;">:k</span> : natural<span style="color: #696969;">)</span> <span style="color: #a6e22e;">:k</span> <span style="color: #a6e22e;">:p</span> apply <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:k</span> succ <span style="color: #a6e22e;">:p</span> apply<span style="color: #696969;">)</span>
-     <span style="color: #696969;">(</span><span style="color: #a6e22e;">:x</span> : natural<span style="color: #696969;">)</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:p</span> apply<span style="color: #696969;">)</span>
-
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:p</span> <span style="color: #a6e22e;">:p/z</span> <span style="color: #a6e22e;">:p/s</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:p/z</span><span style="color: #696969;">)</span>
-    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:p</span> <span style="color: #a6e22e;">:p/z</span> <span style="color: #a6e22e;">:p/s</span> <span style="color: #a6e22e;">:k</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
-        <span style="color: #a6e22e;">:k</span>
-        <span style="color: #a6e22e;">:p</span> <span style="color: #a6e22e;">:p/z</span> <span style="color: #a6e22e;">:p/s</span> <span style="color: #a6e22e;">:k</span> natural-induction
-        <span style="color: #a6e22e;">:p/s</span> apply<span style="color: #696969;">)))</span>
+ <span style="color: #696969;">(</span><span style="color: #f92672; font-weight: bold;">~</span> natural-induction <span style="color: #696969;">((</span><span style="color: #a6e22e;">:p</span> : <span style="color: #696969;">(</span>natural <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> type<span style="color: #696969;">))</span>
+                       zero <span style="color: #a6e22e;">:p</span> apply
+                       <span style="color: #696969;">((</span><span style="color: #a6e22e;">:k</span> : natural<span style="color: #696969;">)</span> <span style="color: #a6e22e;">:k</span> <span style="color: #a6e22e;">:p</span> apply <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:k</span> succ <span style="color: #a6e22e;">:p</span> apply<span style="color: #696969;">)</span>
+                       <span style="color: #696969;">(</span><span style="color: #a6e22e;">:x</span> : natural<span style="color: #696969;">)</span> <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:x</span> <span style="color: #a6e22e;">:p</span> apply<span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:q</span> <span style="color: #a6e22e;">:q/z</span> <span style="color: #a6e22e;">:q/s</span> zero <span style="color: #66d9ef; font-weight: bold;">-&gt;</span> <span style="color: #a6e22e;">:q/z</span><span style="color: #696969;">)</span>
+    <span style="color: #696969;">(</span><span style="color: #a6e22e;">:q</span> <span style="color: #a6e22e;">:q/z</span> <span style="color: #a6e22e;">:q/s</span> <span style="color: #a6e22e;">:n</span> succ <span style="color: #66d9ef; font-weight: bold;">-&gt;</span>
+        <span style="color: #a6e22e;">:n</span>
+        <span style="color: #a6e22e;">:q</span> <span style="color: #a6e22e;">:q/z</span> <span style="color: #a6e22e;">:q/s</span> <span style="color: #a6e22e;">:n</span> natural-induction
+        <span style="color: #a6e22e;">:q/s</span> apply<span style="color: #696969;">)))</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgfbfcd7c" class="outline-2">
-<h2 id="orgfbfcd7c"><span class="done test">test</span> recur-check</h2>
-<div class="outline-text-2" id="text-orgfbfcd7c">
+<div id="outline-container-org23644bc" class="outline-2">
+<h2 id="org23644bc"><span class="done test">test</span> recur-check</h2>
+<div class="outline-text-2" id="text-org23644bc">
 <div class="org-src-container">
 
 <pre class="src src-scheme"><span style="color: #696969;">(</span>eva

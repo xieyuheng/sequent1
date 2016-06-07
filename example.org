@@ -126,6 +126,10 @@
       (:l null -> :l)
       (:l :r :e cons -> :l :r append :e cons))
 
+   (~ length (:t list -> natural)
+      (null -> zero)
+      (:l :e cons -> :l length succ))
+
    (app (->
          null
          zero cons
@@ -140,7 +144,8 @@
          null
          zero cons
          zero cons
-         append)))
+         append
+         length)))
   #+end_src
 
 * list map
@@ -304,6 +309,48 @@
          map)))
   #+end_src
 
+* >< equality
+
+  - I do not know how to handle equality
+
+  #+begin_src scheme :tangle no
+  (eva
+
+   (+ natural (-> type)
+      zero (-> natural)
+      succ (natural -> natural))
+
+   (+ eq ({:t : type} :t :t -> type)
+      refl ({:t : type} {:d : :t} -> :d :d eq))
+
+   ;; success
+   (~ eq/test0
+      (-> zero succ succ :z eq)
+      (-> refl))
+
+   ;; fail
+   (~ eq/test1
+      (-> :z zero succ succ eq)
+      (-> refl)))
+
+  fail to cover/data-list:
+  dl-tsc :
+  ((cons (eq ((cons (succ ((cons (succ ((cons (zero ()))))))))
+              (var (#((:z . 3852) ((1 cons (natural ())))) 0))))))
+
+  type-dl-sc :
+  ((cons (eq ((var (#((:d . 3856) ((1 var (#((:t . 3857) ((0 var (#((:t . 3858) ((1 cons (type ())))) 0)) (1 cons (type ())))) 0)))) 0))
+              (var (#((:d . 3856) ((1 var (#((:t . 3857) ((0 var (#((:t . 3858) ((1 cons (type ())))) 0)) (1 cons (type ())))) 0)))) 0))))))
+
+  info-list :
+  (cover/data
+   fail because non-var can never cover var
+   (pattern:
+     (cons (succ ((cons (succ ((cons (zero ())))))))))
+   (data:
+     (var (#((:z . 3852) ((1 cons (natural ())))) 0))))
+  #+end_src
+
 * >< associative of add
 
   #+begin_src scheme :tangle no
@@ -324,25 +371,46 @@
    (+ eq ({:t : type} :t :t -> type)
       refl ({:t : type} {:d : :t} -> :d :d eq))
 
+   (~ eq/test0
+      (-> zero succ succ :z eq)
+      (-> refl))
+
    (~ eq/test1
-      (-> :z zero succ succ eq
-          :y :z eq
-          :y zero succ zero succ add eq)
-      (-> refl refl refl))
+      (-> :z zero succ succ eq)
+      (-> refl))
 
-   (~ cong
-      ({:t1 :t2 : type} {:x :y : :t1}
-       :x :y eq (:f : (:t1 -> :t2)) ->
-       :x :f apply :y :f apply eq)
-      (refl :f -> refl))
+   ;; (~ eq/test1
+   ;;    (-> :z zero succ succ eq
+   ;;        :y :z eq
+   ;;        :y zero succ zero succ add eq)
+   ;;    (-> refl refl refl))
 
-   (~ associative
-      ((:x :y :z : natural) ->
-       :z :x :y add add
-       :z :y add :x add eq)
-      (:x :y zero -> refl)
-      (:x :y :z succ -> :x :y :z associative (:n -> :n succ) cong)
-      ))
+   ;; (~ cong
+   ;;    ({:t1 :t2 : type} {:x :y : :t1}
+   ;;     :x :y eq (:f : (:t1 -> :t2)) ->
+   ;;     :x :f apply :y :f apply eq)
+   ;;    (refl :f -> refl))
+
+   ;; (~ associative
+   ;;    ((:x :y :z : natural) ->
+   ;;     :x :y :z add add
+   ;;     :x :y add :z add eq)
+   ;;    (:x :y zero -> refl)
+   ;;    (:x :y :z succ -> refl;;:x :y :z associative (:n -> :n succ) cong
+   ;;        )
+   ;;    )
+
+   ;; (~ eq/test2
+   ;;    (-> zero succ
+   ;;        zero succ succ
+   ;;        zero succ succ succ add add
+   ;;        zero succ
+   ;;        zero succ succ add
+   ;;        zero succ succ succ add
+   ;;        eq)
+   ;;    (-> refl))
+   )
+
   #+end_src
 
 * natural-induction
@@ -354,26 +422,15 @@
       zero (-> natural)
       succ (natural -> natural))
 
-   (~ add (natural natural -> natural)
-      (:m zero -> :m)
-      (:m :n succ -> :m :n add succ))
-
-   (~ mul (natural natural -> natural)
-      (:m zero -> zero)
-      (:m :n succ -> :m :n mul :m add))
-
-   (~ natural-induction
-
-      ((:p : (natural -> type))
-       zero :p apply
-       ((:k : natural) :k :p apply -> :k succ :p apply)
-       (:x : natural) -> :x :p apply)
-
-      (:p :p/z :p/s zero -> :p/z)
-      (:p :p/z :p/s :k succ ->
-          :k
-          :p :p/z :p/s :k natural-induction
-          :p/s apply)))
+   (~ natural-induction ((:p : (natural -> type))
+                         zero :p apply
+                         ((:k : natural) :k :p apply -> :k succ :p apply)
+                         (:x : natural) -> :x :p apply)
+      (:q :q/z :q/s zero -> :q/z)
+      (:q :q/z :q/s :n succ ->
+          :n
+          :q :q/z :q/s :n natural-induction
+          :q/s apply)))
   #+end_src
 
 * test recur-check
