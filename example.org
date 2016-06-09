@@ -371,46 +371,41 @@
    (+ eq ({:t : type} :t :t -> type)
       refl ({:t : type} {:d : :t} -> :d :d eq))
 
-   (~ eq/test0
-      (-> zero succ succ :z eq)
-      (-> refl))
-
-   (~ eq/test1
-      (-> :z zero succ succ eq)
-      (-> refl))
-
-   ;; (~ eq/test1
-   ;;    (-> :z zero succ succ eq
-   ;;        :y :z eq
-   ;;        :y zero succ zero succ add eq)
-   ;;    (-> refl refl refl))
-
-   ;; (~ cong
-   ;;    ({:t1 :t2 : type} {:x :y : :t1}
-   ;;     :x :y eq (:f : (:t1 -> :t2)) ->
-   ;;     :x :f apply :y :f apply eq)
-   ;;    (refl :f -> refl))
+   (~ cong
+      ({:t1 :t2 : type} {:x :y : :t1}
+       :x :y eq (:f : (:t1 -> :t2)) ->
+       :x :f apply :y :f apply eq)
+      (refl :f -> refl))
 
    ;; (~ associative
    ;;    ((:x :y :z : natural) ->
-   ;;     :x :y :z add add
-   ;;     :x :y add :z add eq)
+   ;;     :x :y add :z add
+   ;;     :x :y :z add add eq)
    ;;    (:x :y zero -> refl)
-   ;;    (:x :y :z succ -> refl;;:x :y :z associative (:n -> :n succ) cong
-   ;;        )
-   ;;    )
+   ;;    (:x :y :z succ ->
+   ;;     :x :y :z associative (lambda (natural -> natural) (:n -> :n succ)) cong))
 
-   ;; (~ eq/test2
-   ;;    (-> zero succ
-   ;;        zero succ succ
-   ;;        zero succ succ succ add add
-   ;;        zero succ
-   ;;        zero succ succ add
-   ;;        zero succ succ succ add
-   ;;        eq)
-   ;;    (-> refl))
-   )
+   ;;     (a + b) + S(c)
+   ;; =   S((a + b) + c)  [by A2]
+   ;; =   S(a + (b + c))  [by the induction hypothesis]
+   ;; =   a + S(b + c)    [by A2]
+   ;; =   a + (b + S(c))  [by A2]
 
+   ;; :x :y add :z succ add
+   ;; :x :y add :z add succ
+   ;; :x :y :z add add succ
+   ;; :x :y :z add succ add
+   ;; :x :y :z succ add add
+
+   (~ t1 ((:x :y :z : natural) ->
+          :x :y :z add add succ
+          :x :y :z succ add add eq)
+      (:x0 :y0 :z0 -> refl))
+
+   (~ t2 (->
+          zero succ
+          zero succ eq)
+      (-> refl (lambda (natural -> natural) (:n -> :n succ)) cong)))
   #+end_src
 
 * natural-induction

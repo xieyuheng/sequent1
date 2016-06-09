@@ -1593,7 +1593,8 @@
         {'fail {`(unify/trunk/data
                   (trunk: ,t)
                   compute to
-                  (trunk: ,t1))}}]
+                  (trunk: ,t1)
+                  (data: ,d))}}]
        [{d1 e2}
         (unify/data d1 d e2)])]))
 
@@ -1848,7 +1849,8 @@
         {'fail {`(cover/trunk/data
                   (trunk: ,t)
                   compute to
-                  (trunk: ,t1))}}]
+                  (trunk: ,t1)
+                  (data: ,d))}}]
        [{d1 e2}
         (cover/data d1 d e2)])]))
 
