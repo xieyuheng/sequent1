@@ -93,7 +93,7 @@
     (:m zero -> zero)
     (:m :n succ -> :m :n mul :m add))
 
- (+ list ({:t : type} :t -> type)
+ (+ list (type -> type)
     null (-> :t list)
     cons (:t list :t -> :t list))
 
@@ -136,7 +136,7 @@
     (:m zero -> zero)
     (:m :n succ -> :m :n mul :m add))
 
- (+ list ({:t : type} :t -> type)
+ (+ list (type -> type)
     null (-> :t list)
     cons (:t list :t -> :t list))
 
@@ -169,7 +169,7 @@
          (zero -> zero succ))
        map))
 
- (+ has-length ({:t : type} :t list natural -> type)
+ (+ has-length (:t list natural -> type)
     null/has-length (-> null zero has-length)
     cons/has-length (:l :n has-length -> :l :a cons :n succ has-length))
 
@@ -205,7 +205,7 @@
     (:m zero -> zero)
     (:m :n succ -> :m :n mul :m add))
 
- (+ vector ({:t : type} natural :t -> type)
+ (+ vector (natural type -> type)
     null (-> zero :t vector)
     cons (:n :t vector :t -> :n succ :t vector))
 
@@ -238,7 +238,7 @@
     (:m zero -> zero)
     (:m :n succ -> :m :n mul :m add))
 
- (+ vector ({:t : type} natural :t -> type)
+ (+ vector (natural type -> type)
     null (-> zero :t vector)
     cons (:n :t vector :t -> :n succ :t vector))
 
