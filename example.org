@@ -1,4 +1,4 @@
-#+HTML_HEAD: <link rel="stylesheet" href="http://xieyuheng.github.io/asset/css/page.css" type="text/css" media="screen" />
+#+HTML_HEAD: <link rel="stylesheet" href="https://xieyuheng.github.io/asset/css/page.css" type="text/css" media="screen" />
 #+PROPERTY: tangle example.scm
 #+title: example code of sequent1
 
@@ -449,4 +449,21 @@
 
    (~ add (natural natural -> natural)
       (:m :n -> :m :n add succ)))
+  #+end_src
+
+* torus
+
+  #+begin_src scheme
+  (* torus (-> type)
+     t (-> torus)
+     p (t => t)
+     q (t => t)
+     h (p q => q p))
+
+  (* circle (-> type)
+     c (-> circle)
+     l (c => c))
+
+  (~ ? (circle circle <-> torus)
+     t -> )
   #+end_src
