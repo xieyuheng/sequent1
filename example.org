@@ -451,9 +451,9 @@
       (:m :n -> :m :n add succ)))
   #+end_src
 
-* torus
+* >< torus
 
-  #+begin_src scheme
+  #+begin_src scheme :tangle no
   (* torus (-> type)
      t (-> torus)
      p (t => t)
